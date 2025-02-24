@@ -13,7 +13,13 @@ export interface IUser extends Document {
   balance: number;
   hierarchyLevel: number;
   commissionEarned: number;
+  equityUnits: number; 
   isAdmin: boolean;
+  equityOwnership: Array<{
+    packageId: Schema.Types.ObjectId;
+    units: number;
+    purchaseDate: Date;
+  }>;
 }
 
 
@@ -27,8 +33,13 @@ const UserSchema: Schema = new Schema({
   balance: { type: Number, default: 0 },
   hierarchyLevel: { type: Number, default: 0 },
   commissionEarned: { type: Number, default: 0 },
+  equityUnits: { type: Number, default: 0 },
   isAdmin: { type: Boolean, default: false },
-  
+  equityOwnership: [{
+    packageId: { type: Schema.Types.ObjectId, ref: 'EquityPackage' },
+    units: { type: Number, required: true },
+    purchaseDate: { type: Date, default: Date.now }
+  }]
 });
 
 UserSchema.virtual('referralHierarchy', {

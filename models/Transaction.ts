@@ -6,7 +6,7 @@ await dbConnect();
 export interface ITransaction extends Document {
   userId: mongoose.Types.ObjectId;
   amount: number;
-  type: 'purchase' | 'commission';
+  type: 'deposit' | 'purchase' | 'commission' | 'equity_purchase'| 'cash_to_equity';
   equityUnits: number;
   referralLevel?: number;
   createdAt: Date;
@@ -15,8 +15,12 @@ export interface ITransaction extends Document {
 const TransactionSchema: Schema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   amount: { type: Number, required: true },
-  type: { type: String, enum: ['purchase', 'commission'], required: true },
-  equityUnits: { type: Number, required: true },
+  type: { 
+    type: String, 
+    enum: ['deposit', 'purchase', 'commission', 'equity_purchase', 'cash_to_equity'], 
+    required: true 
+  },  
+  equityUnits: { type: Number, required: true, default: 0 },
   referralLevel: Number,
   createdAt: { type: Date, default: Date.now }
 });

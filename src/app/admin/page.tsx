@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import EquityPackages from '../components/EquityPackages';
+import AdminEquityTracking from '../components/AdminEquityTracking';
+import CreateEquityPackageForm from '../components/CreateEquityPackageForm';
 
 interface User {
   _id: string;
@@ -86,6 +89,17 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
+      </div>
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Equity Packages</h2>
+        <CreateEquityPackageForm />
+        <EquityPackages />
+      </div>
+
+      {/* Equity Ownership Tracking */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Equity Ownership</h2>
+        <AdminEquityTracking />
       </div>
     </div>
   );

@@ -72,7 +72,9 @@ export async function GET(
       };
     };
 
-    const hierarchy = await buildTree(params.userId);
+    const { userId } = await params; // Await the params object
+const hierarchy = await buildTree(userId);
+
     
     if (!hierarchy) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

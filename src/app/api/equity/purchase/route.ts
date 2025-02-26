@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       console.log(`Before Purchase: Available Units = ${equityPackage.availableUnits}`);
 
       if (equityPackage.availableUnits < numericUnits) {
-        throw new Error('Insufficient equity units available');
+        throw new Error('Insufficient equity units available in the package');
       }
 
       // Fetch User
@@ -49,37 +49,52 @@ export async function POST(req: NextRequest) {
         throw new Error('User not found');
       }
 
+      // Get cost per unit
+      const costPerUnit = equityPackage.equityUnits; // This is the price per equity unit
+
+      // Calculate total cost
+      const totalCost = numericUnits * costPerUnit;
+
+      // Ensure user has enough equity units
+      if (user.equityUnits < totalCost) {
+        throw new Error(`Insufficient equity units. Required: ${totalCost}, Available: ${user.equityUnits}`);
+      }
+
+      // Deduct the correct amount from user's equity balance
+      user.equityUnits -= totalCost;
+
       // Deduct units from package
       equityPackage.availableUnits -= numericUnits;
       await equityPackage.save({ session });
 
       console.log(`After Purchase: Available Units = ${equityPackage.availableUnits}`);
 
-      // Add equity units to user
-      user.equityOwnership.push({
-        packageId: equityPackage._id,
-        units: numericUnits,
-        purchaseDate: new Date(),
-      });
+      // Check if user already owns equity in this package
+      const existingEquity = user.equityOwnership.find(
+        (ownership) => ownership.packageId.toString() === packageId
+      );
+
+      if (existingEquity) {
+        existingEquity.units += numericUnits;
+      } else {
+        user.equityOwnership.push({
+          packageId: equityPackage._id,
+          units: numericUnits,
+          purchaseDate: new Date(),
+        });
+      }
 
       await user.save({ session });
 
-      // Create equity purchase transaction
+      // Create equity transaction (recording equity purchase)
       const transaction = new Transaction({
         userId: user._id,
         type: 'equity_purchase',
         equityUnits: numericUnits,
-        amount: 0, // No direct price involved, only equity units
-        description: `Purchased ${numericUnits} equity units from ${equityPackage.name}`,
+        amount: -totalCost, // Deducted equity units
+        description: `Purchased ${numericUnits} equity units from ${equityPackage.name} (Cost per unit: ${costPerUnit})`,
       });
       await transaction.save({ session });
-
-      // **Force an update to the package to ensure units are deducted**
-      await EquityPackage.updateOne(
-        { _id: equityPackage._id },
-        { $inc: { availableUnits: -numericUnits } },
-        { session }
-      );
 
       // Commit transaction
       await session.commitTransaction();
@@ -88,6 +103,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         message: `Successfully purchased ${numericUnits} equity units`,
+        newEquityBalance: user.equityUnits,
         newEquityOwnership: user.equityOwnership,
       });
 
@@ -101,3 +117,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+

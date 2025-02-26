@@ -75,8 +75,8 @@ export default function Home() {
           <CommissionHistory />
           <EquitySummary user={user} />
           <BuyEquityUnitsForm />
-          <UseEquityForm />
-          <EquityPurchaseForm />
+          {/* <UseEquityForm /> */}
+          {/* <EquityPurchaseForm /> */}
           <EquityPackages/>
         </div>
       )}

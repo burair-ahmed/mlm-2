@@ -69,7 +69,7 @@ export default function EquityPackagesList() {
               <td className="py-2 px-4">{pkg.name}</td>
               <td className="py-2 px-4">{pkg.totalUnits}</td>
               <td className="py-2 px-4">{pkg.availableUnits}</td>
-              <td className="py-2 px-4">${pkg.equityUnits}</td>
+              <td className="py-2 px-4"> {pkg.equityUnits} Equity Units</td>
               <td className="py-2 px-4">
                 <button
                   className="bg-blue-500 text-white px-3 py-1 rounded"
@@ -90,7 +90,7 @@ export default function EquityPackagesList() {
             <h3 className="text-xl font-semibold">{selectedPackage.name}</h3>
             <p><strong>Total Units:</strong> {selectedPackage.totalUnits}</p>
             <p><strong>Available Units:</strong> {selectedPackage.availableUnits}</p>
-            <p><strong>Equity Price:</strong> ${selectedPackage.equityUnits}</p>
+            <p><strong>Equity Price:</strong> {selectedPackage.equityUnits} Equity Units</p>
 
             <h4 className="mt-4 font-semibold">Owners:</h4>
             <table className="w-full border mt-2">

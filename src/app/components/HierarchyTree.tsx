@@ -52,7 +52,7 @@ export default function HierarchyTree() {
           nodeSize={{ x: 200, y: 150 }}
           renderCustomNodeElement={({ nodeDatum }) => (
             <g>
-              <circle r="25" fill="#00a884" stroke="#1e3a8a" strokeWidth="2" />
+              <circle r="25" fill="#00a884" stroke="#000" strokeWidth="2" />
               <text
                 x="0"
                 y="50"
@@ -67,7 +67,7 @@ export default function HierarchyTree() {
                 x="0"
                 y="70"
                 textAnchor="middle"
-                fill="#4b5563"
+                fill="#ea5d0c"
                 fontSize="12"
               >
                 ${nodeDatum.attributes.balance.toFixed(2)}
@@ -76,7 +76,7 @@ export default function HierarchyTree() {
                 x="0"
                 y="90"
                 textAnchor="middle"
-                fill="#6b7280"
+                fill="#ea5d0c"
                 fontSize="10"
               >
                 {nodeDatum.attributes.referralCode}

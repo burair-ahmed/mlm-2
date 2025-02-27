@@ -70,9 +70,10 @@ export async function POST(req: NextRequest) {
       console.log(`After Purchase: Available Units = ${equityPackage.availableUnits}`);
 
       // Check if user already owns equity in this package
-      const existingEquity = user.equityOwnership.find(
-        (ownership) => ownership.packageId.toString() === packageId
+      const existingEquity = user.equityOwnership.find((ownership: { packageId: mongoose.Types.ObjectId; units: number; purchaseDate: Date }) => 
+        ownership.packageId.toString() === packageId
       );
+      
 
       if (existingEquity) {
         existingEquity.units += numericUnits;

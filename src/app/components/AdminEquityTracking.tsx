@@ -8,7 +8,7 @@ interface EquityOwnership {
     packageId: {
       _id: string;
       name: string;
-      pricePerUnit: number;
+      equityUnits: number;
     };
     units: number;
   }> | null; // Ensure it can be null
@@ -67,32 +67,35 @@ export default function AdminEquityTracking() {
           </tr>
         </thead>
         <tbody>
-          {equityData.length > 0 ? (
-            equityData.map((user) =>
-              user.equityOwnership && Array.isArray(user.equityOwnership) ? (
-                user.equityOwnership.map((ownership, i) => (
-                  <tr key={`${user._id}-${i}`} className="border-t">
-                    <td className="py-2">{user.email}</td>
-                    <td className="py-2">{ownership.packageId.name}</td>
-                    <td className="py-2">{ownership.units}</td>
-                    <td className="py-2">
-                      ${(ownership.units * ownership.packageId.pricePerUnit).toFixed(2)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr key={user._id} className="border-t">
-                  <td className="py-2">{user.email}</td>
-                  <td colSpan={3} className="py-2 text-center">No ownership data</td>
-                </tr>
-              )
-            )
-          ) : (
-            <tr>
-              <td colSpan={4} className="text-center py-4">No equity ownership data found.</td>
-            </tr>
-          )}
-        </tbody>
+  {equityData.length > 0 ? (
+    equityData.map((user) =>
+      user.equityOwnership && Array.isArray(user.equityOwnership) ? (
+        user.equityOwnership.map((ownership, i) => (
+          <tr key={`${user._id}-${i}`} className="border-t">
+            <td className="py-2">{user.email}</td>
+            <td className="py-2">{ownership.packageId ? ownership.packageId.name : 'Unknown Package'}</td>
+            <td className="py-2">{ownership.units}</td>
+            <td className="py-2">
+  {ownership.packageId && ownership.packageId.equityUnits
+    ? `$${(ownership.units * ownership.packageId.equityUnits).toFixed(2)}`
+    : 'N/A'}
+</td>
+          </tr>
+        ))
+      ) : (
+        <tr key={user._id} className="border-t">
+          <td className="py-2">{user.email}</td>
+          <td colSpan={3} className="py-2 text-center">No ownership data</td>
+        </tr>
+      )
+    )
+  ) : (
+    <tr>
+      <td colSpan={4} className="text-center py-4">No equity ownership data found.</td>
+    </tr>
+  )}
+</tbody>
+
       </table>
     </div>
   );

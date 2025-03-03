@@ -1,29 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../../../../lib/dbConnect';
-import User from '../../../../../models/User';
+import User, { IUser } from '../../../../../models/User';
 import EquityPackage from '../../../../../models/EquityPackage';
 import { authenticate } from '../../../../../middleware/auth';
+import mongoose from 'mongoose';
 
 export async function GET(req: NextRequest) {
+  // Authenticate user
   const auth = await authenticate(req);
   if (auth instanceof NextResponse || !auth.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   await dbConnect();
-
   try {
+
     // Fetch all equity packages
     const equityPackages = await EquityPackage.find().lean();
 
-    // Fetch users and populate their equity ownership
+    // Fetch all users and their equity ownership
     const users = await User.find({}, 'email equityOwnership')
-      .populate('equityOwnership.packageId', 'name equityUnits')
+      .populate('equityOwnership.packageId', 'name equityUnits totalUnits')
       .lean();
 
     // Format packages with their owners
     const formattedPackages = equityPackages.map((pkg) => {
-      // Get all owners for this package
+      // Get owners for this package
       const owners = users
         .filter((user) =>
           Array.isArray(user.equityOwnership) &&
@@ -50,9 +52,18 @@ export async function GET(req: NextRequest) {
       return {
         packageId: pkg._id.toString(),
         name: pkg.name,
+        category: pkg.category,
         totalUnits: pkg.totalUnits,
         availableUnits: pkg.availableUnits,
         equityUnits: pkg.equityUnits,
+        duration: pkg.category !== 'trading' ? pkg.duration : undefined,
+        returnType: pkg.category !== 'trading' ? pkg.returnType : undefined,
+        reinvestmentAllowed: pkg.category !== 'trading' ? pkg.reinvestmentAllowed : undefined,
+        exitPenalty: pkg.category !== 'trading' ? pkg.exitPenalty : undefined,
+        minHoldingPeriod: pkg.category === 'long-term' ? pkg.minHoldingPeriod : undefined,
+        resaleAllowed: pkg.resaleAllowed,
+        lifespan: pkg.category === 'trading' ? pkg.lifespan : undefined,
+        depreciationModel: pkg.category === 'trading' ? pkg.depreciationModel : undefined,
         owners,
       };
     });
@@ -60,9 +71,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(formattedPackages);
   } catch (error) {
     console.error('Error fetching equity packages:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

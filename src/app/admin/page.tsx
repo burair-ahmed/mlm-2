@@ -6,6 +6,7 @@ import EquityPackages from '../components/EquityPackages';
 import AdminEquityTracking from '../components/AdminEquityTracking';
 import CreateEquityPackageForm from '../components/CreateEquityPackageForm';
 import EquityPackageList from '../components/EquityPackageList';
+import AdminEquityPanel from '../components/AdminEquityPanel';
 
 interface User {
   _id: string;
@@ -96,6 +97,7 @@ export default function AdminDashboard() {
         <CreateEquityPackageForm />
         {/* <EquityPackages /> */}
               <EquityPackageList/>
+              <AdminEquityPanel/>
       </div>
 
       {/* Equity Ownership Tracking */}

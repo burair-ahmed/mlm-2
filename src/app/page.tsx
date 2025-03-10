@@ -15,6 +15,7 @@ import AccountOverview from "./components/AccountOverview";
 import ReferralInfo from "./components/ReferralInfo";
 import EquitySummary from "./components/EquitySummary";
 import EquityPackages from './components/EquityPackages';
+import UserEquityPackages from './components/UserEquityPackages';
 
 export default function Home() {
   const { user, logout, loading } = useAuth();
@@ -75,6 +76,7 @@ export default function Home() {
           <CommissionHistory />
           <EquitySummary user={user} />
           <BuyEquityUnitsForm />
+          <UserEquityPackages/>
           {/* <UseEquityForm /> */}
           {/* <EquityPurchaseForm /> */}
           <EquityPackages/>

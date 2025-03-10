@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     // Validate input
     if (isNaN(numericUnits) || numericUnits <= 0) {
-      return NextResponse.json({ error: "Invalid units" }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid units' }, { status: 400 });
     }
 
     // Connect to DB
@@ -50,18 +50,16 @@ export async function POST(req: NextRequest) {
       }
 
       // Get cost per unit
-      const costPerUnit = equityPackage.equityUnits; // This is the price per equity unit
-
-      // Calculate total cost
+      const costPerUnit = equityPackage.equityUnits; // Price per unit
       const totalCost = numericUnits * costPerUnit;
 
-      // Ensure user has enough equity units
-      if (user.equityUnits < totalCost) {
-        throw new Error(`Insufficient equity units. Required: ${totalCost}, Available: ${user.equityUnits}`);
+      // Ensure user has enough balance
+      if (user.balance < totalCost) {
+        throw new Error(`Insufficient balance. Required: ${totalCost}, Available: ${user.balance}`);
       }
 
-      // Deduct the correct amount from user's equity balance
-      user.equityUnits -= totalCost;
+      // Deduct balance from user
+      user.balance -= totalCost;
 
       // Deduct units from package
       equityPackage.availableUnits -= numericUnits;
@@ -70,10 +68,10 @@ export async function POST(req: NextRequest) {
       console.log(`After Purchase: Available Units = ${equityPackage.availableUnits}`);
 
       // Check if user already owns equity in this package
-      const existingEquity = user.equityOwnership.find((ownership: { packageId: mongoose.Types.ObjectId; units: number; purchaseDate: Date }) => 
-        ownership.packageId.toString() === packageId
+      const existingEquity = user.equityOwnership.find(
+        (ownership: { packageId: mongoose.Types.ObjectId; units: number; purchaseDate: Date }) =>
+          ownership.packageId.toString() === packageId
       );
-      
 
       if (existingEquity) {
         existingEquity.units += numericUnits;
@@ -91,8 +89,7 @@ export async function POST(req: NextRequest) {
       const transaction = new Transaction({
         userId: user._id,
         type: 'equity_purchase',
-        equityUnits: numericUnits,
-        amount: -totalCost, // Deducted equity units
+        amount: -totalCost, // Deducted amount
         description: `Purchased ${numericUnits} equity units from ${equityPackage.name} (Cost per unit: ${costPerUnit})`,
       });
       await transaction.save({ session });
@@ -104,7 +101,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         message: `Successfully purchased ${numericUnits} equity units`,
-        newEquityBalance: user.equityUnits,
+        newBalance: user.balance,
         newEquityOwnership: user.equityOwnership,
       });
 
@@ -118,5 +115,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-

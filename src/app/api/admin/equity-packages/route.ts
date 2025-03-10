@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../../../../lib/dbConnect';
-import User, { IUser } from '../../../../../models/User';
+import User from '../../../../../models/User';
 import EquityPackage from '../../../../../models/EquityPackage';
 import { authenticate } from '../../../../../middleware/auth';
-import mongoose from 'mongoose';
 
 export async function GET(req: NextRequest) {
   // Authenticate user

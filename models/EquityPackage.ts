@@ -9,7 +9,7 @@ export interface IEquityPackage extends Document {
   totalUnits: number;
   availableUnits: number;
   equityUnits: number;
-  duration?: { value: number; unit: 'days' | 'weeks' | 'months' | 'years' };
+  duration?: { value: number; unit: 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years' };
   returnType?: 'fixed' | 'performance-based' | 'both';
   reinvestmentAllowed?: boolean;
   exitPenalty?: number;
@@ -28,7 +28,7 @@ const EquityPackageSchema: Schema = new Schema({
   equityUnits: { type: Number, required: true },
   duration: {
     value: { type: Number },
-    unit: { type: String, enum: ['days', 'weeks', 'months', 'years'] },
+    unit: { type: String, enum: ['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'] },
   },
   returnType: { type: String, enum: ['fixed', 'performance-based', 'both'] },
   reinvestmentAllowed: { type: Boolean, default: false },

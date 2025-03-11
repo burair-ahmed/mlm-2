@@ -2,130 +2,115 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import User from '../../../../../models/User';
 import Transaction from '../../../../../models/Transaction';
+import ShortTermPackage from '../../../../../models/ShortTermPackage';
+import LongTermPackage from '../../../../../models/LongTermPackage';
+import TradingPackage from '../../../../../models/TradingPackage';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
-import { COMMISSION_LEVELS } from '../../../../../config/commissions';
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Authentication
+    // 1. Authenticate user
     const auth = await authenticate(req);
-    if (auth instanceof NextResponse) return auth;
+console.log("Auth Result:", auth);
+if (auth instanceof NextResponse) return auth;
 
-    // 2. Database connection
+
+    // 2. Connect to database
     await dbConnect();
 
-    // 3. Request validation
-    const { amount } = await req.json();
-    const numericAmount = parseFloat(amount);
-    
-    if (isNaN(numericAmount)) {
-      return NextResponse.json({ error: 'Invalid amount format' }, { status: 400 });
-    }
-    
-    if (numericAmount <= 0) {
-      return NextResponse.json({ error: 'Amount must be positive' }, { status: 400 });
+    // 3. Parse request data
+    const { packageId, packageType, quantity } = await req.json();
+    console.log("📩 Request Data:", { packageId, packageType, quantity });
+
+    if (!packageId || !packageType || !quantity || quantity <= 0) {
+      return NextResponse.json({ error: 'Invalid input data' }, { status: 400 });
     }
 
-    // 4. Transaction setup
+    // 4. Determine package model based on type
+    const packageModels: { [key: string]: any } = {
+      'short-term': ShortTermPackage,
+      'long-term': LongTermPackage,
+      'trading': TradingPackage,
+    };
+
+    const PackageModel = packageModels[packageType];
+    if (!PackageModel) {
+      return NextResponse.json({ error: 'Invalid package type' }, { status: 400 });
+    }
+
+    // 5. Start MongoDB transaction
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      // 5. Check user balance (if needed)
+      // 6. Fetch package details
+      const selectedPackage = await PackageModel.findById(packageId).session(session);
+      if (!selectedPackage) {
+        throw new Error('Package not found');
+      }
+
+      // 7. Calculate total equity units required
+      const totalEquityUnits = selectedPackage.equityUnits * quantity;
+
+      // 8. Fetch user details
       const user = await User.findById(auth._id).session(session);
       if (!user) {
         throw new Error('User not found');
       }
 
-      // 6. Create purchase transaction
+      // 9. Check if user has enough equity units
+      if (user.equityUnits < totalEquityUnits) {
+        return NextResponse.json({ error: 'Insufficient equity units' }, { status: 400 });
+      }
+
+      // 10. Check if enough units are available
+      if (selectedPackage.availableUnits < quantity) {
+        return NextResponse.json({ error: 'Not enough available units' }, { status: 400 });
+      }
+
+      // 11. Deduct equity units from user
+      await User.findByIdAndUpdate(
+        auth._id,
+        { $inc: { equityUnits: -totalEquityUnits } },
+        { session }
+      );
+
+      // 12. Reduce available units in the package
+      await PackageModel.findByIdAndUpdate(
+        packageId,
+        { $inc: { availableUnits: -quantity } },
+        { session }
+      );
+
+      // 13. Create transaction record
       const purchaseTx = new Transaction({
         userId: auth._id,
-        amount: -numericAmount,
+        packageId: packageId,
+        packageType: packageType,
+        quantity: quantity,
+        equityUnits: totalEquityUnits,
+        amount: 0, // No fiat currency, only equity units
         type: 'purchase',
-        equityUnits: numericAmount || 0,
-        description: `Equity purchase of $${numericAmount.toFixed(2)}`,
-        status: 'pending'
+        description: `Purchased ${quantity} units of ${selectedPackage.name}`,
+        status: 'completed',
       });
       await purchaseTx.save({ session });
 
-      // 7. Update user balance
-      const updatedUser = await User.findByIdAndUpdate(
-        auth._id,
-        { $inc: { balance: -numericAmount } },
-        { new: true, session }
-      );
-
-      if (!updatedUser) {
-        throw new Error('User balance update failed');
-      }
-
-      // 8. Commission calculation
-      let currentUser = auth;
-      const commissionResults = [];
-
-      for (const level of COMMISSION_LEVELS) {
-        if (!currentUser.referredBy) break;
-
-        const referrer = await User.findById(currentUser.referredBy).session(session);
-        if (!referrer) break;
-
-        const commission = numericAmount * level.rate;
-
-        // Update referrer's balance
-        await User.findByIdAndUpdate(
-          referrer._id,
-          { 
-            $inc: { 
-              balance: commission,
-              totalCommissionEarned: commission
-            }
-          },
-          { session }
-        );
-
-        // Create commission transaction
-        const commissionTx = new Transaction({
-          userId: referrer._id,
-          amount: commission,
-          type: 'commission',
-          equityUnits: 0,
-          level: level.level,
-          sourceUser: auth._id,
-          description: `Level ${level.level} commission (${level.rate * 100}%) from ${auth.email}`,
-          status: 'completed'
-        });
-        await commissionTx.save({ session });
-
-        commissionResults.push({
-          level: level.level,
-          userId: referrer._id,
-          amount: commission
-        });
-
-        currentUser = referrer;
-      }
-
-      // 9. Finalize transaction
+      // 14. Commit transaction
       await session.commitTransaction();
-      
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: true,
         message: 'Purchase successful',
-        amount: numericAmount,
-        newBalance: updatedUser.balance,
-        commissions: commissionResults,
-        commissionLevelsApplied: commissionResults.length
+        quantity: quantity,
+        newEquityUnits: user.equityUnits - totalEquityUnits,
       });
 
     } catch (error) {
       await session.abortTransaction();
       console.error('Transaction failed:', error);
       return NextResponse.json(
-        { 
-          error: 'Transaction processing failed',
-          message: error instanceof Error ? error.message : 'Unknown error'
-        },
+        { error: 'Transaction failed', message: error instanceof Error ? error.message : 'Unknown error' },
         { status: 500 }
       );
     } finally {
@@ -135,10 +120,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Server error:', error);
     return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

@@ -8,6 +8,7 @@ import CreateEquityPackageForm from '../components/CreateEquityPackageForm';
 import EquityPackageList from '../components/EquityPackageList';
 import AdminEquityPanel from '../components/AdminEquityPanel';
 import AdminEquityPackageForm from '../components/AdminEquityPackageForm';
+import AdminEquityPackages from '../components/AdminEquityPackages';
 
 interface User {
   _id: string;
@@ -95,7 +96,8 @@ export default function AdminDashboard() {
       </div>
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Equity Packages</h2>
-        <CreateEquityPackageForm />
+        <AdminEquityPackages/>
+        {/* <CreateEquityPackageForm /> */}
         <AdminEquityPackageForm/>
         {/* <EquityPackages /> */}
               <EquityPackageList/>

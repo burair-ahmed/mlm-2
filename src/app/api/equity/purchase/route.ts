@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import User from '../../../../../models/User';
 import Transaction from '../../../../../models/Transaction';
-import EquityPackage from '../../../../../models/EquityPackage';
+import ShortTermPackage from '../../../../../models/ShortTermPackage';
+import LongTermPackage from '../../../../../models/LongTermPackage';
+import TradingPackage from '../../../../../models/TradingPackage';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
 
@@ -31,8 +33,15 @@ export async function POST(req: NextRequest) {
     session.startTransaction();
 
     try {
-      // Fetch Equity Package
-      const equityPackage = await EquityPackage.findById(packageId).session(session);
+      // Determine the correct package model
+      let equityPackage;
+      equityPackage = await ShortTermPackage.findById(packageId).session(session);
+      if (!equityPackage) {
+        equityPackage = await LongTermPackage.findById(packageId).session(session);
+      }
+      if (!equityPackage) {
+        equityPackage = await TradingPackage.findById(packageId).session(session);
+      }
       if (!equityPackage) {
         throw new Error('Equity package not found');
       }

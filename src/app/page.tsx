@@ -16,6 +16,7 @@ import ReferralInfo from "./components/ReferralInfo";
 import EquitySummary from "./components/EquitySummary";
 import EquityPackages from './components/EquityPackages';
 import UserEquityPackages from './components/UserEquityPackages';
+import UserInvestments from './components/UserInvestments';
 
 export default function Home() {
   const { user, logout, loading } = useAuth();
@@ -70,16 +71,17 @@ export default function Home() {
             <h3 className="text-lg font-semibold mb-4">Referral Hierarchy</h3>
             <HierarchyTree />
           </div>
-          <PurchaseForm />
+          {/* <PurchaseForm /> */}
           <DepositForm />
-          <TransactionHistory />
-          <CommissionHistory />
-          <EquitySummary user={user} />
           <BuyEquityUnitsForm />
           {/* <UserEquityPackages/> */}
           {/* <UseEquityForm /> */}
           {/* <EquityPurchaseForm /> */}
+          <EquitySummary user={user} />
           <EquityPackages/>
+          <UserInvestments/>
+          <TransactionHistory />
+          <CommissionHistory />
         </div>
       )}
     </div>

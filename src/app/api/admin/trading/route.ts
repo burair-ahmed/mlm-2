@@ -11,9 +11,7 @@ export async function POST(req: NextRequest) {
 
     console.log("Recieved Body:", body)
     if (
-      !body.name || !body.totalUnits || !body.availableUnits || !body.equityUnits ||
-      !body.lifespan || !body.returnType || !body.returnPercentage ||
-      !body.depreciationModel || !body.depreciationPercentage || !body.packageDuration
+      !body.name || !body.totalUnits || !body.availableUnits || !body.equityUnits || !body.returnPercentage 
     ) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }

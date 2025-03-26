@@ -41,7 +41,7 @@ const LongTermRental: Model<ILongTermRental> =
 // Long-Term Industries Schema
 export interface ILongTermIndustry extends Document {
   name: string;
-  category: 'property' | 'cottage-industry' | 'processing-plant';
+  category: 'property' | 'cottage-industry' | 'processing-plant' | 'restaurant' | 'banquet';
   totalUnits: number;
   availableUnits: number;
   equityUnits: number;
@@ -57,7 +57,7 @@ export interface ILongTermIndustry extends Document {
 
 const LongTermIndustrySchema: Schema = new Schema({
   name: { type: String, required: true },
-  category: { type: String, enum: ['property', 'cottage-industry', 'processing-plant'], required: true },
+  category: { type: String, enum: ['property', 'cottage-industry', 'processing-plant', 'restaurant', 'banquet'], required: true },
   totalUnits: { type: Number, required: true },
   availableUnits: { type: Number, required: true },
   equityUnits: { type: Number, required: true },

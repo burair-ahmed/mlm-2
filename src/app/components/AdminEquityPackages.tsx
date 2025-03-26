@@ -10,14 +10,14 @@ const AdminEquityPackages = () => {
       <h2 className="text-2xl font-bold mb-4">Manage Equity Packages</h2>
       <Tabs defaultValue="short-term" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="short-term">Short-Term Packages</TabsTrigger>
+          {/* <TabsTrigger value="short-term">Short-Term Packages</TabsTrigger> */}
           <TabsTrigger value="long-term">Long-Term Packages</TabsTrigger>
           <TabsTrigger value="trading">Trading Packages</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="short-term">
+        {/* <TabsContent value="short-term">
           <ShortTermPackageForm />
-        </TabsContent>
+        </TabsContent> */}
         <TabsContent value="long-term">
           <LongTermPackageForm />
         </TabsContent>

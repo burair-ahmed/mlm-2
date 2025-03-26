@@ -23,7 +23,7 @@ interface LongTermRentalFormData {
 
 interface LongTermIndustryFormData {
   name: string;
-  category: "property" | "cottage-industry" | "processing-plant";
+  category: "property" | "cottage-industry" | "processing-plant" | "restaurant" | "banquet";
   totalUnits: number;
   availableUnits: number;
   equityUnits: number;
@@ -213,6 +213,8 @@ const LongTermIndustryForm = () => {
           <SelectItem value="property">Property</SelectItem>
           <SelectItem value="cottage-industry">Cottage Industry</SelectItem>
           <SelectItem value="processing-plant">Processing Plant</SelectItem>
+          <SelectItem value="restaurant">Restaurant</SelectItem>
+          <SelectItem value="banquet">Banquet</SelectItem>
         </SelectContent>
       </Select>
       <div className="grid grid-cols-3 gap-4">

@@ -8,19 +8,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface TradingPackageFormData {
   name: string;
-  category: "poultry" | "dairy" | "cattle" | "fruits-vegetables" | "automobiles" | "grocery" | "general";
+  category: "poultry" | "dairy" | "cattle" | "fruits-vegetables" | "automobiles" | "grocery" | "general" | "restaurant-goods" | "catering";
   totalUnits: number;
   availableUnits: number;
   equityUnits: number;
   duration: number;
-  estimatedReturnPercentage: number;
-  reinvestment: boolean;
-  depreciationModel: "performance-based" | "company-buyback";
-  depreciationPercentage: number;
-  marketValuation: number;
+  returnPercentage: number;
   buybackOption: boolean;
   packageDurationValue: number;
   packageDurationUnit: "seconds" | "minutes" | "days";
+  minHoldingPeriod: number; 
+  minHoldingPeriodUnit: string;
   dailyInsights: boolean;
 }
 
@@ -33,7 +31,7 @@ const TradingPackageForm = () => {
   });
 
   const [loading, setLoading] = useState(false);
-
+const [minHoldingPeriodUnit, setMinHoldingPeriodUnit] = useState<TradingPackageFormData["minHoldingPeriodUnit"]>("days");
   const onSubmit = async (data: TradingPackageFormData) => {
     setLoading(true);
     try {
@@ -42,14 +40,10 @@ const TradingPackageForm = () => {
         totalUnits: Number(data.totalUnits),
         availableUnits: Number(data.availableUnits),
         equityUnits: Number(data.equityUnits),
-        duration: Number(data.duration),
-        estimatedReturnPercentage: Number(data.estimatedReturnPercentage),
-        depreciationPercentage: Number(data.depreciationPercentage),
-        marketValuation: Number(data.marketValuation),
-        packageDuration: {
-          value: Number(data.packageDurationValue),
-          unit: data.packageDurationUnit || "days",
-        },
+        profitEstimation: "market-based", 
+        returnPercentage: Number(data.returnPercentage),
+        minHoldingPeriod: Number(data.minHoldingPeriod),
+        minHoldingPeriodUnit, 
       };
 
       const response = await fetch("/api/admin/trading", {
@@ -96,12 +90,28 @@ const TradingPackageForm = () => {
                   <SelectItem value="automobiles">Automobiles</SelectItem>
                   <SelectItem value="grocery">Grocery</SelectItem>
                   <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="catering">catering</SelectItem>
+                  <SelectItem value="restaurant-goods">restaurant-goods</SelectItem>
                 </SelectContent>
               </Select>
             )}
           />
         </div>
-
+  <Label>Min Holding Period</Label>
+      <div className="grid grid-cols-2 gap-4">
+        <Input type="number" {...register("minHoldingPeriod", { required: true })} required />
+        <Select onValueChange={(value) => setMinHoldingPeriodUnit(value as TradingPackageFormData["minHoldingPeriodUnit"])}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Unit" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="seconds">Seconds</SelectItem>
+            <SelectItem value="minutes">Minutes</SelectItem>
+            <SelectItem value="months">Months</SelectItem>
+            <SelectItem value="years">Years</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
         <div className="grid grid-cols-3 gap-4">
           <div>
             <Label>Total Units</Label>
@@ -119,7 +129,7 @@ const TradingPackageForm = () => {
 
         <div>
           <Label>Estimated Return (%)</Label>
-          <Input type="number" {...register("estimatedReturnPercentage", { required: true })} placeholder="Enter estimated return %" required />
+          <Input type="number" {...register("returnPercentage", { required: true })} placeholder="Enter estimated return %" required />
         </div>
 
         <div className="flex items-center space-x-2">

@@ -17,6 +17,7 @@ import EquitySummary from "./components/EquitySummary";
 import EquityPackages from './components/EquityPackages';
 import UserEquityPackages from './components/UserEquityPackages';
 import UserInvestments from './components/UserInvestments';
+import IndustryPackage from './components/IndustryPackage';
 
 export default function Home() {
   const { user, logout, loading } = useAuth();
@@ -74,12 +75,13 @@ export default function Home() {
           {/* <PurchaseForm /> */}
           <DepositForm />
           <BuyEquityUnitsForm />
-          {/* <UserEquityPackages/> */}
+          <UserEquityPackages/>
           {/* <UseEquityForm /> */}
           {/* <EquityPurchaseForm /> */}
           <EquitySummary user={user} />
-          <EquityPackages/>
-          <UserInvestments/>
+          <IndustryPackage/>
+          {/* <EquityPackages/> */}
+          {/* <UserInvestments/> */}
           <TransactionHistory />
           <CommissionHistory />
         </div>

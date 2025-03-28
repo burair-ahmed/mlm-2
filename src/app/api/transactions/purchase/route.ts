@@ -1,127 +1,137 @@
-import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-import User from '../../../../../models/User';
-import Transaction from '../../../../../models/Transaction';
-// import ShortTermPackage from '../../../../../models/ShortTermPackage';
-import LongTermRental from '../../../../../models/LongTermRental';
-import LongTermIndustry from '../../../../../models/LongTermIndustry';
-import TradingPackage from '../../../../../models/TradingPackage';
-import dbConnect from '../../../../../lib/dbConnect';
-import { authenticate } from '../../../../../middleware/auth';
+import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
+import User from "../../../../../models/User";
+import Transaction from "../../../../../models/Transaction";
+import LongTermRental from "../../../../../models/LongTermRental";
+import LongTermIndustry from "../../../../../models/LongTermIndustry";
+import TradingPackage from "../../../../../models/TradingPackage";
+import dbConnect from "../../../../../lib/dbConnect";
+import { authenticate } from "../../../../../middleware/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Authenticate user
+    // 1️⃣ Authenticate User
     const auth = await authenticate(req);
-console.log("Auth Result:", auth);
-if (auth instanceof NextResponse) return auth;
+    if (auth instanceof NextResponse) return auth;
+    console.log("✅ Authenticated User:", auth._id);
 
-
-    // 2. Connect to database
+    // 2️⃣ Connect to Database
     await dbConnect();
 
-    // 3. Parse request data
+    // 3️⃣ Parse Request Data
     const { packageId, packageType, quantity } = await req.json();
     console.log("📩 Request Data:", { packageId, packageType, quantity });
 
+    // Validate Input
     if (!packageId || !packageType || !quantity || quantity <= 0) {
-      return NextResponse.json({ error: 'Invalid input data' }, { status: 400 });
+      return NextResponse.json({ error: "Invalid input data" }, { status: 400 });
     }
 
-    // 4. Determine package model based on type
-    const packageModels: { [key: string]: any } = {
-      'short-term': LongTermRental,
-      'long-term': LongTermIndustry,
-      'trading': TradingPackage,
+    // 4️⃣ Determine Package Model
+    const packageModels: Record<string, any> = {
+      "long-term-rental": LongTermRental,
+      "long-term-industry": LongTermIndustry,
+      "trading": TradingPackage,
     };
 
     const PackageModel = packageModels[packageType];
     if (!PackageModel) {
-      return NextResponse.json({ error: 'Invalid package type' }, { status: 400 });
+      return NextResponse.json({ error: "Invalid package type" }, { status: 400 });
     }
 
-    // 5. Start MongoDB transaction
+    // 5️⃣ Start MongoDB Transaction
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      // 6. Fetch package details
+      // 6️⃣ Fetch Package Details
       const selectedPackage = await PackageModel.findById(packageId).session(session);
-      if (!selectedPackage) {
-        throw new Error('Package not found');
-      }
+      if (!selectedPackage) throw new Error("Package not found");
 
-      // 7. Calculate total equity units required
+      // 7️⃣ Calculate Total Cost
       const totalEquityUnits = selectedPackage.equityUnits * quantity;
 
-      // 8. Fetch user details
+      // 8️⃣ Fetch User Details
       const user = await User.findById(auth._id).session(session);
-      if (!user) {
-        throw new Error('User not found');
-      }
+      if (!user) throw new Error("User not found");
 
-      // 9. Check if user has enough equity units
+      // 9️⃣ Validate Purchase
       if (user.equityUnits < totalEquityUnits) {
-        return NextResponse.json({ error: 'Insufficient equity units' }, { status: 400 });
+        return NextResponse.json({ error: "Insufficient equity units" }, { status: 400 });
       }
-
-      // 10. Check if enough units are available
       if (selectedPackage.availableUnits < quantity) {
-        return NextResponse.json({ error: 'Not enough available units' }, { status: 400 });
+        return NextResponse.json({ error: "Not enough available units" }, { status: 400 });
       }
 
-      // 11. Deduct equity units from user
-      await User.findByIdAndUpdate(
-        auth._id,
-        { $inc: { equityUnits: -totalEquityUnits } },
-        { session }
-      );
+      // 1️⃣0️⃣ Deduct User Equity Units
+      user.equityUnits -= totalEquityUnits;
+      await user.save({ session });
 
-      // 12. Reduce available units in the package
-      await PackageModel.findByIdAndUpdate(
-        packageId,
-        { $inc: { availableUnits: -quantity } },
-        { session }
-      );
+      // 1️⃣1️⃣ Reduce Available Package Units
+      selectedPackage.availableUnits -= quantity;
+      await selectedPackage.save({ session });
 
-      // 13. Create transaction record
+
+       const existingEquity = user.equityOwnership.find(
+              (ownership: { packageId: mongoose.Types.ObjectId; units: number; purchaseDate: Date }) =>
+                ownership.packageId.toString() === packageId
+            );
+      
+            if (existingEquity) {
+              existingEquity.units += quantity;
+            } else {
+              user.equityOwnership.push({
+                packageId: selectedPackage._id,
+                units: quantity,
+                purchaseDate: new Date(),
+              });
+            }
+
+      await user.save({ session });
+
+      // 1️⃣2️⃣ Create Transaction Record
       const purchaseTx = new Transaction({
         userId: auth._id,
-        packageId: packageId,
-        packageType: packageType,
-        quantity: quantity,
+        packageId,
+        packageType,
+        quantity,
         equityUnits: totalEquityUnits,
         amount: 0, // No fiat currency, only equity units
-        type: 'purchase',
+        type: "purchase",
         description: `Purchased ${quantity} units of ${selectedPackage.name}`,
-        status: 'completed',
+        status: "completed",
+        createdAt: new Date(),
       });
+
       await purchaseTx.save({ session });
 
-      // 14. Commit transaction
+      // 1️⃣3️⃣ Commit Transaction
       await session.commitTransaction();
+      session.endSession();
+
+      console.log("✅ Purchase Successful!");
       return NextResponse.json({
         success: true,
-        message: 'Purchase successful',
-        quantity: quantity,
-        newEquityUnits: user.equityUnits - totalEquityUnits,
+        message: "Purchase successful",
+        quantity,
+        newEquityUnits: user.equityUnits,
       });
 
     } catch (error) {
       await session.abortTransaction();
-      console.error('Transaction failed:', error);
+      session.endSession();
+      console.error("❌ Transaction failed:", error);
+
       return NextResponse.json(
-        { error: 'Transaction failed', message: error instanceof Error ? error.message : 'Unknown error' },
+        { error: "Transaction failed", message: error instanceof Error ? error.message : "Unknown error" },
         { status: 500 }
       );
-    } finally {
-      session.endSession();
     }
 
   } catch (error) {
-    console.error('Server error:', error);
+    console.error("❌ Server error:", error);
     return NextResponse.json(
-      { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
+      { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

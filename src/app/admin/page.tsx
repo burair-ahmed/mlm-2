@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import EquityPackages from '../components/EquityPackages';
+// import EquityPackages from '../components/EquityPackages';
 import AdminEquityTracking from '../components/AdminEquityTracking';
-import CreateEquityPackageForm from '../components/CreateEquityPackageForm';
-import EquityPackageList from '../components/EquityPackageList';
-import AdminEquityPanel from '../components/AdminEquityPanel';
-import AdminEquityPackageForm from '../components/AdminEquityPackageForm';
+// import CreateEquityPackageForm from '../components/CreateEquityPackageForm';
+// import EquityPackageList from '../components/EquityPackageList';
+// import AdminEquityPanel from '../components/AdminEquityPanel';
+// import AdminEquityPackageForm from '../components/AdminEquityPackageForm';
 import AdminEquityPackages from '../components/AdminEquityPackages';
 
 interface User {
@@ -98,10 +98,10 @@ export default function AdminDashboard() {
         <h2 className="text-xl font-semibold mb-4">Equity Packages</h2>
         <AdminEquityPackages/>
         {/* <CreateEquityPackageForm /> */}
-        <AdminEquityPackageForm/>
+        {/* <AdminEquityPackageForm/> */}
         {/* <EquityPackages /> */}
-              <EquityPackageList/>
-              <AdminEquityPanel/>
+              {/* <EquityPackageList/> */}
+              {/* <AdminEquityPanel/> */}
       </div>
 
       {/* Equity Ownership Tracking */}

@@ -19,6 +19,7 @@ interface LongTermRentalFormData {
   minHoldingPeriod: number;
   minHoldingPeriodUnit: "seconds" | "minutes" | "months" | "years";
   resaleAllowed: boolean;
+  image: string; 
 }
 
 const LongTermRentalForm = () => {
@@ -28,6 +29,17 @@ const LongTermRentalForm = () => {
   const [durationUnit, setDurationUnit] = useState<LongTermRentalFormData["durationUnit"]>("months");
   const [resaleAllowed, setResaleAllowed] = useState(false);
   const [minHoldingPeriodUnit, setMinHoldingPeriodUnit] = useState<LongTermRentalFormData["minHoldingPeriodUnit"]>("months");
+  const [image, setImage] = useState<string>("");
+
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = async (data: LongTermRentalFormData) => {
     setLoading(true);
@@ -45,6 +57,7 @@ const LongTermRentalForm = () => {
             minHoldingPeriod: Number(data.minHoldingPeriod), // Send as a number
         minHoldingPeriodUnit, // Send separately      
           resaleAllowed,
+          image,
         }),
       });
 
@@ -52,6 +65,7 @@ const LongTermRentalForm = () => {
 
       alert("Rental Package created successfully!");
       reset();
+      setImage(""); 
     } catch (error) {
       console.error(error);
       alert("Error creating rental package");
@@ -66,6 +80,12 @@ const LongTermRentalForm = () => {
      <div>
      <Label>Package Name</Label>
       <Input {...register("name", { required: true })} placeholder="Enter Package Name" required />
+
+      <div>
+       <Label>Upload Image</Label>
+      <Input type="file" accept="image/*" onChange={handleImageChange} />
+      {image && <img src={image} alt="Preview" className="w-32 h-32 mt-2 rounded-lg" />}
+       </div>
 
       <Label>Category</Label>
       <Select onValueChange={(value) => setCategory(value as LongTermRentalFormData["category"])}>

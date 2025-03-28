@@ -28,6 +28,7 @@ const LongTermRentalSchema: Schema = new Schema({
   minHoldingPeriod: { type: Number, required: true },
   minHoldingPeriodUnit: { type: String, enum: ['seconds', 'minutes', 'months', 'years'], required: true },
   resaleAllowed: { type: Boolean, default: false },
+  image: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    console.log("Received Body:", body);
+    // console.log("Received Body:", body);
 
     // Validate input fields
     if (!body.name || !body.category || !body.totalUnits || !body.equityUnits || !body.minHoldingPeriod || !body.minHoldingPeriodUnit) {
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
       minHoldingPeriodUnit: body.minHoldingPeriodUnit, // Store unit separately
       buybackOption: body.buybackOption,
       resaleAllowed: body.resaleAllowed,
+      image: body.image,
       createdAt: new Date(),
     });
 

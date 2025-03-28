@@ -38,6 +38,7 @@ const LongTermIndustrySchema = new Schema(
     },
     buybackOption: { type: Boolean, required: true },
     resaleAllowed: { type: Boolean, required: true },
+    image: { type: String, required: true },
   },
   { timestamps: true }
 );

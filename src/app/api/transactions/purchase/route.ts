@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import User from '../../../../../models/User';
 import Transaction from '../../../../../models/Transaction';
-import ShortTermPackage from '../../../../../models/ShortTermPackage';
-import LongTermPackage from '../../../../../models/LongTermPackage';
+// import ShortTermPackage from '../../../../../models/ShortTermPackage';
+import LongTermRental from '../../../../../models/LongTermRental';
+import LongTermIndustry from '../../../../../models/LongTermIndustry';
 import TradingPackage from '../../../../../models/TradingPackage';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
@@ -29,8 +30,8 @@ if (auth instanceof NextResponse) return auth;
 
     // 4. Determine package model based on type
     const packageModels: { [key: string]: any } = {
-      'short-term': ShortTermPackage,
-      'long-term': LongTermPackage,
+      'short-term': LongTermRental,
+      'long-term': LongTermIndustry,
       'trading': TradingPackage,
     };
 

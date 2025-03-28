@@ -6,20 +6,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface TradingPackageFormData {
-  name: string;
-  category: "poultry" | "dairy" | "cattle" | "fruits-vegetables" | "automobiles" | "grocery" | "general" | "restaurant-goods" | "catering";
-  totalUnits: number;
-  availableUnits: number;
-  equityUnits: number;
-  duration: number;
-  returnPercentage: number;
-  buybackOption: boolean;
-  packageDurationValue: number;
-  packageDurationUnit: "seconds" | "minutes" | "days";
-  minHoldingPeriod: number; 
-  minHoldingPeriodUnit: string;
-  dailyInsights: boolean;
+interface ITradingPackage {
+    name: string;
+    category: 'poultry' | 'dairy' | 'cattle' | 'fruits-vegetables' | 'automobiles' | 'grocery' | 'general' | 'industrial-materials' | 'catering' | 'restaurant-goods';
+    totalUnits: number;
+    availableUnits: number;
+    equityUnits: number;
+    dailyInsights: boolean;
+    profitEstimation: 'market-based';
+    returnPercentage: number; 
+    minHoldingPeriod: number; 
+    minHoldingPeriodUnit: string;
+    createdAt: Date;
+    image: string; 
 }
 
 const TradingPackageForm = () => {
@@ -32,6 +31,18 @@ const TradingPackageForm = () => {
 
   const [loading, setLoading] = useState(false);
 const [minHoldingPeriodUnit, setMinHoldingPeriodUnit] = useState<TradingPackageFormData["minHoldingPeriodUnit"]>("days");
+const [image, setImage] = useState<string>("");
+
+
+const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => setImage(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+};
+
   const onSubmit = async (data: TradingPackageFormData) => {
     setLoading(true);
     try {
@@ -44,6 +55,7 @@ const [minHoldingPeriodUnit, setMinHoldingPeriodUnit] = useState<TradingPackageF
         returnPercentage: Number(data.returnPercentage),
         minHoldingPeriod: Number(data.minHoldingPeriod),
         minHoldingPeriodUnit, 
+        image,
       };
 
       const response = await fetch("/api/admin/trading", {
@@ -56,6 +68,7 @@ const [minHoldingPeriodUnit, setMinHoldingPeriodUnit] = useState<TradingPackageF
 
       alert("Package created successfully!");
       reset();
+      setImage(""); 
     } catch (error) {
       console.error("Submission error:", error);
       alert("Error creating package");
@@ -71,7 +84,11 @@ const [minHoldingPeriodUnit, setMinHoldingPeriodUnit] = useState<TradingPackageF
           <Label>Package Name</Label>
           <Input {...register("name", { required: true })} placeholder="Enter Package Name" required />
         </div>
-
+        <div>
+       <Label>Upload Image</Label>
+      <Input type="file" accept="image/*" onChange={handleImageChange} />
+      {image && <img src={image} alt="Preview" className="w-32 h-32 mt-2 rounded-lg" />}
+       </div>
         <div>
           <Label>Category</Label>
           <Controller

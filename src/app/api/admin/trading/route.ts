@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    console.log("Recieved Body:", body)
+    // console.log("Recieved Body:", body)
     if (
       !body.name || !body.totalUnits || !body.availableUnits || !body.equityUnits || !body.returnPercentage 
     ) {

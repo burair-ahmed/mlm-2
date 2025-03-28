@@ -14,8 +14,9 @@ export interface ITradingPackage extends Document {
   returnPercentage: number; // Profit range (estimated)
   minHoldingPeriod: number; 
   minHoldingPeriodUnit: string;
-  lockPeriod: number; // 2 months before withdrawal allowed
+  // lockPeriod: number; 
   createdAt: Date;
+  image: string; 
 }
 
 const TradingPackageSchema: Schema = new Schema({
@@ -33,7 +34,8 @@ const TradingPackageSchema: Schema = new Schema({
   returnPercentage: { type: Number, required: true },
   minHoldingPeriod: { type: Number, required: true },
   minHoldingPeriodUnit: { type: String, enum: ['seconds', 'minutes', 'months', 'years'], required: true },
-  lockPeriod: { type: Number, default: 2 }, // 2 months lock-in
+  // lockPeriod: { type: Number, default: 2 },
+  image: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -20,6 +20,7 @@ interface LongTermIndustryFormData {
     // marketValuation: number;
     buybackOption: boolean;
     resaleAllowed: boolean;
+    image: string; 
   }
 
 
@@ -31,7 +32,17 @@ interface LongTermIndustryFormData {
     const [buybackOption, setBuybackOption] = useState(false);
     const [resaleAllowed, setResaleAllowed] = useState(false);
     const [minHoldingPeriodUnit, setMinHoldingPeriodUnit] = useState<LongTermIndustryFormData["minHoldingPeriodUnit"]>("months");
-  
+    const [image, setImage] = useState<string>("");
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => setImage(reader.result as string);
+          reader.readAsDataURL(file);
+        }
+      };
+    
     
     const onSubmit = async (data: LongTermIndustryFormData) => {
       setLoading(true);
@@ -50,6 +61,7 @@ interface LongTermIndustryFormData {
         minHoldingPeriodUnit, // Send separately      
             buybackOption,
             resaleAllowed,
+            image,
           }),
         });
   
@@ -57,6 +69,7 @@ interface LongTermIndustryFormData {
   
         alert("Industry Package created successfully!");
         reset();
+        setImage(""); 
       } catch (error) {
         console.error(error);
         alert("Error creating industry package");
@@ -70,6 +83,11 @@ interface LongTermIndustryFormData {
         <Label>Package Name</Label>
         <Input {...register("name", { required: true })} placeholder="Enter Package Name" required />
   
+       <div>
+       <Label>Upload Image</Label>
+      <Input type="file" accept="image/*" onChange={handleImageChange} />
+      {image && <img src={image} alt="Preview" className="w-32 h-32 mt-2 rounded-lg" />}
+       </div>
         <Label>Category</Label>
         <Select onValueChange={(value) => setCategory(value as LongTermIndustryFormData["category"])}>
           <SelectTrigger>

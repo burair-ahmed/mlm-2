@@ -19,6 +19,8 @@ import EquitySummary from "./components/EquitySummary";
 import UserInvestments from './components/UserInvestments';
 import IndustryPackage from './components/packages/IndustryPackage';
 import RentalPackage from './components/packages/RentalPackage';
+import TradingPackage from './components/packages/TradingPackage';
+import MyInvestments from './components/packages/PurchasedPackages';
 
 export default function Home() {
   const { user, logout, loading } = useAuth();
@@ -80,8 +82,10 @@ export default function Home() {
           {/* <UseEquityForm /> */}
           {/* <EquityPurchaseForm /> */}
           <EquitySummary user={user} />
+          <MyInvestments/>
           <IndustryPackage/>
           <RentalPackage/>
+          <TradingPackage/>
           {/* <EquityPackages/> */}
           {/* <UserInvestments/> */}
           <TransactionHistory />

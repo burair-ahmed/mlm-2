@@ -14,15 +14,16 @@ interface Package {
   totalUnits: number;
   availableUnits: number;
   equityUnits: number;
-  estimatedReturn: number;
-  minHoldingPeriod: number;
+  dailyInsights: boolean;
+  profitEstimation: 'market-based';
+  returnPercentage: number; 
+  minHoldingPeriod: number; 
   minHoldingPeriodUnit: string;
-  buybackOption: boolean;
-  resaleAllowed: boolean;
-  image: string;
+  createdAt: Date;
+  image: string; 
 }
 
-const RentalPackage = () => {
+const TradingPackage = () => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
@@ -107,13 +108,16 @@ const RentalPackage = () => {
               <DialogTitle>{selectedPackage.name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-2">
-              <Image src={selectedPackage.image} width={250} height={150} alt="" className="rounded-md mx-auto" />
+              <Image src={selectedPackage.image} width={250} height={150} alt="" className="rounded-md w-[100%]" />
+              <p>Equity Units: {selectedPackage.category}</p>
               <p>Equity Units: {selectedPackage.equityUnits}</p>
-              <p>Estimated Return: {selectedPackage.estimatedReturn}%</p>
+              <p>Estimated Return: {selectedPackage.returnPercentage}%</p>
+              <p>Total Units: {selectedPackage.totalUnits}</p>
+              
               <p>Available Units: {selectedPackage.availableUnits}</p>
               <p>Min Holding: {selectedPackage.minHoldingPeriod} {selectedPackage.minHoldingPeriodUnit}</p>
-              <p>Buyback: {selectedPackage.buybackOption ? "Yes" : "No"}</p>
-              <p>Resale Allowed: {selectedPackage.resaleAllowed ? "Yes" : "No"}</p>
+              {/* <p>Buyback: {selectedPackage.buybackOption ? "Yes" : "No"}</p> */}
+              {/* <p>Resale Allowed: {selectedPackage.resaleAllowed ? "Yes" : "No"}</p> */}
             </div>
             <Input
               type="number"
@@ -136,4 +140,4 @@ const RentalPackage = () => {
   );
 };
 
-export default RentalPackage;
+export default TradingPackage;

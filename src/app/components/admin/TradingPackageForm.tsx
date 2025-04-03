@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface ITradingPackage {
+interface TradingPackageFormData {
     name: string;
     category: 'poultry' | 'dairy' | 'cattle' | 'fruits-vegetables' | 'automobiles' | 'grocery' | 'general' | 'industrial-materials' | 'catering' | 'restaurant-goods';
     totalUnits: number;

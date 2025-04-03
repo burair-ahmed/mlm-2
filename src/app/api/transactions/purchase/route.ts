@@ -5,6 +5,7 @@ import Transaction from "../../../../../models/Transaction";
 import LongTermRental from "../../../../../models/LongTermRental";
 import LongTermIndustry from "../../../../../models/LongTermIndustry";
 import TradingPackage from "../../../../../models/TradingPackage";
+import PurchasedPackage from "../../../../../models/PurchasedPackage";
 import dbConnect from "../../../../../lib/dbConnect";
 import { authenticate } from "../../../../../middleware/auth";
 
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
       const selectedPackage = await PackageModel.findById(packageId).session(session);
       if (!selectedPackage) throw new Error("Package not found");
 
-      // 7️⃣ Calculate Total Cost
+      // 7️⃣ Calculate Total Cost (in terms of equity units)
       const totalEquityUnits = selectedPackage.equityUnits * quantity;
 
       // 8️⃣ Fetch User Details
@@ -71,25 +72,35 @@ export async function POST(req: NextRequest) {
       selectedPackage.availableUnits -= quantity;
       await selectedPackage.save({ session });
 
+      // 1️⃣2️⃣ Update Purchased Package in User Schema
+      const existingPackage = user.purchasedPackages.find(
+        (pkg) => pkg.packageId.toString() === packageId
+      );
 
-       const existingEquity = user.equityOwnership.find(
-              (ownership: { packageId: mongoose.Types.ObjectId; units: number; purchaseDate: Date }) =>
-                ownership.packageId.toString() === packageId
-            );
-      
-            if (existingEquity) {
-              existingEquity.units += quantity;
-            } else {
-              user.equityOwnership.push({
-                packageId: selectedPackage._id,
-                units: quantity,
-                purchaseDate: new Date(),
-              });
-            }
+      if (existingPackage) {
+        existingPackage.totalUnits += quantity;  // Add new units if already purchased
+      } else {
+        user.purchasedPackages.push({
+          packageId: selectedPackage._id,
+          totalUnits: quantity,
+        });
+      }
 
       await user.save({ session });
 
-      // 1️⃣2️⃣ Create Transaction Record
+      // 1️⃣3️⃣ Create Purchased Package Record in the PurchasedPackage Model
+      const newPurchasedPackage = new PurchasedPackage({
+        userId: auth._id,
+        packageType,
+        packageId,
+        quantity,
+        equityUnits: totalEquityUnits,
+        purchaseDate: new Date(),
+      });
+
+      await newPurchasedPackage.save({ session });
+
+      // 1️⃣4️⃣ Create Transaction Record
       const purchaseTx = new Transaction({
         userId: auth._id,
         packageId,
@@ -105,7 +116,7 @@ export async function POST(req: NextRequest) {
 
       await purchaseTx.save({ session });
 
-      // 1️⃣3️⃣ Commit Transaction
+      // 1️⃣5️⃣ Commit Transaction
       await session.commitTransaction();
       session.endSession();
 

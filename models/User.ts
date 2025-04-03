@@ -15,11 +15,17 @@ export interface IUser extends Document {
   commissionEarned: number;
   equityUnits: number; 
   isAdmin: boolean;
-  equityOwnership: Array<{
-    packageId: Schema.Types.ObjectId;
-    units: number;
-    purchaseDate: Date;
+  // equityOwnership: Array<{
+  //   packageId: Schema.Types.ObjectId;
+  //   units: number;
+  //   purchaseDate: Date;
+  // }>;
+  // purchasedPackages: mongoose.Types.ObjectId[];
+  purchasedPackages: Array<{
+    packageId: mongoose.Types.ObjectId;  // Reference to the purchased package
+    totalUnits: number;  // Number of units purchased
   }>;
+
 }
 
 
@@ -35,11 +41,17 @@ const UserSchema: Schema = new Schema({
   commissionEarned: { type: Number, default: 0 },
   equityUnits: { type: Number, default: 0 },
   isAdmin: { type: Boolean, default: false },
-  equityOwnership: [{
-    packageId: { type: Schema.Types.ObjectId, ref: 'EquityPackage' },
-    units: { type: Number, required: true },
-    purchaseDate: { type: Date, default: Date.now }
-  }]
+  // equityOwnership: [{
+  //   packageId: { type: Schema.Types.ObjectId, ref: 'EquityPackage' },
+  //   units: { type: Number, required: true },
+  //   purchaseDate: { type: Date, default: Date.now }
+  // }]
+  // purchasedPackages: [{ type: Schema.Types.ObjectId, ref: "PurchasedPackage" }],
+  purchasedPackages: [{
+    packageId: { type: Schema.Types.ObjectId, refPath: 'packageType', required: true },
+    totalUnits: { type: Number, required: true },
+  }],
+
 });
 
 UserSchema.virtual('referralHierarchy', {

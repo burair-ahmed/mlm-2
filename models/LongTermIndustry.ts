@@ -5,6 +5,7 @@ await dbConnect();
 
 // Long-Term Industry Schema
 export interface ILongTermIndustry extends Document {
+  _id: string;
   name: string;
   category: 'property' | 'cottage-industry' | 'processing-plant' | 'restaurant' | 'banquet';
   totalUnits: number;

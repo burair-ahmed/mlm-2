@@ -1,12 +1,9 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { ILongTermRental } from "./LongTermRental"; // Import the actual interface
-import { ILongTermIndustry } from "./LongTermIndustry"; // Import the actual interface
-import { ITradingPackage } from "./TradingPackage"; // Import the actual interface
 
 interface IPurchasedPackage extends Document {
   userId: mongoose.Types.ObjectId;
   packageType: "long-term-rental" | "long-term-industry" | "trading";
-  packageId: mongoose.Types.ObjectId; // This will reference the corresponding package type
+  packageId: mongoose.Types.ObjectId; 
   quantity: number;
   equityUnits: number;
   purchaseDate: Date;
@@ -24,21 +21,20 @@ const PurchasedPackageSchema = new Schema<IPurchasedPackage>({
     required: true,
     validate: {
       validator: async function(value: mongoose.Types.ObjectId) {
-        // Validate based on the packageType by checking the model name
         const packageType = this.packageType;
         let isValid = false;
         switch (packageType) {
           case "long-term-rental":
             const rentalPackage = await mongoose.model("LongTermRental").findOne({ _id: value });
-            isValid = rentalPackage !== null;  // Return true if exists, false if not
+            isValid = rentalPackage !== null;
             break;
           case "long-term-industry":
             const industryPackage = await mongoose.model("LongTermIndustry").findOne({ _id: value });
-            isValid = industryPackage !== null;  // Return true if exists, false if not
+            isValid = industryPackage !== null;
             break;
           case "trading":
             const tradingPackage = await mongoose.model("TradingPackage").findOne({ _id: value });
-            isValid = tradingPackage !== null;  // Return true if exists, false if not
+            isValid = tradingPackage !== null;
             break;
           default:
             isValid = false;

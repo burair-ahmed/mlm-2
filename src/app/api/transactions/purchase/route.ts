@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
 
       // 1️⃣2️⃣ Update Purchased Package in User Schema
       const existingPackage = user.purchasedPackages.find(
-        (pkg) => pkg.packageId.toString() === packageId
+        (pkg: { packageId: mongoose.Types.ObjectId; totalUnits: number }) => pkg.packageId.toString() === packageId
       );
-
+      
       if (existingPackage) {
         existingPackage.totalUnits += quantity;  // Add new units if already purchased
       } else {
@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
           totalUnits: quantity,
         });
       }
+      
 
       await user.save({ session });
 

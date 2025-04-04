@@ -1,66 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "../../../../../lib/dbConnect";
 import { authenticate } from "../../../../../middleware/auth";
-import Transaction from "../../../../../models/Transaction";
+import dbConnect from "../../../../../lib/dbConnect";
+import PurchasedPackage from "../../../../../models/PurchasedPackage";
 import LongTermRental from "../../../../../models/LongTermRental";
 import LongTermIndustry from "../../../../../models/LongTermIndustry";
 import TradingPackage from "../../../../../models/TradingPackage";
-import { Model } from "mongoose"; // Import Model type
+// import User from "../../../../../models/User";
 
 export async function GET(req: NextRequest) {
   try {
-    // 1️⃣ Authenticate the user
-    const auth = await authenticate(req);
-    if (auth instanceof NextResponse) return auth;
-    console.log("✅ Authenticated User:", auth._id);
-
-    // 2️⃣ Connect to Database
     await dbConnect();
 
-    // 3️⃣ Fetch User's Purchased Packages
-    const transactions = await Transaction.find({ userId: auth._id, type: "purchase" })
-      .sort({ createdAt: -1 }) // Latest first
-      .lean();
-
-    if (!transactions.length) {
-      return NextResponse.json({ success: true, data: [] }, { status: 200 });
+    // 🔒 Authenticate user
+    const user = await authenticate(req);
+    if (!user) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    // 4️⃣ Fetch Package Details for Each Transaction
-    const packageDetails = await Promise.all(
-      transactions.map(async (tx) => {
-        let PackageModel: Model<any> | null = null; // Explicitly set type
+    // Fetch purchased packages
+    const purchasedPackages = await PurchasedPackage.find({ userId: user._id });
 
-        switch (tx.packageType) {
+    if (!purchasedPackages.length) {
+      return NextResponse.json({ success: true, data: [] });
+    }
+
+    // Fetch package details based on packageType
+    const populatedPackages = await Promise.all(
+      purchasedPackages.map(async (pkg) => {
+        let packageDetails = null;
+
+        switch (pkg.packageType) {
           case "long-term-rental":
-            PackageModel = LongTermRental;
+            packageDetails = await LongTermRental.findById(pkg.packageId).lean();
             break;
           case "long-term-industry":
-            PackageModel = LongTermIndustry;
+            packageDetails = await LongTermIndustry.findById(pkg.packageId).lean();
             break;
           case "trading":
-            PackageModel = TradingPackage;
+            packageDetails = await TradingPackage.findById(pkg.packageId).lean();
             break;
           default:
             return null;
         }
 
-        if (!PackageModel) return null;
+        if (!packageDetails) return null;
 
-        const packageData = await PackageModel.findById(tx.packageId).lean();
-        return packageData
-          ? { ...packageData, quantity: tx.quantity, transactionId: tx._id, purchaseDate: tx.createdAt }
-          : null;
+        return {
+          _id: pkg._id,
+          name: packageDetails.name,
+          category: packageDetails.category,
+          quantity: pkg.quantity,
+          equityUnits: pkg.equityUnits,
+
+          // 🛠️ Optional fields with type checking
+          estimatedReturn: "estimatedReturn" in packageDetails ? packageDetails.estimatedReturn : null,
+          minHoldingPeriod: "minHoldingPeriod" in packageDetails ? packageDetails.minHoldingPeriod : null,
+          minHoldingPeriodUnit: "minHoldingPeriodUnit" in packageDetails ? packageDetails.minHoldingPeriodUnit : "months",
+          buybackOption: "buybackOption" in packageDetails ? packageDetails.buybackOption : false,
+          resaleAllowed: "resaleAllowed" in packageDetails ? packageDetails.resaleAllowed : false,
+        };
       })
     );
 
-    // 5️⃣ Filter out null responses (invalid packages)
-    const validPackages = packageDetails.filter((pkg) => pkg !== null);
+    // Remove null values from failed lookups
+    const validPackages = populatedPackages.filter(Boolean);
 
-    return NextResponse.json({ success: true, data: validPackages }, { status: 200 });
-
+    return NextResponse.json({ success: true, data: validPackages });
   } catch (error) {
-    console.error("❌ Error Fetching Investments:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Error fetching investments:", error);
+    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }

@@ -86,16 +86,32 @@ const IndustryPackage = () => {
             <Skeleton key={i} className="w-full h-60 rounded-lg" />
           ))
         : packages.map((pkg) => (
-            <Card key={pkg._id} className="cursor-pointer hover:shadow-xl transition rounded-t-md" onClick={() => setSelectedPackage(pkg)}>
-              <CardHeader className="flex flex-col items-center p-0">
-                <Image src={pkg.image} width={100} height={100} alt="" className="rounded-t-md w-[100%]" />
-                <CardTitle className="text-center text-lg font-bold">{pkg.name}</CardTitle>
-                {/* <p className="text-sm text-gray-500">{pkg.category}</p> */}
-              </CardHeader>
-              <CardContent>
-                
-              </CardContent>
-            </Card>
+          <Card key={pkg._id} className="transition rounded-t-md overflow-hidden">
+          <CardHeader className="flex flex-col items-center p-0 bg-[]">
+            {/* <div className="relative w-full h-0 pb-[100%]"> */}
+            <div>
+              <Image
+                src={pkg.image}
+                width={100}
+                height={100}
+                alt=""
+                className="cursor-pointer rounded-t-md w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                onClick={() => setSelectedPackage(pkg)}
+              />
+              </div> 
+            {/* </div> */}
+            <div className="bg-">
+            <CardTitle className="text-center text-lg font-bold cursor-pointer hover:text-[#00ab82] transition-all duration-300" onClick={() => setSelectedPackage(pkg)}>
+              {pkg.name}
+            </CardTitle>
+            </div>
+            {/* <p className="text-sm text-gray-500">{pkg.category}</p> */}
+          </CardHeader>
+          <CardContent>
+            {/* Content here */}
+          </CardContent>
+        </Card>
+        
             
           ))}
 

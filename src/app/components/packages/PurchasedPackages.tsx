@@ -16,12 +16,38 @@ interface PurchasedPackage {
   minHoldingPeriodUnit?: string;
   buybackOption?: boolean;
   resaleAllowed?: boolean;
+  purchaseDate: string;
 }
+
+const getHoldingPeriodInMs = (value: number, unit: string) => {
+  const unitMap: Record<string, number> = {
+    second: 1000,
+    seconds: 1000,
+    minute: 60 * 1000,
+    minutes: 60 * 1000,
+    hour: 60 * 60 * 1000,
+    hours: 60 * 60 * 1000,
+    day: 24 * 60 * 60 * 1000,
+    days: 24 * 60 * 60 * 1000,
+    month: 30 * 24 * 60 * 60 * 1000,
+    months: 30 * 24 * 60 * 60 * 1000,
+  };
+  return value * (unitMap[unit.toLowerCase()] || 0);
+};
+
+const formatTimeLeft = (ms: number) => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+};
 
 const MyInvestments = () => {
   const [purchasedPackages, setPurchasedPackages] = useState<PurchasedPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
     const fetchPurchasedPackages = async () => {
@@ -61,6 +87,14 @@ const MyInvestments = () => {
     fetchPurchasedPackages();
   }, []);
 
+  // Timer for real-time countdown
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="p-6">
       {loading ? (
@@ -78,26 +112,49 @@ const MyInvestments = () => {
         <p className="text-center text-gray-500 mt-6">No investments found.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {purchasedPackages.map((pkg) => (
-            <Card key={pkg._id}>
-              <CardHeader>
-                <CardTitle>{pkg.name}</CardTitle>
-                <p className="text-sm text-gray-500">{pkg.category}</p>
-              </CardHeader>
-              <CardContent>
-                <p>Quantity: {pkg.quantity}</p>
-                <p>Equity Units: {pkg.equityUnits}</p>
-                {pkg.estimatedReturn !== undefined && <p>Estimated Return: {pkg.estimatedReturn}%</p>}
-                {pkg.minHoldingPeriod && (
-                  <p>
-                    Min Holding: {pkg.minHoldingPeriod} {pkg.minHoldingPeriodUnit}
-                  </p>
-                )}
-                <p>Buyback: {pkg.buybackOption ? "Yes" : "No"}</p>
-                <p>Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}</p>
-              </CardContent>
-            </Card>
-          ))}
+          {purchasedPackages.map((pkg) => {
+            const purchaseTime = new Date(pkg.purchaseDate).getTime();
+            const holdingMs = getHoldingPeriodInMs(pkg.minHoldingPeriod || 0, pkg.minHoldingPeriodUnit || "day");
+            const timeElapsed = currentTime - purchaseTime;
+            const isEligibleToSell = timeElapsed >= holdingMs;
+            const remainingTime = holdingMs - timeElapsed;
+
+            return (
+              <Card key={pkg._id}>
+                <CardHeader>
+                  <CardTitle>{pkg.name}</CardTitle>
+                  <p className="text-sm text-gray-500">{pkg.category}</p>
+                </CardHeader>
+                <CardContent>
+                  <p>Quantity: {pkg.quantity}</p>
+                  <p>Equity Units: {pkg.equityUnits}</p>
+                  {pkg.estimatedReturn !== undefined && (
+                    <p>Estimated Return: {pkg.estimatedReturn}%</p>
+                  )}
+                  {pkg.minHoldingPeriod && (
+                    <p>
+                      Min Holding: {pkg.minHoldingPeriod} {pkg.minHoldingPeriodUnit}
+                    </p>
+                  )}
+                  <p>Buyback: {pkg.buybackOption ? "Yes" : "No"}</p>
+                  <p>Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}</p>
+
+                  <button
+                    disabled={!isEligibleToSell}
+                    className={`mt-4 px-4 py-2 rounded text-white w-full ${
+                      isEligibleToSell
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {isEligibleToSell
+                      ? "Request to Sell"
+                      : `Locked (${formatTimeLeft(remainingTime)})`}
+                  </button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

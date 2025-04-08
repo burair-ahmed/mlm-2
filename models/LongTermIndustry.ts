@@ -16,6 +16,7 @@ export interface ILongTermIndustry extends Document {
   minHoldingPeriodUnit: string;
   buybackOption: boolean;
   resaleAllowed: boolean;
+  image: string; 
   createdAt: Date;
 }
 

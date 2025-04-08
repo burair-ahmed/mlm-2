@@ -15,6 +15,7 @@ export interface ILongTermRental extends Document {
   minHoldingPeriod: number; 
   minHoldingPeriodUnit: string;
   resaleAllowed: boolean;
+  image: string; 
   createdAt: Date;
 }
 

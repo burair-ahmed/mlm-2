@@ -5,19 +5,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 
-interface PurchasedPackage {
+// Discriminated union type for proper field display based on package type
+type CommonFields = {
   _id: string;
+  type: "long-term-rental" | "long-term-industry" | "trading";
   name: string;
   category: string;
   quantity: number;
   equityUnits: number;
-  estimatedReturn?: number;
   minHoldingPeriod?: number;
   minHoldingPeriodUnit?: string;
-  buybackOption?: boolean;
-  resaleAllowed?: boolean;
   purchaseDate: string;
-}
+};
+
+type LongTermRentalPackage = CommonFields & {
+  type: "long-term-rental";
+  returnPercentage: number;
+  resaleAllowed: boolean;
+};
+
+type LongTermIndustryPackage = CommonFields & {
+  type: "long-term-industry";
+  estimatedReturn: number;
+  buybackOption: boolean;
+  resaleAllowed: boolean;
+};
+
+type TradingPackage = CommonFields & {
+  type: "trading";
+  returnPercentage: number;
+  profitEstimation: string;
+  dailyInsights: string;
+};
+
+type PurchasedPackage =
+  | LongTermRentalPackage
+  | LongTermIndustryPackage
+  | TradingPackage;
 
 const getHoldingPeriodInMs = (value: number, unit: string) => {
   const unitMap: Record<string, number> = {
@@ -87,7 +111,6 @@ const MyInvestments = () => {
     fetchPurchasedPackages();
   }, []);
 
-  // Timer for real-time countdown
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
@@ -114,7 +137,10 @@ const MyInvestments = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {purchasedPackages.map((pkg) => {
             const purchaseTime = new Date(pkg.purchaseDate).getTime();
-            const holdingMs = getHoldingPeriodInMs(pkg.minHoldingPeriod || 0, pkg.minHoldingPeriodUnit || "day");
+            const holdingMs = getHoldingPeriodInMs(
+              pkg.minHoldingPeriod || 0,
+              pkg.minHoldingPeriodUnit || "day"
+            );
             const timeElapsed = currentTime - purchaseTime;
             const isEligibleToSell = timeElapsed >= holdingMs;
             const remainingTime = holdingMs - timeElapsed;
@@ -128,16 +154,40 @@ const MyInvestments = () => {
                 <CardContent>
                   <p>Quantity: {pkg.quantity}</p>
                   <p>Equity Units: {pkg.equityUnits}</p>
-                  {pkg.estimatedReturn !== undefined && (
-                    <p>Estimated Return: {pkg.estimatedReturn}%</p>
-                  )}
+
                   {pkg.minHoldingPeriod && (
                     <p>
-                      Min Holding: {pkg.minHoldingPeriod} {pkg.minHoldingPeriodUnit}
+                      Min Holding: {pkg.minHoldingPeriod}{" "}
+                      {pkg.minHoldingPeriodUnit}
                     </p>
                   )}
-                  <p>Buyback: {pkg.buybackOption ? "Yes" : "No"}</p>
-                  <p>Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}</p>
+
+                  {pkg.type === "long-term-rental" && (
+                    <>
+                      <p>Return %: {pkg.returnPercentage}</p>
+                      <p>
+                        Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}
+                      </p>
+                    </>
+                  )}
+
+                  {pkg.type === "long-term-industry" && (
+                    <>
+                      <p>Estimated Return: {pkg.estimatedReturn}%</p>
+                      <p>Buyback: {pkg.buybackOption ? "Yes" : "No"}</p>
+                      <p>
+                        Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}
+                      </p>
+                    </>
+                  )}
+
+                  {pkg.type === "trading" && (
+                    <>
+                      <p>Return %: {pkg.returnPercentage}</p>
+                      <p>Profit Estimation: {pkg.profitEstimation}</p>
+                      <p>Daily Insights: {pkg.dailyInsights}</p>
+                    </>
+                  )}
 
                   <button
                     disabled={!isEligibleToSell}

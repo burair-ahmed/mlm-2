@@ -105,9 +105,13 @@ const IndustryPackage = () => {
               {pkg.name}
             </CardTitle>
             </div>
-            {/* <p className="text-sm text-gray-500">{pkg.category}</p> */}
+            
           </CardHeader>
           <CardContent>
+            <div className="grid grid-cols-12">
+              <div className="col-span-6"></div>
+              <div className="col-span-6"></div>
+            </div>
             {/* Content here */}
           </CardContent>
         </Card>

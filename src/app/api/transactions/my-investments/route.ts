@@ -29,61 +29,64 @@ export async function GET(req: NextRequest) {
         equityUnits: pkg.equityUnits,
       };
 
-      switch (pkg.packageType) {
-        case "long-term-rental": {
-          details = await LongTermRental.findById(pkg.packageId).lean();
-          if (details) {
-            longTermRentalPackages.push({
-              ...commonFields,
-              name: details.name,
-              category: details.category,
-              returnPercentage: details.returnPercentage,
-              minHoldingPeriod: details.minHoldingPeriod,
-              minHoldingPeriodUnit: details.minHoldingPeriodUnit,
-              resaleAllowed: details.resaleAllowed,
-              image: details.image,
-              purchaseDate: pkg.purchaseDate,
-            });
-          }
-          break;
-        }
-        case "long-term-industry": {
-          details = await LongTermIndustry.findById(pkg.packageId).lean();
-          if (details) {
-            longTermIndustryPackages.push({
-              ...commonFields,
-              name: details.name,
-              category: details.category,
-              estimatedReturn: details.estimatedReturn,
-              minHoldingPeriod: details.minHoldingPeriod,
-              minHoldingPeriodUnit: details.minHoldingPeriodUnit,
-              buybackOption: details.buybackOption,
-              resaleAllowed: details.resaleAllowed,
-              image: details.image,
-              purchaseDate: pkg.purchaseDate,
-            });
-          }
-          break;
-        }
-        case "trading": {
-          details = await TradingPackage.findById(pkg.packageId).lean();
-          if (details) {
-            tradingPackages.push({
-              ...commonFields,
-              name: details.name,
-              category: details.category,
-              returnPercentage: details.returnPercentage,
-              minHoldingPeriod: details.minHoldingPeriod,
-              minHoldingPeriodUnit: details.minHoldingPeriodUnit,
-              profitEstimation: details.profitEstimation,
-              dailyInsights: details.dailyInsights,
-              image: details.image,
-              purchaseDate: pkg.purchaseDate,
-            });
-          }
-          break;
-        }
-      }
+      // Only modified parts shown
+
+switch (pkg.packageType) {
+  case "long-term-rental": {
+    details = await LongTermRental.findById(pkg.packageId).lean();
+    if (details) {
+      longTermRentalPackages.push({
+        ...commonFields,
+        name: details.name,
+        category: details.category,
+        returnPercentage: details.returnPercentage,
+        minHoldingPeriod: details.minHoldingPeriod,
+        minHoldingPeriodUnit: details.minHoldingPeriodUnit,
+        resaleAllowed: details.resaleAllowed,
+        image: details.image,
+        purchaseDate: pkg.purchaseDate,
+      });
+    }
+    break;
+  }
+  case "long-term-industry": {
+    details = await LongTermIndustry.findById(pkg.packageId).lean();
+    if (details) {
+      longTermIndustryPackages.push({
+        ...commonFields,
+        name: details.name,
+        category: details.category,
+        estimatedReturn: details.estimatedReturn,
+        minHoldingPeriod: details.minHoldingPeriod,
+        minHoldingPeriodUnit: details.minHoldingPeriodUnit,
+        buybackOption: details.buybackOption,
+        resaleAllowed: details.resaleAllowed,
+        image: details.image,
+        purchaseDate: pkg.purchaseDate,
+      });
+    }
+    break;
+  }
+  case "trading": {
+    details = await TradingPackage.findById(pkg.packageId).lean();
+    if (details) {
+      tradingPackages.push({
+        ...commonFields,
+        name: details.name,
+        category: details.category,
+        returnPercentage: details.returnPercentage,
+        minHoldingPeriod: details.minHoldingPeriod,
+        minHoldingPeriodUnit: details.minHoldingPeriodUnit,
+        profitEstimation: details.profitEstimation,
+        dailyInsights: details.dailyInsights,
+        image: details.image,
+        purchaseDate: pkg.purchaseDate,
+      });
+    }
+    break;
+  }
+}
+
     }
 
     const allPackages = [

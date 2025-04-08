@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-// import { authenticate } from "../../../../../middleware/auth";
 import dbConnect from "../../../../../lib/dbConnect";
 import PurchasedPackage from "../../../../../models/PurchasedPackage";
 import LongTermRental from "../../../../../models/LongTermRental";
 import LongTermIndustry from "../../../../../models/LongTermIndustry";
 import TradingPackage from "../../../../../models/TradingPackage";
+import User from "../../../../../models/User";
 
 export async function GET(req: NextRequest) {
   try {
     await dbConnect();
 
-
-    const purchasedPackages = await PurchasedPackage.find();
+    // Fetch all purchased packages with populated user fields
+    const purchasedPackages = await PurchasedPackage.find().populate({
+      path: "userId",
+      select: "email name phone", 
+    });
 
     const longTermRentalPackages = [];
     const longTermIndustryPackages = [];
@@ -19,10 +22,18 @@ export async function GET(req: NextRequest) {
 
     for (const pkg of purchasedPackages) {
       let details = null;
-      let commonFields = {
+
+      const commonFields = {
         _id: pkg._id,
         quantity: pkg.quantity,
         equityUnits: pkg.equityUnits,
+        purchaseDate: pkg.purchaseDate,
+        user: {
+          _id: pkg.userId?._id,
+          name: pkg.userId?.name,
+          email: pkg.userId?.email,
+          phone: pkg.userId?.phone,
+        },
       };
 
       switch (pkg.packageType) {
@@ -38,11 +49,11 @@ export async function GET(req: NextRequest) {
               minHoldingPeriodUnit: details.minHoldingPeriodUnit,
               resaleAllowed: details.resaleAllowed,
               image: details.image,
-              purchaseDate: pkg.purchaseDate,
             });
           }
           break;
         }
+
         case "long-term-industry": {
           details = await LongTermIndustry.findById(pkg.packageId).lean();
           if (details) {
@@ -56,11 +67,11 @@ export async function GET(req: NextRequest) {
               buybackOption: details.buybackOption,
               resaleAllowed: details.resaleAllowed,
               image: details.image,
-              purchaseDate: pkg.purchaseDate,
             });
           }
           break;
         }
+
         case "trading": {
           details = await TradingPackage.findById(pkg.packageId).lean();
           if (details) {
@@ -74,7 +85,6 @@ export async function GET(req: NextRequest) {
               profitEstimation: details.profitEstimation,
               dailyInsights: details.dailyInsights,
               image: details.image,
-              purchaseDate: pkg.purchaseDate,
             });
           }
           break;
@@ -83,18 +93,21 @@ export async function GET(req: NextRequest) {
     }
 
     const allPackages = [
-      ...longTermRentalPackages.map(pkg => ({ ...pkg, type: 'long-term-rental' })),
-      ...longTermIndustryPackages.map(pkg => ({ ...pkg, type: 'long-term-industry' })),
-      ...tradingPackages.map(pkg => ({ ...pkg, type: 'trading' })),
+      ...longTermRentalPackages.map(pkg => ({ ...pkg, type: "long-term-rental" })),
+      ...longTermIndustryPackages.map(pkg => ({ ...pkg, type: "long-term-industry" })),
+      ...tradingPackages.map(pkg => ({ ...pkg, type: "trading" })),
     ];
-    
+
     return NextResponse.json({
       success: true,
       data: allPackages,
     });
-    
+
   } catch (error) {
     console.error("Error fetching investments:", error);
-    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

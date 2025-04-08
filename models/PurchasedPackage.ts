@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 // Define the interface for PurchasedPackage
 interface IPurchasedPackage extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId: mongoose.Schema.Types.ObjectId;
   packageType: "long-term-rental" | "long-term-industry" | "trading";
   packageId: mongoose.Types.ObjectId;
   quantity: number;
@@ -13,7 +13,7 @@ interface IPurchasedPackage extends Document {
 }
 
 const PurchasedPackageSchema = new Schema<IPurchasedPackage>({
-  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
   packageType: {
     type: String,
     enum: ["long-term-rental", "long-term-industry", "trading"],

@@ -5,8 +5,18 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";  // Assume card component exists
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@/components/ui/card";
 
 const AdminProfitUpdate = () => {
   const [purchasedPackages, setPurchasedPackages] = useState<any[]>([]);
@@ -15,30 +25,43 @@ const AdminProfitUpdate = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch all purchased packages from the API
-  const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      // setLoading(false);
-      return;
-    }
+  // Fetch packages
   useEffect(() => {
     const fetchPurchasedPackages = async () => {
-      const response = await fetch("/api/admin/get-all-purchased-packages");
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication token not found.");
+        return;
+      }
+
+      const response = await fetch("/api/admin/get-all-purchased-packages", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (!response.ok) {
         setError("Failed to fetch packages");
         return;
       }
+
       const data = await response.json();
       setPurchasedPackages(data.data);
+      console.log(data.data)
     };
 
     fetchPurchasedPackages();
   }, []);
 
-  // Handle the form submission to update the profit
+  // Handle profit update
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Authentication token not found.");
+      return;
+    }
 
     if (!selectedPackage || profitAmount === "") {
       setError("Please select a package and enter a profit amount.");
@@ -52,7 +75,10 @@ const AdminProfitUpdate = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ packageId: selectedPackage._id, profitAmount }),
+        body: JSON.stringify({
+          packageId: selectedPackage._id,
+          profitAmount,
+        }),
       });
 
       const data = await response.json();
@@ -61,7 +87,7 @@ const AdminProfitUpdate = () => {
       } else {
         setSuccessMessage("Profit updated successfully!");
         setError(null);
-        setProfitAmount(""); // Reset profit amount
+        setProfitAmount("");
       }
     } catch (err) {
       setError("Something went wrong while updating profit.");
@@ -73,14 +99,14 @@ const AdminProfitUpdate = () => {
       <h1 className="text-2xl font-bold mb-4">Update Package Profit</h1>
 
       {error && (
-        <Alert className="max-w-lg mx-auto">
+        <Alert className="max-w-lg mx-auto mb-4">
           <AlertTitle>Error</AlertTitle>
           {error}
         </Alert>
       )}
 
       {successMessage && (
-        <Alert className="max-w-lg mx-auto">
+        <Alert className="max-w-lg mx-auto mb-4">
           <AlertTitle>Success</AlertTitle>
           {successMessage}
         </Alert>
@@ -90,53 +116,81 @@ const AdminProfitUpdate = () => {
         {purchasedPackages.map((pkg) => (
           <Card
             key={pkg._id}
-            className="cursor-pointer"
+            className="cursor-pointer hover:shadow-lg transition"
             onClick={() => setSelectedPackage(pkg)}
           >
             <CardHeader>
-              <h3>{pkg.name}</h3>
-              <p>{pkg.category}</p>
+              <h3 className="font-semibold text-lg">{pkg.name}</h3>
+              <p className="text-sm text-gray-500">{pkg.category}</p>
             </CardHeader>
-            <CardContent>
-              <p>Click to view details and update profit</p>
+            <CardContent className="space-y-2 text-sm">
+              {/* <p><strong>User:</strong> {pkg.userId?.name || "N/A"}</p> */}
+              <p><strong>Email:</strong> {pkg.user?.email || "N/A"}</p>
+              {/* <p><strong>Phone:</strong> {pkg.userId?.phone || "N/A"}</p> */}
+              <p className="text-blue-600 underline mt-2">Click to update profit</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {selectedPackage && (
-        <Dialog open={!!selectedPackage} onOpenChange={(open) => open || setSelectedPackage(null)}>
+        <Dialog
+          open={!!selectedPackage}
+          onOpenChange={(open) => {
+            if (!open) setSelectedPackage(null);
+          }}
+        >
           <DialogTrigger />
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Update Profit for {selectedPackage.name}</DialogTitle>
+              <DialogTitle>
+                Update Profit for {selectedPackage.name}
+              </DialogTitle>
             </DialogHeader>
 
-            {/* Displaying selected package details */}
-            <div className="mb-4">
-              <Label>Name:</Label>
-              <p>{selectedPackage.name}</p>
-            </div>
-            <div className="mb-4">
-              <Label>Category:</Label>
-              <p>{selectedPackage.category}</p>
-            </div>
-            <div className="mb-4">
-              <Label>Profit Amount:</Label>
-              <Input
-                id="profitAmount"
-                type="number"
-                value={profitAmount}
-                onChange={(e) => setProfitAmount(Number(e.target.value))}
-                className="w-full mt-1"
-                min="0"
-                required
-              />
+            <div className="space-y-2 text-sm mb-4">
+              <div>
+                <Label>Name:</Label>
+                <p>{selectedPackage.name}</p>
+              </div>
+              <div>
+                <Label>Category:</Label>
+                <p>{selectedPackage.category}</p>
+              </div>
+              <div>
+                <Label>User Name:</Label>
+                {/* <p>{selectedPackage.userId?.name || "N/A"}</p> */}
+              </div>
+              <div>
+                <Label>Email:</Label>
+                <p>{selectedPackage.user?.email || "N/A"}</p>
+              </div>
+              <div>
+                <Label>Phone:</Label>
+                {/* <p>{selectedPackage.userId?.phone || "N/A"}</p> */}
+              </div>
             </div>
 
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleSubmit}>
-              Update Profit
-            </Button>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="profitAmount">Profit Amount:</Label>
+                <Input
+                  id="profitAmount"
+                  type="number"
+                  value={profitAmount}
+                  onChange={(e) =>
+                    setProfitAmount(e.target.value === "" ? "" : Number(e.target.value))
+                  }
+                  className="w-full mt-1"
+                  min="0"
+                  required
+                />
+              </div>
+
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+                Update Profit
+              </Button>
+            </form>
           </DialogContent>
         </Dialog>
       )}

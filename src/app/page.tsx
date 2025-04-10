@@ -35,7 +35,7 @@ export default function Home() {
   if (loading) return <div className="flex justify-center items-center h-screen text-lg">Loading...</div>;
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
+    <div className="p-4 mx-auto">
       {/* Navbar */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Equity Platform</h1>

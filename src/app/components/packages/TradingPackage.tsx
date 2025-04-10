@@ -87,16 +87,75 @@ const TradingPackage = () => {
             <Skeleton key={i} className="w-full h-60 rounded-lg" />
           ))
         : packages.map((pkg) => (
-            <Card key={pkg._id} className="cursor-pointer hover:shadow-xl transition rounded-t-md" onClick={() => setSelectedPackage(pkg)}>
-              <CardHeader className="flex flex-col items-center p-0">
-                <Image src={pkg.image} width={100} height={100} alt="" className="rounded-t-md w-[100%]" />
-                <CardTitle className="text-center text-lg font-bold">{pkg.name}</CardTitle>
-                {/* <p className="text-sm text-gray-500">{pkg.category}</p> */}
-              </CardHeader>
-              <CardContent>
-                
-              </CardContent>
-            </Card>
+            <Card
+                          key={pkg._id}
+                          className="transition rounded-t-md overflow-hidden"
+                        >
+                          <CardHeader className="flex flex-col bg-[] p-0">
+                            {/* <div className="relative w-full h-0 pb-[100%]"> */}
+                            <div>
+                              <Image
+                                src={pkg.image}
+                                width={100}
+                                height={100}
+                                alt=""
+                                className="cursor-pointer rounded-t-md w-full h-full object-cover transition-transform duration-300 hover:scale-110" 
+                                onClick={() => setSelectedPackage(pkg)}
+                              />
+                            </div>
+                            {/* </div> */}
+                            <div className="bg-">
+                              <CardTitle
+                                className="text-lg font-bold cursor-pointer hover:text-[#00ab82] transition-all duration-300 px-6"
+                                onClick={() => setSelectedPackage(pkg)}
+                              >
+                                {pkg.name}
+                              </CardTitle>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                         <div className="space-y-4 mt-6">
+                         <div className="grid grid-cols-12">
+                              <div className="col-span-6">
+                                <div className="grid row">Equity Units</div>
+                                <div className="grid row">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-black font-bold text-[16px]">
+                                      {pkg.equityUnits}{" "}
+                                      <span className="text-[12px]">Per unit</span>
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="col-span-6 flex items-center justify-end">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setSelectedPackage(pkg)}
+                                >
+                                  Invest Now
+                                </Button>
+                              </div>
+                            </div>
+            
+                            <hr />
+                            <div className="grid grid-cols-12">
+                              <div className="col-span-6">
+                                <p className="font-bold text-[#ff3342]">
+                                  {pkg.availableUnits} Units Available
+                                </p>
+                              </div>
+                              <div className="col-span-6 text-right">
+                                <p className="font-semibold">
+                                  Minimum Holding: {pkg.minHoldingPeriod}{" "}
+                                  {pkg.minHoldingPeriodUnit}
+                                </p>
+                              </div>
+                            </div>
+                         </div>
+            
+                            {/* Content here */}
+                          </CardContent>
+                        </Card>
             
           ))}
 

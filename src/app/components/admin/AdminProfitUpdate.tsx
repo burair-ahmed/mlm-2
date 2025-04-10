@@ -124,9 +124,9 @@ const AdminProfitUpdate = () => {
               <p className="text-sm text-gray-500">{pkg.category}</p>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {/* <p><strong>User:</strong> {pkg.userId?.name || "N/A"}</p> */}
+          
               <p><strong>Email:</strong> {pkg.user?.email || "N/A"}</p>
-              {/* <p><strong>Phone:</strong> {pkg.userId?.phone || "N/A"}</p> */}
+          
               <p className="text-blue-600 underline mt-2">Click to update profit</p>
             </CardContent>
           </Card>
@@ -158,17 +158,10 @@ const AdminProfitUpdate = () => {
                 <p>{selectedPackage.category}</p>
               </div>
               <div>
-                <Label>User Name:</Label>
-                {/* <p>{selectedPackage.userId?.name || "N/A"}</p> */}
-              </div>
-              <div>
                 <Label>Email:</Label>
                 <p>{selectedPackage.user?.email || "N/A"}</p>
               </div>
-              <div>
-                <Label>Phone:</Label>
-                {/* <p>{selectedPackage.userId?.phone || "N/A"}</p> */}
-              </div>
+              
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

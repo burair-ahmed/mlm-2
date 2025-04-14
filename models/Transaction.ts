@@ -9,6 +9,7 @@ export interface ITransaction extends Document {
   type: 'deposit' | 'purchase' | 'commission' | 'equity_purchase'| 'cash_to_equity' | 'profit-withdrawal';
   equityUnits: number;
   referralLevel?: number;
+  description?: string;
   createdAt: Date;
 }
 
@@ -22,6 +23,7 @@ const TransactionSchema: Schema = new Schema({
   },  
   equityUnits: { type: Number, required: true, default: 0 },
   referralLevel: Number,
+  description: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -110,10 +110,11 @@ export async function POST(req: NextRequest) {
         equityUnits: totalEquityUnits,
         amount: 0, // No fiat currency, only equity units
         type: "purchase",
-        description: `Purchased ${quantity} units of ${selectedPackage.name}`,
+        description: `Purchased ${quantity} unit${quantity > 1 ? 's' : ''} of ${selectedPackage.name}`,
         status: "completed",
         createdAt: new Date(),
       });
+      
 
       await purchaseTx.save({ session });
 

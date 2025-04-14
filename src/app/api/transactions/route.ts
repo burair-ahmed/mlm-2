@@ -10,17 +10,48 @@ export async function GET(req: NextRequest) {
   await dbConnect();
 
   try {
-    // Ensure we're using the correct field name (userId)
-    const transactions = await Transaction.find({ userId: auth._id })
+    const url = new URL(req.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const type = url.searchParams.get('type');
+
+    const query: any = { userId: auth._id };
+    if (type) query.type = type;
+
+    // Count for all transactions (unfiltered)
+    const allCount = await Transaction.countDocuments({ userId: auth._id });
+
+    // Count per type
+    const typeCountsArray = await Transaction.aggregate([
+      { $match: { userId: auth._id } },
+      { $group: { _id: '$type', count: { $sum: 1 } } },
+    ]);
+
+    const counts: Record<string, number> = { all: allCount };
+    typeCountsArray.forEach((item) => {
+      counts[item._id] = item.count;
+    });
+
+    // Paginated transactions (optionally filtered)
+    const transactions = await Transaction.find(query)
       .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
       .lean();
 
-    // Always return an array even if empty
-    return NextResponse.json(transactions || []);
+    const totalFiltered = type ? counts[type] || 0 : allCount;
+    const totalPages = Math.ceil(totalFiltered / limit);
 
+    return NextResponse.json({
+      transactions,
+      counts,
+      totalPages,
+    });
   } catch (error) {
     console.error(error);
-    // Return empty array on error
-    return NextResponse.json([], { status: 500 });
+    return NextResponse.json(
+      { transactions: [], counts: { all: 0 }, totalPages: 1 },
+      { status: 500 }
+    );
   }
 }

@@ -6,6 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 interface Transaction {
   _id: string;
   amount: number;
+  equityUnits: number;
   type: string;
   createdAt: string;
   description?: string;
@@ -21,18 +22,18 @@ export default function TransactionHistory() {
     const fetchTransactions = async () => {
       try {
         if (!user?._id) return;
-  
+
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
-  
+
         const response = await fetch(`/api/transactions?userId=${user._id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-  
+
         if (!response.ok) throw new Error('Failed to fetch transactions');
-  
+
         const data = await response.json();
         setTransactions(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -42,9 +43,21 @@ export default function TransactionHistory() {
         setLoading(false);
       }
     };
-  
+
     fetchTransactions();
   }, [user]);
+
+  const getAmountDisplay = (tx: Transaction) => {
+    return tx.amount > 0
+      ? `$${tx.amount.toFixed(2)}`
+      : `${tx.equityUnits} Equity Units`;
+  };
+
+  const getColorClass = (type: string) => {
+    if (type === 'commission' || type === 'profit-withdrawal') return 'text-green-600';
+    if (type === 'equity_purchase' || type === 'cash_to_equity') return 'text-blue-600';
+    return 'text-red-600';
+  };
 
   if (loading) return <div className="text-gray-500 p-4">Loading transactions...</div>;
   if (error) return <div className="text-red-500 p-4">{error}</div>;
@@ -69,11 +82,11 @@ export default function TransactionHistory() {
                   <td className="py-2">
                     {new Date(tx.createdAt).toLocaleDateString()}
                   </td>
-                  <td className={`py-2 capitalize ${tx.type === 'commission' ? 'text-green-600' : 'text-red-600'}`}>
-                    {tx.type}
+                  <td className={`py-2 capitalize ${getColorClass(tx.type)}`}>
+                    {tx.type.replace(/_/g, ' ')}
                   </td>
-                  <td className={`py-2 ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    ${tx.amount.toFixed(2)}
+                  <td className={`py-2 ${getColorClass(tx.type)}`}>
+                    {getAmountDisplay(tx)}
                   </td>
                   <td className="py-2">
                     {tx.description || 'No description'}

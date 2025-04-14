@@ -17,7 +17,7 @@ interface Package {
   returnPercentage: number;
   minHoldingPeriod: number;
   minHoldingPeriodUnit: string;
-  buybackOption: boolean;
+  duration: { value: number; unit: 'months' | 'years' };
   resaleAllowed: boolean;
   image: string;
 }
@@ -172,7 +172,12 @@ const RentalPackage = () => {
               <p>Estimated Return: {selectedPackage.returnPercentage}%</p>
               <p>Available Units: {selectedPackage.availableUnits}</p>
               <p>Min Holding: {selectedPackage.minHoldingPeriod} {selectedPackage.minHoldingPeriodUnit}</p>
-              <p>Buyback: {selectedPackage.buybackOption ? "Yes" : "No"}</p>
+              {/* <p>Buyback: {selectedPackage.buybackOption ? "Yes" : "No"}</p> */}
+              <p>
+  Duration: {selectedPackage.duration?.value ?? "N/A"} {selectedPackage.duration?.unit ?? ""}
+</p>
+
+
               <p>Resale Allowed: {selectedPackage.resaleAllowed ? "Yes" : "No"}</p>
             </div>
             <Input

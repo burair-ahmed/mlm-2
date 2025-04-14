@@ -24,13 +24,17 @@ export async function POST(req: NextRequest) {
       equityUnits: body.equityUnits,
       returnPercentage: body.returnPercentage,
       estimatedReturn: body.estimatedReturn,
-      minHoldingPeriod: body.minHoldingPeriod, // Store only the value
-      minHoldingPeriodUnit: body.minHoldingPeriodUnit, // Store unit separately
+      duration: {
+        value: body.duration?.value,
+        unit: body.duration?.unit,
+      },
+      minHoldingPeriod: body.minHoldingPeriod,
+      minHoldingPeriodUnit: body.minHoldingPeriodUnit,
       resaleAllowed: body.resaleAllowed,
       image: body.image,
       createdAt: new Date(),
     });
-
+    
     await packageData.save();
 
     return NextResponse.json({ message: "Rental Package created successfully!", data: packageData }, { status: 201 });

@@ -12,7 +12,7 @@ interface Transaction {
   description?: string;
 }
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 export default function TransactionHistory() {
   const { user } = useAuth();

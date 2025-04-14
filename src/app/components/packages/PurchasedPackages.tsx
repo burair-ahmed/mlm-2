@@ -126,6 +126,34 @@ const MyInvestments = () => {
     return () => clearInterval(interval);
   }, []);
 
+
+  const handleWithdraw = async (packageId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return alert("No token found");
+  
+    try {
+      const response = await fetch("/api/transactions/withdraw-profit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ packageId }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok) throw new Error(result.error || "Withdraw failed");
+  
+      alert("Profit withdrawn successfully!");
+      // Optionally refetch investments
+    } catch (err) {
+      console.error(err);
+      alert((err as Error).message);
+    }
+  };
+  
+
   return (
     <div className="p-6">
       {loading ? (
@@ -152,7 +180,7 @@ const MyInvestments = () => {
             const timeElapsed = currentTime - purchaseTime;
             const isEligibleToSell = timeElapsed >= holdingMs;
             const remainingTime = holdingMs - timeElapsed;
-let profitAmount = 0
+
             return (
               <Card key={pkg._id}>
                 <CardHeader>
@@ -195,24 +223,24 @@ let profitAmount = 0
                     </>
                   )}
             <div className="grid grid-cols-12 gap-2 mt-4">
-  <div className="col-span-6 flex items-center">
-    {pkg.type === "long-term-industry" || pkg.type === "trading" ? (
-      <Button
-        disabled={!pkg.profitAmount}
-        className={`w-full ${
-          pkg.profitAmount
-            ? "bg-green-600 hover:bg-green-700"
-            : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        Withdraw Profit
-      </Button>
-    ) : (
-      <Button disabled className="w-full bg-gray-400 cursor-not-allowed">
-        Withdraw Profit
-      </Button>
-    )}
-  </div>
+            <div className="col-span-6 flex items-center">
+  <Button
+    disabled={
+      pkg.type === "long-term-rental" || !pkg.profitAmount
+    }
+    onClick={() => handleWithdraw(pkg._id)}
+    className={`w-full transition ${
+      pkg.type !== "long-term-industry" && pkg.type !== "trading"
+        ? "bg-gray-400 cursor-not-allowed"
+        : pkg.profitAmount
+        ? "bg-green-600 hover:bg-green-700"
+        : "bg-gray-400 cursor-not-allowed"
+    }`}
+  >
+    Withdraw Profit
+  </Button>
+</div>
+
   <div className="col-span-6">
     <Button
       disabled={!isEligibleToSell}

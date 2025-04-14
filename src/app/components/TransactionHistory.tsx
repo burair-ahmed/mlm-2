@@ -63,7 +63,10 @@ export default function TransactionHistory() {
     fetchTransactions();
   }, [user, activeType, page]);
 
-  const transactionTypes = ['all', ...Object.keys(transactionCounts || {}).filter((key) => key !== 'all')];
+  const staticTypeOrder = ['all', 'deposit', 'purchase', 'commission', 'profit-withdrawal', 'cash_to_equity'];
+
+const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || transactionCounts[type] > 0);
+
 
 
   const getAmountDisplay = (tx: Transaction) => {

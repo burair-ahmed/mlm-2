@@ -63,6 +63,7 @@ switch (pkg.packageType) {
         resaleAllowed: details.resaleAllowed,
         image: details.image,
         purchaseDate: pkg.purchaseDate,
+        profitAmount: pkg.profitAmount,
       });
     }
     break;
@@ -81,6 +82,7 @@ switch (pkg.packageType) {
         dailyInsights: details.dailyInsights,
         image: details.image,
         purchaseDate: pkg.purchaseDate,
+        profitAmount: pkg.profitAmount,
       });
     }
     break;

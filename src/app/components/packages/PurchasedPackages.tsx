@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 // Discriminated union type for proper field display based on package type
 type CommonFields = {
@@ -29,6 +30,7 @@ type LongTermIndustryPackage = CommonFields & {
   estimatedReturn: number;
   buybackOption: boolean;
   resaleAllowed: boolean;
+  profitAmount: number;
 };
 
 type TradingPackage = CommonFields & {
@@ -36,6 +38,7 @@ type TradingPackage = CommonFields & {
   returnPercentage: number;
   profitEstimation: string;
   dailyInsights: string;
+  profitAmount: number;
 };
 
 type PurchasedPackage =
@@ -62,13 +65,18 @@ const getHoldingPeriodInMs = (value: number, unit: string) => {
 const formatTimeLeft = (ms: number) => {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
+    2,
+    "0"
+  );
   const seconds = String(totalSeconds % 60).padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 };
 
 const MyInvestments = () => {
-  const [purchasedPackages, setPurchasedPackages] = useState<PurchasedPackage[]>([]);
+  const [purchasedPackages, setPurchasedPackages] = useState<
+    PurchasedPackage[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -144,7 +152,7 @@ const MyInvestments = () => {
             const timeElapsed = currentTime - purchaseTime;
             const isEligibleToSell = timeElapsed >= holdingMs;
             const remainingTime = holdingMs - timeElapsed;
-
+let profitAmount = 0
             return (
               <Card key={pkg._id}>
                 <CardHeader>
@@ -165,9 +173,7 @@ const MyInvestments = () => {
                   {pkg.type === "long-term-rental" && (
                     <>
                       <p>Return %: {pkg.returnPercentage}</p>
-                      <p>
-                        Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}
-                      </p>
+                      <p>Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}</p>
                     </>
                   )}
 
@@ -175,9 +181,8 @@ const MyInvestments = () => {
                     <>
                       <p>Estimated Return: {pkg.estimatedReturn}%</p>
                       <p>Buyback: {pkg.buybackOption ? "Yes" : "No"}</p>
-                      <p>
-                        Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}
-                      </p>
+                      <p>Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}</p>
+                      <p>Profit: {pkg.profitAmount || 0} Equity Units</p>
                     </>
                   )}
 
@@ -186,21 +191,45 @@ const MyInvestments = () => {
                       <p>Return %: {pkg.returnPercentage}</p>
                       <p>Profit Estimation: {pkg.profitEstimation}</p>
                       <p>Daily Insights: {pkg.dailyInsights}</p>
+                      <p>Profit: {pkg.profitAmount || 0} Equity Units</p>
                     </>
                   )}
+            <div className="grid grid-cols-12 gap-2 mt-4">
+  <div className="col-span-6 flex items-center">
+    {pkg.type === "long-term-industry" || pkg.type === "trading" ? (
+      <Button
+        disabled={!pkg.profitAmount}
+        className={`w-full ${
+          pkg.profitAmount
+            ? "bg-green-600 hover:bg-green-700"
+            : "bg-gray-400 cursor-not-allowed"
+        }`}
+      >
+        Withdraw Profit
+      </Button>
+    ) : (
+      <Button disabled className="w-full bg-gray-400 cursor-not-allowed">
+        Withdraw Profit
+      </Button>
+    )}
+  </div>
+  <div className="col-span-6">
+    <Button
+      disabled={!isEligibleToSell}
+      className={`px-4 py-2 rounded text-white w-full ${
+        isEligibleToSell
+          ? "bg-green-600 hover:bg-green-700"
+          : "bg-gray-400 cursor-not-allowed"
+      }`}
+    >
+      {isEligibleToSell
+        ? "Request to Sell"
+        : `Locked (${formatTimeLeft(remainingTime)})`}
+    </Button>
+  </div>
+</div>
 
-                  <button
-                    disabled={!isEligibleToSell}
-                    className={`mt-4 px-4 py-2 rounded text-white w-full ${
-                      isEligibleToSell
-                        ? "bg-green-600 hover:bg-green-700"
-                        : "bg-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    {isEligibleToSell
-                      ? "Request to Sell"
-                      : `Locked (${formatTimeLeft(remainingTime)})`}
-                  </button>
+
                 </CardContent>
               </Card>
             );

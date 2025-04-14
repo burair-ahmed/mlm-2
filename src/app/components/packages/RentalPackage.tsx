@@ -14,7 +14,7 @@ interface Package {
   totalUnits: number;
   availableUnits: number;
   equityUnits: number;
-  estimatedReturn: number;
+  returnPercentage: number;
   minHoldingPeriod: number;
   minHoldingPeriodUnit: string;
   buybackOption: boolean;
@@ -169,7 +169,7 @@ const RentalPackage = () => {
               <Image src={selectedPackage.image} width={250} height={150} alt="" className="rounded-md w-[100%]" />
               <p>Category: {selectedPackage.category}</p>
               <p>Equity Units: {selectedPackage.equityUnits}</p>
-              <p>Estimated Return: {selectedPackage.estimatedReturn}%</p>
+              <p>Estimated Return: {selectedPackage.returnPercentage}%</p>
               <p>Available Units: {selectedPackage.availableUnits}</p>
               <p>Min Holding: {selectedPackage.minHoldingPeriod} {selectedPackage.minHoldingPeriodUnit}</p>
               <p>Buyback: {selectedPackage.buybackOption ? "Yes" : "No"}</p>

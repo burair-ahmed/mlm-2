@@ -10,6 +10,7 @@ export interface ITransaction extends Document {
   equityUnits: number;
   referralLevel?: number;
   description?: string;
+  sourceUser?: mongoose.Types.ObjectId; // 👈 Add this
   createdAt: Date;
 }
 
@@ -24,6 +25,7 @@ const TransactionSchema: Schema = new Schema({
   equityUnits: { type: Number, required: true, default: 0 },
   referralLevel: Number,
   description: { type: String, default: '' },
+  sourceUser: { type: Schema.Types.ObjectId, ref: 'User', default: null }, // 👈 New field
   createdAt: { type: Date, default: Date.now }
 });
 

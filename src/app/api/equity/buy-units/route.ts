@@ -68,8 +68,10 @@ export async function POST(req: NextRequest) {
           userId: referrer._id,
           type: 'commission',
           amount: commission,
+          sourceUser: user._id, // 👈 THIS is what's missing
           description: `Cash commission from ${user.email}`
         }).save({ session });
+        
 
         currentUser = referrer;
       }

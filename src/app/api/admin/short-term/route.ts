@@ -38,3 +38,4 @@
 //     return NextResponse.json({ error: "Error fetching packages" }, { status: 500 });
 //   }
 // }
+export {};

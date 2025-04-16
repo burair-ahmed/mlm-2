@@ -18,9 +18,19 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 
+// Define types for package data
+interface Package {
+  _id: string;
+  name: string;
+  category: string;
+  user?: {
+    email: string;
+  };
+}
+
 const AdminProfitUpdate = () => {
-  const [purchasedPackages, setPurchasedPackages] = useState<any[]>([]);
-  const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
+  const [purchasedPackages, setPurchasedPackages] = useState<Package[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [profitAmount, setProfitAmount] = useState<number | "">("");
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -47,7 +57,7 @@ const AdminProfitUpdate = () => {
 
       const data = await response.json();
       setPurchasedPackages(data.data);
-      console.log(data.data)
+      console.log(data.data);
     };
 
     fetchPurchasedPackages();
@@ -89,7 +99,7 @@ const AdminProfitUpdate = () => {
         setError(null);
         setProfitAmount("");
       }
-    } catch (err) {
+    } catch (error) {
       setError("Something went wrong while updating profit.");
     }
   };
@@ -124,9 +134,7 @@ const AdminProfitUpdate = () => {
               <p className="text-sm text-gray-500">{pkg.category}</p>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-          
               <p><strong>Email:</strong> {pkg.user?.email || "N/A"}</p>
-          
               <p className="text-blue-600 underline mt-2">Click to update profit</p>
             </CardContent>
           </Card>
@@ -161,7 +169,6 @@ const AdminProfitUpdate = () => {
                 <Label>Email:</Label>
                 <p>{selectedPackage.user?.email || "N/A"}</p>
               </div>
-              
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

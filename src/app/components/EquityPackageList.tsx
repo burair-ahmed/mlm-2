@@ -1,4 +1,3 @@
-'use client';
 import { useEffect, useState } from 'react';
 
 interface EquityOwner {
@@ -37,8 +36,12 @@ export default function EquityPackagesList() {
 
         const data = await response.json();
         setPackages(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message); // Now safely access message property
+        } else {
+          setError('An unknown error occurred');
+        }
       } finally {
         setLoading(false);
       }

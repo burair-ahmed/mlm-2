@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Transaction from '../../../../../models/Transaction';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
-import User from '../../../../../models/User'; // 👈 ensure you have this imported
+// import User from '../../../../../models/User'; // 👈 ensure you have this imported
 
 export async function GET(req: NextRequest) {
   const auth = await authenticate(req);

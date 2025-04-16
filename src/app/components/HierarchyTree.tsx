@@ -5,10 +5,23 @@ import Tree from 'react-d3-tree';
 import { useAuth } from '../../../context/AuthContext';
 import { useCenteredTree } from '../../../hooks/useCenteredTree';
 
+interface NodeAttributes {
+  balance?: number;
+  referralCode?: string;
+}
+
+interface TreeNode {
+  name: string;
+  attributes: NodeAttributes;
+  children?: TreeNode[];
+}
+
+type Hierarchy = TreeNode | null;
+
 export default function HierarchyTree() {
   const { user } = useAuth();
-  const [hierarchy, setHierarchy] = useState<any>(null);
-  const [error, setError] = useState('');
+  const [hierarchy, setHierarchy] = useState<Hierarchy>(null); // Use the Hierarchy type
+  const [error, setError] = useState<string>('');
   const { translate, containerRef } = useCenteredTree();
 
   useEffect(() => {

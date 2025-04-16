@@ -10,47 +10,48 @@ interface Investment {
 const UserInvestments = () => {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const token = localStorage.getItem("token");
+
+  // Return early if no token is found
   if (!token) {
     console.error("Unauthorized: No token found.");
-    return;
+    return <p>Unauthorized: Please log in to view your investments.</p>;
   }
+
+  // Fetch investments using useEffect
   useEffect(() => {
     const fetchInvestments = async () => {
-        try {
-          const res = await fetch("/api/users/user-investments", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          });
-      
-          if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(`API Error ${res.status}: ${errorText}`);
-          }
-      
-          const data = await res.json();
-          console.log("Parsed JSON:", data);
-      
-          if (Array.isArray(data)) {
-            setInvestments(data);
-          } else if (data && typeof data === "object" && "investments" in data && Array.isArray(data.investments)) {
-            setInvestments(data.investments);
-          } else {
-            console.error("Error: Expected an array but got", typeof data);
-            setInvestments([]);
-          }
-        } catch (error) {
-          console.error("Error fetching investments:", error);
+      try {
+        const res = await fetch("/api/users/user-investments", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`API Error ${res.status}: ${errorText}`);
         }
-      };
-      
-  
+
+        const data = await res.json();
+        console.log("Parsed JSON:", data);
+
+        if (Array.isArray(data)) {
+          setInvestments(data);
+        } else if (data && typeof data === "object" && "investments" in data && Array.isArray(data.investments)) {
+          setInvestments(data.investments);
+        } else {
+          console.error("Error: Expected an array but got", typeof data);
+          setInvestments([]);
+        }
+      } catch (error) {
+        console.error("Error fetching investments:", error);
+      }
+    };
+
     fetchInvestments();
-  }, []);
-  
-  
+  }, [token]); // The token is now part of the dependencies
 
   return (
     <div className="p-4 border rounded-lg shadow-md">

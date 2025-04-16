@@ -8,6 +8,8 @@ import TradingPackage from "../../../../../models/TradingPackage";
 import PurchasedPackage from "../../../../../models/PurchasedPackage";
 import dbConnect from "../../../../../lib/dbConnect";
 import { authenticate } from "../../../../../middleware/auth";
+import type { Model } from "mongoose";
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4️⃣ Determine Package Model
-    const packageModels: Record<string, any> = {
+    const packageModels: Record<string, Model<any>> = {
       "long-term-rental": LongTermRental,
       "long-term-industry": LongTermIndustry,
       "trading": TradingPackage,

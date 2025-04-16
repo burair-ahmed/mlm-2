@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import ShortTermPackageForm from "./admin/ShortTermPackageForm";
+// import ShortTermPackageForm from "./admin/ShortTermPackageForm";
 import LongTermPackageForm from "./admin/LongTermPackageForm";
 import TradingPackageForm from "./admin/TradingPackageForm";
 

@@ -4,19 +4,15 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Link from "next/link";
 import HierarchyTree from "./components/HierarchyTree";
-// import PurchaseForm from "./components/PurchaseForm";
 import TransactionHistory from "./components/TransactionHistory";
 import CommissionHistory from "./components/CommissionHistory";
 import DepositForm from "./components/DepositForm";
-// import EquityPurchaseForm from "./components/EquityPurchaseForm";
 import BuyEquityUnitsForm from "./components/BuyEquityUnitsForm";
-// import UseEquityForm from "./components/UseEquityForm";
 import AccountOverview from "./components/AccountOverview";
 import ReferralInfo from "./components/ReferralInfo";
 import EquitySummary from "./components/EquitySummary";
-// import EquityPackages from './components/EquityPackages';
-// import UserEquityPackages from './components/UserEquityPackages';
-import UserInvestments from './components/UserInvestments';
+
+// import UserInvestments from './components/UserInvestments';
 import IndustryPackage from './components/packages/IndustryPackage';
 import RentalPackage from './components/packages/RentalPackage';
 import TradingPackage from './components/packages/TradingPackage';
@@ -66,7 +62,6 @@ export default function Home() {
         </nav>
       </div>
 
-      {/* User Dashboard */}
       {user && (
         <div className="bg-white p-6 rounded-lg shadow space-y-4">
           <AccountOverview user={user} />
@@ -75,19 +70,13 @@ export default function Home() {
             <h3 className="text-lg font-semibold mb-4">Referral Hierarchy</h3>
             <HierarchyTree />
           </div>
-          {/* <PurchaseForm /> */}
           <DepositForm />
           <BuyEquityUnitsForm />
-          {/* <UserEquityPackages/> */}
-          {/* <UseEquityForm /> */}
-          {/* <EquityPurchaseForm /> */}
           <EquitySummary user={user} />
           <MyInvestments/>
           <IndustryPackage/>
           <RentalPackage/>
           <TradingPackage/>
-          {/* <EquityPackages/> */}
-          {/* <UserInvestments/> */}
           <TransactionHistory />
           <CommissionHistory />
         </div>

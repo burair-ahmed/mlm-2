@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     for (const pkg of purchasedPackages) {
       let details = null;
-      let commonFields = {
+      const  commonFields = {
         _id: pkg._id,
         quantity: pkg.quantity,
         equityUnits: pkg.equityUnits,

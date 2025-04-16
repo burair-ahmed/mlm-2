@@ -41,11 +41,14 @@ export default function AdminEquityTracking() {
         }
 
         setEquityData(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       }
+      
     };
 
     fetchData();

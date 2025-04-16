@@ -5,7 +5,7 @@ import { useAuth } from '../../../context/AuthContext';
 export default function WithdrawalForm() {
   const { user } = useAuth();
   const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('bank');
+  const [paymentMethod] = useState('bank');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 

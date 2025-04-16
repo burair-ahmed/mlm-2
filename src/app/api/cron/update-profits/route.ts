@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import updateRentalProfits from "../../../../../cron/updateRentalProfits";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     await updateRentalProfits();
     return NextResponse.json({ message: "Profits updated" });

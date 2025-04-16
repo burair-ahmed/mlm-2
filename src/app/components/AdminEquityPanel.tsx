@@ -26,7 +26,7 @@ export default function AdminEquityPanel() {
   const [packages, setPackages] = useState<EquityPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  // const router = useRouter();
 
   useEffect(() => {
 

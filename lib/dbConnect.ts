@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Mongoose } from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -6,17 +6,29 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
 }
 
+// Define a type-safe cache interface
+interface MongooseGlobal {
+  conn: Mongoose | null;
+  promise: Promise<Mongoose> | null;
+}
+
+// Extend the global object with typed mongoose cache
 declare global {
-  var mongoose: any;
+  // Use `var` here intentionally to allow module hot reloading in Next.js
+  // and prevent the cache from being cleared between reloads.
+  var mongooseCache: MongooseGlobal;
 }
 
-let cached = global.mongoose;
+// Initialize cache if it doesn't exist
+const globalWithMongoose = global as typeof globalThis & { mongooseCache: MongooseGlobal };
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+if (!globalWithMongoose.mongooseCache) {
+  globalWithMongoose.mongooseCache = { conn: null, promise: null };
 }
 
-async function dbConnect() {
+const cached = globalWithMongoose.mongooseCache;
+
+async function dbConnect(): Promise<Mongoose> {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {

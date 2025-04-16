@@ -4,9 +4,9 @@ import PurchasedPackage from "../../../../../models/PurchasedPackage";
 import LongTermRental from "../../../../../models/LongTermRental";
 import LongTermIndustry from "../../../../../models/LongTermIndustry";
 import TradingPackage from "../../../../../models/TradingPackage";
-import User from "../../../../../models/User";
+// import User from "../../../../../models/User";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     await dbConnect();
 

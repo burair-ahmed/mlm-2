@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 
 export default function DepositForm() {
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');

@@ -15,8 +15,9 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(url.searchParams.get('limit') || '10');
     const type = url.searchParams.get('type');
 
-    const query: any = { userId: auth._id };
-    if (type) query.type = type;
+    const query: Record<string, unknown> = { userId: auth._id };
+if (type) query.type = type;
+
 
     // Count for all transactions (unfiltered)
     const allCount = await Transaction.countDocuments({ userId: auth._id });

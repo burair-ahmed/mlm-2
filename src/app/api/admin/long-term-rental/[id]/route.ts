@@ -1,38 +1,44 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import dbConnect from '../../../../../../lib/dbConnect';
-import LongTermRental from '../../../../../../models/LongTermRental';
+import { NextResponse } from "next/server";
+import dbConnect from "../../../../../../lib/dbConnect";
+import LongTermRental from "../../../../../../models/LongTermRental";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+// GET Request (Fetch a single Long-Term Rental Package)
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   await dbConnect();
-  const { id } = req.query;
+  const { id } = params;
 
-  switch (req.method) {
-    case 'GET': // Get Single Long-Term Package
-      try {
-        const packageData = await LongTermRental.findById(id);
-        if (!packageData) return res.status(404).json({ error: 'Package not found' });
-        return res.status(200).json(packageData);
-      } catch {
-        return res.status(500).json({ error: 'Error fetching package' });
-      }
+  try {
+    const packageData = await LongTermRental.findById(id);
+    if (!packageData) return NextResponse.json({ error: "Package not found" }, { status: 404 });
+    return NextResponse.json(packageData);
+  } catch {
+    return NextResponse.json({ error: "Error fetching package" }, { status: 500 });
+  }
+}
 
-    case 'PUT': // Update Long-Term Package
-      try {
-        const updatedPackage = await LongTermRental.findByIdAndUpdate(id, req.body, { new: true });
-        return res.status(200).json(updatedPackage);
-      } catch {
-        return res.status(400).json({ error: 'Error updating package' });
-      }
+// PUT Request (Update a Long-Term Rental Package)
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
+  await dbConnect();
+  const { id } = params;
+  const data = await req.json();
 
-    case 'DELETE': // Delete Long-Term Package
-      try {
-        await LongTermRental.findByIdAndDelete(id);
-        return res.status(200).json({ message: 'Package deleted' });
-      } catch {
-        return res.status(500).json({ error: 'Error deleting package' });
-      }
+  try {
+    const updatedPackage = await LongTermRental.findByIdAndUpdate(id, data, { new: true });
+    return NextResponse.json(updatedPackage);
+  } catch {
+    return NextResponse.json({ error: "Error updating package" }, { status: 400 });
+  }
+}
 
-    default:
-      return res.status(405).json({ error: 'Method Not Allowed' });
+// DELETE Request (Delete a Long-Term Rental Package)
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  await dbConnect();
+  const { id } = params;
+
+  try {
+    await LongTermRental.findByIdAndDelete(id);
+    return NextResponse.json({ message: "Package deleted" });
+  } catch {
+    return NextResponse.json({ error: "Error deleting package" }, { status: 500 });
   }
 }

@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
 
     // 4️⃣ Determine Package Model
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
     const packageModels: Record<string, Model<any>> = {
       "long-term-rental": LongTermRental,
       "long-term-industry": LongTermIndustry,

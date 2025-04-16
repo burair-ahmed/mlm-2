@@ -16,7 +16,7 @@ interface EquityOwnership {
 
 export default function AdminEquityTracking() {
   const [equityData, setEquityData] = useState<EquityOwnership[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

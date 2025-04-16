@@ -99,6 +99,7 @@ const AdminProfitUpdate = () => {
         setError(null);
         setProfitAmount("");
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("Something went wrong while updating profit.");
     }

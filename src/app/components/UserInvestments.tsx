@@ -9,16 +9,17 @@ interface Investment {
 
 const UserInvestments = () => {
   const [investments, setInvestments] = useState<Investment[]>([]);
-  const token = localStorage.getItem("token");
+  const [authorized, setAuthorized] = useState(true);
 
-  // Return early if no token is found
-  if (!token) {
-    console.error("Unauthorized: No token found.");
-    return <p>Unauthorized: Please log in to view your investments.</p>;
-  }
-
-  // Fetch investments using useEffect
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      console.error("Unauthorized: No token found.");
+      setAuthorized(false);
+      return;
+    }
+
     const fetchInvestments = async () => {
       try {
         const res = await fetch("/api/users/user-investments", {
@@ -39,7 +40,12 @@ const UserInvestments = () => {
 
         if (Array.isArray(data)) {
           setInvestments(data);
-        } else if (data && typeof data === "object" && "investments" in data && Array.isArray(data.investments)) {
+        } else if (
+          data &&
+          typeof data === "object" &&
+          "investments" in data &&
+          Array.isArray(data.investments)
+        ) {
           setInvestments(data.investments);
         } else {
           console.error("Error: Expected an array but got", typeof data);
@@ -51,7 +57,11 @@ const UserInvestments = () => {
     };
 
     fetchInvestments();
-  }, [token]); // The token is now part of the dependencies
+  }, []);
+
+  if (!authorized) {
+    return <p>Unauthorized: Please log in to view your investments.</p>;
+  }
 
   return (
     <div className="p-4 border rounded-lg shadow-md">

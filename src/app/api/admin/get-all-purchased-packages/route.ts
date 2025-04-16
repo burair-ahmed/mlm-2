@@ -6,6 +6,7 @@ import LongTermIndustry from "../../../../../models/LongTermIndustry";
 import TradingPackage from "../../../../../models/TradingPackage";
 // import User from "../../../../../models/User";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(_req: NextRequest) {
   try {
     await dbConnect();

@@ -14,10 +14,10 @@ interface MongooseGlobal {
 
 // Extend the global object with typed mongoose cache
 declare global {
-  // Use `var` here intentionally to allow module hot reloading in Next.js
-  // and prevent the cache from being cleared between reloads.
+  // eslint-disable-next-line no-var
   var mongooseCache: MongooseGlobal;
 }
+
 
 // Initialize cache if it doesn't exist
 const globalWithMongoose = global as typeof globalThis & { mongooseCache: MongooseGlobal };

@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
 
     const packageData = await TradingPackage.create(body);
     return NextResponse.json(packageData, { status: 201 });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_error) {
     return NextResponse.json({ error: "Error creating package" }, { status: 400 });
   }
@@ -27,6 +28,7 @@ export async function GET() {
   try {
     const packages = await TradingPackage.find({});
     return NextResponse.json(packages, { status: 200 });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_error) {
     return NextResponse.json({ error: "Error fetching packages" }, { status: 500 });
   }

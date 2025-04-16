@@ -45,6 +45,7 @@ switch (pkg.packageType) {
         resaleAllowed: details.resaleAllowed,
         image: details.image,
         purchaseDate: pkg.purchaseDate,
+        profitAmount: pkg.profitAmount,
       });
     }
     break;

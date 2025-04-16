@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
-// Discriminated union type for proper field display based on package type
 type CommonFields = {
   _id: string;
   type: "long-term-rental" | "long-term-industry" | "trading";
@@ -23,6 +22,7 @@ type LongTermRentalPackage = CommonFields & {
   type: "long-term-rental";
   returnPercentage: number;
   resaleAllowed: boolean;
+  profitAmount: number;
 };
 
 type LongTermIndustryPackage = CommonFields & {
@@ -65,18 +65,13 @@ const getHoldingPeriodInMs = (value: number, unit: string) => {
 const formatTimeLeft = (ms: number) => {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
-    2,
-    "0"
-  );
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
   const seconds = String(totalSeconds % 60).padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 };
 
 const MyInvestments = () => {
-  const [purchasedPackages, setPurchasedPackages] = useState<
-    PurchasedPackage[]
-  >([]);
+  const [purchasedPackages, setPurchasedPackages] = useState<PurchasedPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -126,11 +121,10 @@ const MyInvestments = () => {
     return () => clearInterval(interval);
   }, []);
 
-
   const handleWithdraw = async (packageId: string) => {
     const token = localStorage.getItem("token");
     if (!token) return alert("No token found");
-  
+
     try {
       const response = await fetch("/api/transactions/withdraw-profit", {
         method: "POST",
@@ -140,11 +134,11 @@ const MyInvestments = () => {
         },
         body: JSON.stringify({ packageId }),
       });
-  
+
       const result = await response.json();
-  
+
       if (!response.ok) throw new Error(result.error || "Withdraw failed");
-  
+
       alert("Profit withdrawn successfully!");
       // Optionally refetch investments
     } catch (err) {
@@ -152,7 +146,6 @@ const MyInvestments = () => {
       alert((err as Error).message);
     }
   };
-  
 
   return (
     <div className="p-6">
@@ -202,6 +195,9 @@ const MyInvestments = () => {
                     <>
                       <p>Return %: {pkg.returnPercentage}</p>
                       <p>Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}</p>
+                      <p className="text-green-600 font-medium">
+                        Profit: {pkg.profitAmount || 0} Equity Units
+                      </p>
                     </>
                   )}
 
@@ -210,7 +206,9 @@ const MyInvestments = () => {
                       <p>Estimated Return: {pkg.estimatedReturn}%</p>
                       <p>Buyback: {pkg.buybackOption ? "Yes" : "No"}</p>
                       <p>Resale Allowed: {pkg.resaleAllowed ? "Yes" : "No"}</p>
-                      <p>Profit: {pkg.profitAmount || 0} Equity Units</p>
+                      <p className="text-green-600 font-medium">
+                        Profit: {pkg.profitAmount || 0} Equity Units
+                      </p>
                     </>
                   )}
 
@@ -219,45 +217,46 @@ const MyInvestments = () => {
                       <p>Return %: {pkg.returnPercentage}</p>
                       <p>Profit Estimation: {pkg.profitEstimation}</p>
                       <p>Daily Insights: {pkg.dailyInsights}</p>
-                      <p>Profit: {pkg.profitAmount || 0} Equity Units</p>
+                      <p className="text-green-600 font-medium">
+                        Profit: {pkg.profitAmount || 0} Equity Units
+                      </p>
                     </>
                   )}
-            <div className="grid grid-cols-12 gap-2 mt-4">
-            <div className="col-span-6 flex items-center">
-  <Button
-    disabled={
-      pkg.type === "long-term-rental" || !pkg.profitAmount
-    }
-    onClick={() => handleWithdraw(pkg._id)}
-    className={`w-full transition ${
-      pkg.type !== "long-term-industry" && pkg.type !== "trading"
-        ? "bg-gray-400 cursor-not-allowed"
-        : pkg.profitAmount
-        ? "bg-green-600 hover:bg-green-700"
-        : "bg-gray-400 cursor-not-allowed"
-    }`}
-  >
-    Withdraw Profit
-  </Button>
-</div>
 
-  <div className="col-span-6">
-    <Button
-      disabled={!isEligibleToSell}
-      className={`px-4 py-2 rounded text-white w-full ${
-        isEligibleToSell
-          ? "bg-green-600 hover:bg-green-700"
-          : "bg-gray-400 cursor-not-allowed"
-      }`}
-    >
-      {isEligibleToSell
-        ? "Request to Sell"
-        : `Locked (${formatTimeLeft(remainingTime)})`}
-    </Button>
-  </div>
-</div>
+                  <div className="grid grid-cols-12 gap-2 mt-4">
+                    <div className="col-span-6 flex items-center">
+                      <Button
+                        disabled={
+                          pkg.type === "long-term-rental" || !pkg.profitAmount
+                        }
+                        onClick={() => handleWithdraw(pkg._id)}
+                        className={`w-full transition ${
+                          pkg.type !== "long-term-industry" && pkg.type !== "trading"
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : pkg.profitAmount
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-gray-400 cursor-not-allowed"
+                        }`}
+                      >
+                        Withdraw Profit
+                      </Button>
+                    </div>
 
-
+                    <div className="col-span-6">
+                      <Button
+                        disabled={!isEligibleToSell}
+                        className={`px-4 py-2 rounded text-white w-full ${
+                          isEligibleToSell
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-gray-400 cursor-not-allowed"
+                        }`}
+                      >
+                        {isEligibleToSell
+                          ? "Request to Sell"
+                          : `Locked (${formatTimeLeft(remainingTime)})`}
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             );

@@ -1,10 +1,11 @@
+// File: src/app/api/users/[userId]/hierarchy/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import User from '../../../../../../models/User';
 import dbConnect from '../../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../../middleware/auth';
-import { HydratedDocument } from 'mongoose';
+// import { HydratedDocument } from 'mongoose';
 
-// Define the hierarchy user structure
 interface HierarchyUser {
   _id: string;
   email: string;
@@ -22,11 +23,10 @@ interface TreeNode extends HierarchyUser {
   children: TreeNode[];
 }
 
-// Corrected GET handler
 export async function GET(
   req: NextRequest,
   context: { params: { userId: string } }
-) {
+): Promise<NextResponse> {
   const auth = await authenticate(req);
   if (auth instanceof NextResponse) return auth;
 
@@ -37,12 +37,13 @@ export async function GET(
   try {
     const buildTree = async (userId: string): Promise<TreeNode | null> => {
       const user = await User.findById(userId)
-        .select('email referralCode balance referrals')
-        .populate<{ referrals: HydratedDocument<HierarchyUser>[] }>({
-          path: 'referrals',
-          select: 'email referralCode balance referrals',
-        })
-        .lean();
+  .select('email referralCode balance referrals')
+  .populate({
+    path: 'referrals',
+    select: 'email referralCode balance referrals',
+  })
+  .lean() as unknown as HierarchyUser;
+
 
       if (!user) return null;
 
@@ -60,7 +61,7 @@ export async function GET(
           email: ref.email,
           referralCode: ref.referralCode,
           balance: ref.balance,
-          referrals: []
+          referrals: [],
         })),
         name: user.email,
         attributes: {

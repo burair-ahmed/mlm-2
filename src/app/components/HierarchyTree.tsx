@@ -5,22 +5,22 @@ import Tree from 'react-d3-tree';
 import { useAuth } from '../../../context/AuthContext';
 import { useCenteredTree } from '../../../hooks/useCenteredTree';
 
-interface NodeAttributes {
-  balance?: number;
-  referralCode?: string;
-}
+// interface NodeAttributes {
+//   balance?: number;
+//   referralCode?: string;
+// }
 
-interface TreeNode {
+interface RawNodeDatum {
   name: string;
-  attributes: NodeAttributes;
-  children?: TreeNode[];
+  attributes: Record<string, string | number | boolean>; // Ensure attributes conform to the expected type
+  children?: RawNodeDatum[];
 }
 
-type Hierarchy = TreeNode | null;
+type Hierarchy = RawNodeDatum | null;
 
 export default function HierarchyTree() {
   const { user } = useAuth();
-  const [hierarchy, setHierarchy] = useState<Hierarchy>(null); // Use the Hierarchy type
+  const [hierarchy, setHierarchy] = useState<Hierarchy>(null); // Use the RawNodeDatum type
   const [error, setError] = useState<string>('');
   const { translate, containerRef } = useCenteredTree();
 

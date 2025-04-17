@@ -11,7 +11,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import Image from "next/image";
 
 interface Package {
@@ -78,6 +77,7 @@ const IndustryPackage = () => {
           )
         );
         setSelectedPackage(null);
+        setQuantity(1);
       }
     } catch (error) {
       console.error("Purchase error:", error);
@@ -88,7 +88,7 @@ const IndustryPackage = () => {
   };
 
   return (
-    <div className="grid grid-cols-6 md:grid-cols-3 gap-6 p-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 sm:p-6">
       {isFetching
         ? [...Array(6)].map((_, i) => (
             <Skeleton key={i} className="w-full h-60 rounded-lg" />
@@ -96,71 +96,59 @@ const IndustryPackage = () => {
         : packages.map((pkg) => (
             <Card
               key={pkg._id}
-              className="transition rounded-t-md overflow-hidden"
+              className="transition rounded-md overflow-hidden flex flex-col"
             >
-              <CardHeader className="flex flex-col bg-[] p-0">
-                {/* <div className="relative w-full h-0 pb-[100%]"> */}
-                <div>
+              <CardHeader className="p-0">
+                <div className="relative w-full h-48 overflow-hidden">
                   <Image
                     src={pkg.image}
-                    width={100}
-                    height={100}
-                    alt=""
-                    className="cursor-pointer rounded-t-md w-full h-full object-cover transition-transform duration-300 hover:scale-110" 
+                    fill
+                    alt={pkg.name}
+                    className="cursor-pointer object-cover transition-transform duration-300 hover:scale-105"
                     onClick={() => setSelectedPackage(pkg)}
                   />
                 </div>
-                {/* </div> */}
-                <div className="bg-">
+                <div className="px-4 py-2">
                   <CardTitle
-                    className="text-lg font-bold cursor-pointer hover:text-[#00ab82] transition-all duration-300 px-6"
+                    className="text-lg font-bold cursor-pointer hover:text-[#00ab82] transition-all duration-300"
                     onClick={() => setSelectedPackage(pkg)}
                   >
                     {pkg.name}
                   </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent>
-             <div className="space-y-4 mt-6">
-             <div className="grid grid-cols-12">
-                  <div className="col-span-6">
-                    <div className="grid row">Equity Units</div>
-                    <div className="grid row">
-                      <div className="flex items-center gap-2">
-                        <p className="text-black font-bold text-[16px]">
-                          {pkg.equityUnits}{" "}
-                          <span className="text-[12px]">Per unit</span>
-                        </p>
+
+              <CardContent className="flex-1 flex flex-col justify-between p-4">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="text-gray-600 text-sm">Equity Units</div>
+                      <div className="font-bold text-black text-[16px]">
+                        {pkg.equityUnits}{" "}
+                        <span className="text-xs">Per unit</span>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-span-6 flex items-center justify-end">
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={() => setSelectedPackage(pkg)}
                     >
                       Invest Now
                     </Button>
                   </div>
-                </div>
 
-                <hr />
-                <div className="grid grid-cols-12">
-                  <div className="col-span-6">
+                  <hr />
+
+                  <div className="flex justify-between items-center text-sm">
                     <p className="font-bold text-[#ff3342]">
                       {pkg.availableUnits} Units Available
                     </p>
-                  </div>
-                  <div className="col-span-6 text-right">
                     <p className="font-semibold">
-                      Minimum Holding: {pkg.minHoldingPeriod}{" "}
+                      Min Holding: {pkg.minHoldingPeriod}{" "}
                       {pkg.minHoldingPeriodUnit}
                     </p>
                   </div>
                 </div>
-             </div>
-
-                {/* Content here */}
               </CardContent>
             </Card>
           ))}
@@ -171,47 +159,54 @@ const IndustryPackage = () => {
           open={!!selectedPackage}
           onOpenChange={() => setSelectedPackage(null)}
         >
-          <DialogContent className="max-w-md mx-auto">
+          <DialogContent className="max-w-sm mx-auto">
             <DialogHeader>
-              <DialogTitle>{selectedPackage.name}</DialogTitle>
+              <DialogTitle className="text-center">
+                {selectedPackage.name}
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-2">
-              <Image
-                src={selectedPackage.image}
-                width={250}
-                height={150}
-                alt=""
-                className="rounded-md w-[100%]"
+            <div className="space-y-4">
+              <div className="w-full h-48 relative overflow-hidden rounded-md">
+                <Image
+                  src={selectedPackage.image}
+                  fill
+                  alt={selectedPackage.name}
+                  className="object-cover"
+                />
+              </div>
+
+              <div className="text-sm space-y-1">
+                <p><strong>Category:</strong> {selectedPackage.category}</p>
+                <p><strong>Equity Units:</strong> {selectedPackage.equityUnits}</p>
+                <p><strong>Estimated Return:</strong> {selectedPackage.estimatedReturn}%</p>
+                <p><strong>Available Units:</strong> {selectedPackage.availableUnits}</p>
+                <p><strong>Min Holding:</strong> {selectedPackage.minHoldingPeriod} {selectedPackage.minHoldingPeriodUnit}</p>
+                <p><strong>Buyback:</strong> {selectedPackage.buybackOption ? "Yes" : "No"}</p>
+                <p><strong>Resale Allowed:</strong> {selectedPackage.resaleAllowed ? "Yes" : "No"}</p>
+              </div>
+
+              <Input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                min={1}
+                max={selectedPackage.availableUnits}
+                className="my-2"
               />
-              <p>Category: {selectedPackage.category}</p>
-              <p>Equity Units: {selectedPackage.equityUnits}</p>
-              <p>Estimated Return: {selectedPackage.estimatedReturn}%</p>
-              <p>Available Units: {selectedPackage.availableUnits}</p>
-              <p>
-                Min Holding: {selectedPackage.minHoldingPeriod}{" "}
-                {selectedPackage.minHoldingPeriodUnit}
-              </p>
-              <p>Buyback: {selectedPackage.buybackOption ? "Yes" : "No"}</p>
-              <p>
-                Resale Allowed: {selectedPackage.resaleAllowed ? "Yes" : "No"}
-              </p>
             </div>
-            <Input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value))}
-              min={1}
-              max={selectedPackage.availableUnits}
-              className="my-2"
-            />
-            <DialogFooter>
+            <DialogFooter className="flex justify-between">
               <Button
                 variant="outline"
                 onClick={() => setSelectedPackage(null)}
+                className="w-1/2"
               >
                 Cancel
               </Button>
-              <Button onClick={handlePurchase} disabled={loading}>
+              <Button
+                onClick={handlePurchase}
+                disabled={loading}
+                className="w-1/2"
+              >
                 {loading ? "Processing..." : "Buy Now"}
               </Button>
             </DialogFooter>

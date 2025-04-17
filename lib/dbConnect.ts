@@ -15,12 +15,13 @@ interface MongooseGlobal {
 // Extend the global object with typed mongoose cache
 declare global {
   // eslint-disable-next-line no-var
-  var mongooseCache: MongooseGlobal;
+  var mongooseCache: MongooseGlobal | undefined;
 }
 
-
 // Initialize cache if it doesn't exist
-const globalWithMongoose = global as typeof globalThis & { mongooseCache: MongooseGlobal };
+const globalWithMongoose = global as typeof globalThis & {
+  mongooseCache: MongooseGlobal;
+};
 
 if (!globalWithMongoose.mongooseCache) {
   globalWithMongoose.mongooseCache = { conn: null, promise: null };
@@ -32,7 +33,7 @@ async function dbConnect(): Promise<Mongoose> {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => mongoose);
+    cached.promise = mongoose.connect(MONGODB_URI!).then((mongoose) => mongoose);
   }
 
   cached.conn = await cached.promise;

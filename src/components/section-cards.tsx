@@ -1,35 +1,44 @@
-'use client'
+"use client";
 
-import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
-import { useEffect, useState } from "react"
+import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 
-import { useAuth } from "../../context/AuthContext"
+import { useAuth } from "../../context/AuthContext";
 
 interface Investment {
-  profitAmount: number
+  profitAmount: number;
 }
-
 
 export function SectionCards() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [investments, setInvestments] = useState<Investment[]>([])
-  const [totalProfit, setTotalProfit] = useState(0)
-  const [referralCount, setReferralCount] = useState(0)
+  const [investments, setInvestments] = useState<Investment[]>([]);
+  const [totalProfit, setTotalProfit] = useState(0);
+  const [referralCount, setReferralCount] = useState(0);
 
-  const { user } = useAuth() // ✅ get user from AuthContext
+  const { user } = useAuth(); // ✅ get user from AuthContext
+
+  const [showProfitInUSD, setShowProfitInUSD] = useState(false);
+  const [showWithdrawnInUSD, setShowWithdrawnInUSD] = useState(false);
+  const [showBalanceInUSD, setShowBalanceInUSD] = useState(false);
+
+  const formatValue = (value: number, inUSD: boolean) => {
+    return inUSD
+      ? `$${(value * 10).toLocaleString()}`
+      : `${value} Equity Units`;
+  };
 
   useEffect(() => {
     const fetchInvestments = async () => {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("token");
       try {
         const res = await fetch("/api/transactions/my-investments", {
           method: "GET",
@@ -37,29 +46,29 @@ export function SectionCards() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        })
-        const data = await res.json()
+        });
+        const data = await res.json();
 
         if (data.success) {
-          const investmentsData = data.data?.investments || data.data
-          setInvestments(investmentsData)
+          const investmentsData = data.data?.investments || data.data;
+          setInvestments(investmentsData);
 
           const total = investmentsData.reduce(
             (sum: number, pkg: Investment) => sum + (pkg.profitAmount || 0),
             0
-          )
-          setTotalProfit(total)
+          );
+          setTotalProfit(total);
         }
       } catch (err) {
-        console.error("Failed to fetch investments:", err)
+        console.error("Failed to fetch investments:", err);
       }
-    }
+    };
 
-    fetchInvestments()
-  }, [])
+    fetchInvestments();
+  }, []);
   useEffect(() => {
     const fetchReferralCount = async () => {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("token");
       try {
         const res = await fetch("/api/users/referral-count", {
           method: "GET",
@@ -67,20 +76,19 @@ export function SectionCards() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        })
-  
-        const data = await res.json()
+        });
+
+        const data = await res.json();
         if (data.success) {
-          setReferralCount(data.referralCount)
+          setReferralCount(data.referralCount);
         }
       } catch (err) {
-        console.error("Failed to fetch referral count:", err)
+        console.error("Failed to fetch referral count:", err);
       }
-    }
-  
-    fetchReferralCount()
-  }, [])
-  
+    };
+
+    fetchReferralCount();
+  }, []);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4 lg:px-6 *:data-[slot=card]:shadow-xs *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card">
@@ -89,9 +97,17 @@ export function SectionCards() {
         <CardHeader className="relative">
           <CardDescription>Profit Available for Withdrawal</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {totalProfit} Equity Units
+            {formatValue(totalProfit, showProfitInUSD)}
           </CardTitle>
-            <p className="text-[12px] text-[#282828]">Tap to see valuation in $</p>
+          <p
+            className="text-[12px] text-[#282828] cursor-pointer underline"
+            onClick={() => setShowProfitInUSD(!showProfitInUSD)}
+          >
+            {showProfitInUSD
+              ? "Click to see in Equity Units"
+              : "Tap to see valuation in $"}
+          </p>
+
           <div className="absolute right-4 top-4">
             <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
               <TrendingUpIcon className="size-3" />
@@ -114,9 +130,16 @@ export function SectionCards() {
         <CardHeader className="relative">
           <CardDescription>Withdrawn Profit</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {user?.withdrawnProfits} Equity Units
+            {formatValue(user?.withdrawnProfits || 0, showWithdrawnInUSD)}
           </CardTitle>
-          <p className="text-[12px] text-[#282828]">Tap to see valuation in $</p>
+          <p
+            className="text-[12px] text-[#282828] cursor-pointer underline"
+            onClick={() => setShowWithdrawnInUSD(!showWithdrawnInUSD)}
+          >
+            {showWithdrawnInUSD
+              ? "Click to see in Equity Units"
+              : "Tap to see valuation in $"}
+          </p>
           <div className="absolute right-4 top-4">
             <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
               <TrendingDownIcon className="size-3" />
@@ -134,55 +157,62 @@ export function SectionCards() {
         </CardFooter>
       </Card>
 
-{/* Total Referrals */}
-<Card className="@container/card">
-  <CardHeader className="relative">
-    <CardDescription>Total Referrals</CardDescription>
-    <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-      {referralCount}
-    </CardTitle>
-    <div className="absolute right-4 top-4">
-      <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-        <TrendingUpIcon className="size-3" />
-        +8.9%
-      </Badge>
-    </div>
-  </CardHeader>
-  <CardFooter className="flex-col items-start gap-1 text-sm">
-    <div className="line-clamp-1 flex gap-2 font-medium">
-      New signups from your code <TrendingUpIcon className="size-4" />
-    </div>
-    <div className="text-muted-foreground">
-      Referrals linked through your code
-    </div>
-  </CardFooter>
-</Card>
-
-      {/* Growth Rate */}
+      {/* Total Referrals */}
       <Card className="@container/card">
-  <CardHeader className="relative">
-    <CardDescription>Total Balance</CardDescription>
-    <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-      {user?.equityUnits} Equity Units
-    </CardTitle>
-    <p className="text-[12px] text-[#282828]">Tap to see valuation in $</p>
-    <div className="absolute right-4 top-4">
-      <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-        <TrendingUpIcon className="size-3" />
-        +4.5%
-      </Badge>
-    </div>
-  </CardHeader>
-  <CardFooter className="flex-col items-start gap-1 text-sm">
-    <div className="line-clamp-1 flex gap-2 font-medium">
-      Based on all deposits and returns <TrendingUpIcon className="size-4" />
-    </div>
-    <div className="text-muted-foreground">
-      This is your overall balance
-    </div>
-  </CardFooter>
-</Card>
+        <CardHeader className="relative">
+          <CardDescription>Total Referrals</CardDescription>
+          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+            {referralCount}
+          </CardTitle>
+          <div className="absolute right-4 top-4">
+            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+              <TrendingUpIcon className="size-3" />
+              +8.9%
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            New signups from your code <TrendingUpIcon className="size-4" />
+          </div>
+          <div className="text-muted-foreground">
+            Referrals linked through your code
+          </div>
+        </CardFooter>
+      </Card>
 
+      {/* Equity Units Balance */}
+      <Card className="@container/card">
+        <CardHeader className="relative">
+          <CardDescription>Total Balance</CardDescription>
+          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+            {formatValue(user?.equityUnits || 0, showBalanceInUSD)}
+          </CardTitle>
+          <p
+            className="text-[12px] text-[#282828] cursor-pointer underline"
+            onClick={() => setShowBalanceInUSD(!showBalanceInUSD)}
+          >
+            {showBalanceInUSD
+              ? "Click to see in Equity Units"
+              : "Tap to see valuation in $"}
+          </p>
+          <div className="absolute right-4 top-4">
+            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+              <TrendingUpIcon className="size-3" />
+              +4.5%
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Based on all deposits and returns{" "}
+            <TrendingUpIcon className="size-4" />
+          </div>
+          <div className="text-muted-foreground">
+            This is your overall balance
+          </div>
+        </CardFooter>
+      </Card>
     </div>
-  )
+  );
 }

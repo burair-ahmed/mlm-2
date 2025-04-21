@@ -15,6 +15,7 @@ export interface IUser extends Document {
   commissionEarned: number;
   equityUnits: number; 
   isAdmin: boolean;
+  withdrawnProfits: number;
   // equityOwnership: Array<{
   //   packageId: Schema.Types.ObjectId;
   //   units: number;
@@ -41,6 +42,8 @@ const UserSchema: Schema = new Schema({
   commissionEarned: { type: Number, default: 0 },
   equityUnits: { type: Number, default: 0 },
   isAdmin: { type: Boolean, default: false },
+  withdrawnProfits: { type: Number, default: 0 },
+
   // equityOwnership: [{
   //   packageId: { type: Schema.Types.ObjectId, ref: 'EquityPackage' },
   //   units: { type: Number, required: true },

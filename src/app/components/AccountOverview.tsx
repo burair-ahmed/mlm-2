@@ -3,6 +3,7 @@ import React from 'react';
 interface User {
   email: string;
   balance: number;
+  withdrawnProfits: number;
 }
 
 export default function AccountOverview({ user }: { user: User }) {
@@ -13,6 +14,7 @@ export default function AccountOverview({ user }: { user: User }) {
         <div>
           <p className="text-gray-600">Email: {user.email}</p>
           <p className="text-gray-600">Balance: ${user.balance.toFixed(2)}</p>
+          <p className="text-gray-600">Balance: ${user.withdrawnProfits.toFixed(2)}</p>
         </div>
       </div>
     </div>

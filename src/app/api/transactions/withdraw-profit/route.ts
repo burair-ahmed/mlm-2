@@ -33,11 +33,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "No withdrawable profit" }, { status: 400 });
       }
 
-      // 6️⃣ Credit Profit to User's Equity Units
-      const user = await User.findById(auth._id).session(session);
-      if (!user) throw new Error("User not found");
+  // 6️⃣ Credit Profit to User's Equity Units & Track Withdrawn Profits
+const user = await User.findById(auth._id).session(session);
+if (!user) throw new Error("User not found");
 
-      user.equityUnits += purchased.profitAmount;
+const profitToWithdraw = purchased.profitAmount;
+user.equityUnits += profitToWithdraw;
+user.withdrawnProfits = (user.withdrawnProfits || 0) + profitToWithdraw;
 
       // 7️⃣ Record Transaction
       const tx = new Transaction({

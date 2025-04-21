@@ -1,3 +1,5 @@
+// app/api/admin/update-profit/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import PurchasedPackage from "../../../../../models/PurchasedPackage";
 import { authenticate } from "../../../../../middleware/auth";
@@ -18,14 +20,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, message: "Purchased package not found" }, { status: 404 });
   }
 
-  if (purchased.packageType === "long-term-rental") {
-    return NextResponse.json({
-      success: false,
-      message: "Profit for rental packages is fixed and cannot be manually updated.",
-    }, { status: 403 });
-  }
+  // Add the new profitAmount to the existing profitAmount
+  purchased.profitAmount += profitAmount;
 
-  purchased.profitAmount = profitAmount;
   await purchased.save();
 
   return NextResponse.json({ success: true, data: purchased });

@@ -93,16 +93,15 @@ const TradingPackage = () => {
                         >
                           <CardHeader className="flex flex-col bg-[] p-0">
                             {/* <div className="relative w-full h-0 pb-[100%]"> */}
-                            <div>
-                              <Image
-                                src={pkg.image}
-                                width={100}
-                                height={100}
-                                alt=""
-                                className="cursor-pointer rounded-t-md w-full h-full object-cover transition-transform duration-300 hover:scale-110" 
-                                onClick={() => setSelectedPackage(pkg)}
-                              />
-                            </div>
+                          <div className="relative w-full h-48 overflow-hidden">
+                                          <Image
+                                            src={pkg.image}
+                                            fill
+                                            alt={pkg.name}
+                                            className="cursor-pointer object-cover transition-transform duration-300 hover:scale-105"
+                                            onClick={() => setSelectedPackage(pkg)}
+                                          />
+                                        </div>
                             {/* </div> */}
                             <div className="bg-">
                               <CardTitle

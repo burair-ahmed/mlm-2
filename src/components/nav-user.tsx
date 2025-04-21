@@ -2,7 +2,7 @@
 
 import {
   BellIcon,
-  CreditCardIcon,
+  // CreditCardIcon,
   LogOutIcon,
   MoreVerticalIcon,
   UserCircleIcon,
@@ -28,16 +28,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useAuth } from '../../context/AuthContext';
 
 // import { useEffect, useState } from "react"
 
-interface User {
-  email: string
-  balance: number
-}
+// interface User {
+//   email: string
+//   balance: number
+// }
 
-export function NavUser({ user }: { user?: User | null }) {
+export function NavUser() {
   const { isMobile } = useSidebar()
+  const { user, logout } = useAuth();
 
 
 
@@ -94,17 +96,17 @@ export function NavUser({ user }: { user?: User | null }) {
                 <UserCircleIcon />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <CreditCardIcon />
                 Billing
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem>
                 <BellIcon />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>

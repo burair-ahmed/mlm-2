@@ -1,20 +1,29 @@
 'use client'
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/section-cards"
-import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { SiteHeader } from "@/components/site-header"
 import { useAuth } from "../../../context/AuthContext"
 
-import data from "./data.json"
+import Dashboard from "../components/user-dashboard"
+import CommissionHistory from "../components/CommissionHistory"
+import HierarchyTree from "../components/HierarchyTree";
+import MyInvestments from '../components/packages/PurchasedPackages';
+import BuyEquityUnitsForm from "../components/BuyEquityUnitsForm";
+import ReferralInfo from "../components/ReferralInfo"
 
 export default function Page() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const referralCode = user?.referralCode || '';
+  const referralLink = typeof window !== "undefined" && user 
+  ? `${window.location.origin}/register?ref=${referralCode}`
+  : '';
+
+
+  const [activeTab, setActiveTab] = useState("Dashboard")
 
   useEffect(() => {
     if (!loading && !user) {
@@ -23,32 +32,59 @@ export default function Page() {
   }, [user, loading, router])
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen text-lg">
-        Loading...
-      </div>
-    )
+    return <div className="flex justify-center items-center h-screen text-lg">Loading...</div>
   }
 
   if (!user) return null
 
+
+  // const renderAllTabs = () => (
+  //   <>
+  //     <div className={activeTab === "Dashboard" ? "" : "hidden"}>
+  //       <Dashboard />
+  //     </div>
+  //     <div className={activeTab === "Commission History" ? "" : "hidden"}>
+  //       <ReferralInfo referralLink={referralLink} referralCode={user.referralCode} />
+  //       <CommissionHistory />
+  //     </div>
+  //     <div className={activeTab === "Referrals" ? "" : "hidden"}>
+  //       <HierarchyTree />
+  //     </div>
+  //     <div className={activeTab === "Active Packages" ? "" : "hidden"}>
+  //       <MyInvestments />
+  //     </div>
+  //     <div className={activeTab === "Unit Converter" ? "" : "hidden"}>
+  //       <BuyEquityUnitsForm />
+  //     </div>
+  //   </>
+  // )
+  
+
   return (
     <SidebarProvider>
-      <AppSidebar variant="inset" />
+      <AppSidebar onTabChange={setActiveTab} />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <SectionCards />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-              </div>
-              <DataTable data={data} />
-            </div>
+        <div className="flex flex-1 flex-col px-4 py-6">
+          <div className={activeTab === "Dashboard" ? "" : "hidden"}>
+            <Dashboard />
+          </div>
+          <div className={activeTab === "Commission History" ? "" : "hidden"}>
+            <ReferralInfo referralLink={referralLink} referralCode={referralCode} />
+            <CommissionHistory />
+          </div>
+          <div className={activeTab === "Referrals" ? "" : "hidden"}>
+            <HierarchyTree />
+          </div>
+          <div className={activeTab === "Active Packages" ? "" : "hidden"}>
+            <MyInvestments />
+          </div>
+          <div className={activeTab === "Unit Converter" ? "" : "hidden"}>
+            <BuyEquityUnitsForm />
           </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
   )
+  
 }

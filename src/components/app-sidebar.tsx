@@ -13,7 +13,7 @@ import {
   FolderIcon,
   HelpCircleIcon,
   LayoutDashboardIcon,
-  ListIcon,
+  // ListIcon,
   SearchIcon,
   SettingsIcon,
   UsersIcon,
@@ -35,33 +35,33 @@ import {
 // import { useAuth } from '../../context/AuthContext';
 
 const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: ListIcon,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: FolderIcon,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: UsersIcon,
-    },
-  ],
+  // navMain: [
+  //   {
+  //     title: "Dashboard",
+  //     url: "#",
+  //     icon: LayoutDashboardIcon,
+  //   },
+  //   {
+  //     title: "Lifecycle",
+  //     url: "#",
+  //     icon: ListIcon,
+  //   },
+  //   {
+  //     title: "Analytics",
+  //     url: "#",
+  //     icon: BarChartIcon,
+  //   },
+  //   {
+  //     title: "Projects",
+  //     url: "#",
+  //     icon: FolderIcon,
+  //   },
+  //   {
+  //     title: "Team",
+  //     url: "#",
+  //     icon: UsersIcon,
+  //   },
+  // ],
   navClouds: [
     {
       title: "Capture",
@@ -151,10 +151,18 @@ export interface User {
   email: string;
   balance: number;
 }
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  onTabChange?: (tab: string) => void;
+}
 
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-
+export function AppSidebar({ onTabChange, ...props }: AppSidebarProps) {
+  const tabs = [
+    { title: "Dashboard", icon: LayoutDashboardIcon },
+    { title: "Commission History", icon: BarChartIcon },
+    { title: "Referrals", icon: UsersIcon },
+    { title: "Active Packages", icon: FolderIcon },
+    { title: "Unit Converter", icon: FileCodeIcon },
+  ]
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -173,8 +181,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        <NavMain />
+      <SidebarMenu>
+          {tabs.map(({ title, icon: Icon }) => (
+            <SidebarMenuItem key={title}>
+              <SidebarMenuButton onClick={() => onTabChange?.(title)} className="p-[15px]"> 
+                <Icon className="h-4 w-4" />
+                {title}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+          <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

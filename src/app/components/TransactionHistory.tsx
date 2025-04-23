@@ -49,8 +49,8 @@ export default function TransactionHistory() {
       const res = await response.json();
       setTransactions(res.transactions || []);
       setTotalPages(res.totalPages || 1);
-      setTransactionCounts(res.counts || { all: 0 }); // Ensures `transactionCounts['all']` is always valid
-      
+      setTransactionCounts(res.counts || { all: 0 });
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load transactions');
       setTransactions([]);
@@ -65,9 +65,7 @@ export default function TransactionHistory() {
 
   const staticTypeOrder = ['all', 'deposit', 'purchase', 'commission', 'profit-withdrawal', 'cash_to_equity'];
 
-const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || transactionCounts[type] > 0);
-
-
+  const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || transactionCounts[type] > 0);
 
   const getAmountDisplay = (tx: Transaction) => {
     return tx.amount > 0
@@ -90,7 +88,7 @@ const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || tran
   if (error) return <div className="text-red-500 p-4">{error}</div>;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow mt-4">
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow mt-4">
       <h3 className="text-lg font-semibold mb-4">Transaction History</h3>
 
       {/* Filters */}
@@ -103,14 +101,14 @@ const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || tran
             <button
               key={type}
               onClick={() => handleFilterChange(type)}
-              className={`flex items-center px-3 py-1 rounded-full transition-all font-medium
+              className={`flex items-center px-3 py-1 rounded-full transition-all font-medium text-sm
                 ${isActive
                   ? 'bg-black text-white'
                   : 'bg-black/10 text-black/70 hover:bg-black hover:text-white'
                 }`}
             >
               <span className="capitalize mr-2">{type.replace(/_/g, ' ')}</span>
-              <span className={`px-2 py-0.5 text-sm rounded-full 
+              <span className={`px-2 py-0.5 text-xs rounded-full 
                 ${isActive
                   ? 'bg-white text-black'
                   : 'bg-white text-black/70'
@@ -124,29 +122,29 @@ const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || tran
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full text-sm">
           <thead>
-            <tr>
-              <th className="text-left py-2">Date</th>
-              <th className="text-left py-2">Type</th>
-              <th className="text-left py-2">Amount</th>
-              <th className="text-left py-2">Description</th>
+            <tr className="text-left border-b text-gray-600">
+              <th className="py-2 px-2">Date</th>
+              <th className="py-2 px-2">Type</th>
+              <th className="py-2 px-2">Amount</th>
+              <th className="py-2 px-2">Description</th>
             </tr>
           </thead>
           <tbody>
             {transactions.length > 0 ? (
               transactions.map((tx) => (
                 <tr key={tx._id} className="border-t">
-                  <td className="py-2">
+                  <td className="py-2 px-2 whitespace-nowrap">
                     {new Date(tx.createdAt).toLocaleDateString()}
                   </td>
-                  <td className={`py-2 capitalize ${getColorClass(tx.type)}`}>
+                  <td className={`py-2 px-2 capitalize whitespace-nowrap ${getColorClass(tx.type)}`}>
                     {tx.type.replace(/_/g, ' ')}
                   </td>
-                  <td className={`py-2 ${getColorClass(tx.type)}`}>
+                  <td className={`py-2 px-2 whitespace-nowrap ${getColorClass(tx.type)}`}>
                     {getAmountDisplay(tx)}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2 px-2 text-wrap break-words max-w-xs">
                     {tx.description || 'No description'}
                   </td>
                 </tr>
@@ -163,7 +161,7 @@ const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || tran
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-4 space-x-2">
+      <div className="flex justify-center items-center mt-4 space-x-2 text-sm">
         <button
           disabled={page <= 1}
           onClick={() => setPage((p) => Math.max(p - 1, 1))}
@@ -171,7 +169,7 @@ const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || tran
         >
           Prev
         </button>
-        <span className="px-3 py-1">{page} / {totalPages}</span>
+        <span className="px-3">{page} / {totalPages}</span>
         <button
           disabled={page >= totalPages}
           onClick={() => setPage((p) => Math.min(p + 1, totalPages))}

@@ -37,26 +37,25 @@ import { useAuth } from '../../context/AuthContext';
 //   balance: number
 // }
 
-export function NavUser() {
-  const { isMobile } = useSidebar()
+interface NavUserProps {
+  setActiveTab: (tab: string) => void;
+}
+
+export function NavUser({ setActiveTab }: NavUserProps) {
+  const { isMobile } = useSidebar();
   const { user, logout } = useAuth();
 
+  const displayName = "John Doe";
+  const avatarUrl = "/default-avatar.png";
 
-
-  const displayName = "John Doe" // placeholder for now
-  const avatarUrl = "/default-avatar.png" // placeholder for now
-
-  if (!user) return null
+  if (!user) return null;
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
+            <SidebarMenuButton size="lg">
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarImage src={avatarUrl} alt={displayName} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
@@ -92,14 +91,10 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab("Account")}>
                 <UserCircleIcon />
                 Account
               </DropdownMenuItem>
-              {/* <DropdownMenuItem>
-                <CreditCardIcon />
-                Billing
-              </DropdownMenuItem> */}
               <DropdownMenuItem>
                 <BellIcon />
                 Notifications
@@ -114,5 +109,5 @@ export function NavUser() {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

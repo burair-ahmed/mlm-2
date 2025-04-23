@@ -7,12 +7,13 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { useAuth } from "../../../context/AuthContext"
 
-import Dashboard from "../components/user-dashboard"
+import Dashboard from "../components/user/user-dashboard"
 import CommissionHistory from "../components/CommissionHistory"
 import HierarchyTree from "../components/HierarchyTree";
 import MyInvestments from '../components/packages/PurchasedPackages';
 import BuyEquityUnitsForm from "../components/BuyEquityUnitsForm";
 import ReferralInfo from "../components/ReferralInfo"
+import Account from "../components/user/user-profile"
 
 export default function Page() {
   const { user, loading } = useAuth()
@@ -62,7 +63,8 @@ export default function Page() {
 
   return (
     <SidebarProvider>
-      <AppSidebar onTabChange={setActiveTab} />
+      <AppSidebar onTabChange={setActiveTab} setActiveTab={setActiveTab} />
+
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col px-4 py-6">
@@ -81,6 +83,9 @@ export default function Page() {
           </div>
           <div className={activeTab === "Unit Converter" ? "" : "hidden"}>
             <BuyEquityUnitsForm />
+          </div>
+          <div className={activeTab === "Account" ? "" : "hidden"}>
+            <Account />
           </div>
         </div>
       </SidebarInset>

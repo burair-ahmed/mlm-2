@@ -153,9 +153,10 @@ export interface User {
 }
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onTabChange?: (tab: string) => void;
+  setActiveTab: (tab: string) => void
 }
 
-export function AppSidebar({ onTabChange, ...props }: AppSidebarProps) {
+export function AppSidebar({ onTabChange, setActiveTab, ...props }: AppSidebarProps) {
   const tabs = [
     { title: "Dashboard", icon: LayoutDashboardIcon },
     { title: "Commission History", icon: BarChartIcon },
@@ -196,7 +197,7 @@ export function AppSidebar({ onTabChange, ...props }: AppSidebarProps) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-      <NavUser/>
+      <NavUser setActiveTab={setActiveTab}/>
       </SidebarFooter>
     </Sidebar>
   )

@@ -1,5 +1,5 @@
 import { SectionCards } from "@/components/section-cards";
-import TransactionHistory from "./TransactionHistory";
+import TransactionHistory from "../TransactionHistory";
 
 export default function Dashboard() {
     return (

@@ -14,7 +14,7 @@ import MyInvestments from '../components/packages/PurchasedPackages';
 import BuyEquityUnitsForm from "../components/BuyEquityUnitsForm";
 import ReferralInfo from "../components/ReferralInfo"
 import Account from "../components/user/user-profile"
-
+import { IUser } from '../../../models/User';
 export default function Page() {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -76,16 +76,17 @@ export default function Page() {
             <CommissionHistory />
           </div>
           <div className={activeTab === "Referrals" ? "" : "hidden"}>
+          <ReferralInfo referralLink={referralLink} referralCode={referralCode}/>
             <HierarchyTree />
           </div>
           <div className={activeTab === "Active Packages" ? "" : "hidden"}>
             <MyInvestments />
           </div>
-          <div className={activeTab === "Unit Converter" ? "" : "hidden"}>
+          <div className={activeTab === "Equity Units Converter" ? "" : "hidden"}>
             <BuyEquityUnitsForm />
           </div>
           <div className={activeTab === "Account" ? "" : "hidden"}>
-            <Account />
+            <Account user={user as IUser} />
           </div>
         </div>
       </SidebarInset>

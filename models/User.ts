@@ -6,6 +6,9 @@ await dbConnect();
 export interface IUser extends Document {
   email: string;
   password: string;
+  userName?: string;
+  fullName?: string;
+  profilePicture?: string;
   referralCode: string;
   referredBy?: mongoose.Types.ObjectId;
   referrals: mongoose.Types.ObjectId[];
@@ -33,6 +36,9 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  userName: { type: String },
+  fullName: { type: String },
+  profilePicture: { type: String }, // URL or base64 string
   referralCode: { type: String, required: true, unique: true },
   referredBy: { type: Schema.Types.ObjectId, ref: 'User' },
   referrals: [{ type: Schema.Types.ObjectId, ref: 'User' }],

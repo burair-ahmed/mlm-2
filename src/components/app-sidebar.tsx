@@ -162,7 +162,7 @@ export function AppSidebar({ onTabChange, setActiveTab, ...props }: AppSidebarPr
     { title: "Commission History", icon: BarChartIcon },
     { title: "Referrals", icon: UsersIcon },
     { title: "Active Packages", icon: FolderIcon },
-    { title: "Unit Converter", icon: FileCodeIcon },
+    { title: "Equity Units Converter", icon: FileCodeIcon },
   ]
   return (
     <Sidebar collapsible="offcanvas" {...props}>

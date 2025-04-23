@@ -13,6 +13,7 @@ import {
 
 export function NavSecondary({
   items,
+  setActiveTab,
   ...props
 }: {
   items: {
@@ -20,6 +21,7 @@ export function NavSecondary({
     url: string
     icon: LucideIcon
   }[]
+  setActiveTab: (tab: string) => void
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   return (
     <SidebarGroup {...props}>
@@ -27,11 +29,12 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
+              <SidebarMenuButton
+                onClick={() => setActiveTab(item.title)}
+                className="p-[15px]"
+              >
+                <item.icon className="h-4 w-4" />
+                <span>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

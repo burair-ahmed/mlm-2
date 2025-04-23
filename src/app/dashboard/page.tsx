@@ -14,6 +14,7 @@ import MyInvestments from '../components/packages/PurchasedPackages';
 import BuyEquityUnitsForm from "../components/BuyEquityUnitsForm";
 import ReferralInfo from "../components/ReferralInfo"
 import Account from "../components/user/user-profile"
+import Settings from "../components/user/settings"
 import { IUser } from '../../../models/User';
 export default function Page() {
   const { user, loading } = useAuth()
@@ -87,6 +88,9 @@ export default function Page() {
           </div>
           <div className={activeTab === "Account" ? "" : "hidden"}>
             <Account user={user as IUser} />
+          </div>
+          <div className={activeTab === "Settings" ? "" : "hidden"}>
+            <Settings />
           </div>
         </div>
       </SidebarInset>

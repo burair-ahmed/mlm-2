@@ -29,6 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useAuth } from '../../context/AuthContext';
+// import { useReactTable } from "@tanstack/react-table"
 
 // import { useEffect, useState } from "react"
 
@@ -45,9 +46,7 @@ export function NavUser({ setActiveTab }: NavUserProps) {
   const { isMobile } = useSidebar();
   const { user, logout } = useAuth();
 
-  const displayName = "John Doe";
-  const avatarUrl = "/default-avatar.png";
-
+ 
   if (!user) return null;
 
   return (
@@ -56,12 +55,12 @@ export function NavUser({ setActiveTab }: NavUserProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg">
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={avatarUrl} alt={displayName} />
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarImage src={user.profilePicture} alt={user.fullName} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{displayName}</span>
+                <span className="truncate font-medium">{user.fullName}</span>
                 <span className="truncate text-xs text-muted-foreground">
                   {user.email}
                 </span>
@@ -78,11 +77,11 @@ export function NavUser({ setActiveTab }: NavUserProps) {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={avatarUrl} alt={displayName} />
+                  <AvatarImage src={user.profilePicture} alt={user.fullName} />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{displayName}</span>
+                  <span className="truncate font-medium">{user.fullName}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {user.email}
                   </span>

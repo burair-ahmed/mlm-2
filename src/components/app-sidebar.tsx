@@ -14,7 +14,7 @@ import {
   HelpCircleIcon,
   LayoutDashboardIcon,
   // ListIcon,
-  SearchIcon,
+  // SearchIcon,
   SettingsIcon,
   UsersIcon,
 } from "lucide-react"
@@ -121,11 +121,7 @@ const data = {
       url: "#",
       icon: HelpCircleIcon,
     },
-    {
-      title: "Search",
-      url: "#",
-      icon: SearchIcon,
-    },
+    
   ],
   documents: [
     {
@@ -194,7 +190,7 @@ export function AppSidebar({ onTabChange, setActiveTab, ...props }: AppSidebarPr
           ))}
         </SidebarMenu>
           <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+          <NavSecondary items={data.navSecondary} setActiveTab={setActiveTab} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
       <NavUser setActiveTab={setActiveTab}/>

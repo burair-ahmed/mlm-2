@@ -5,15 +5,13 @@ import { authenticate } from '../../../../../../../middleware/auth';
 
 export async function POST(req: NextRequest, { params }: { params: { userId: string } }) {
   const auth = await authenticate(req);
-  if (auth instanceof NextResponse) return auth;
-
+  if (auth instanceof NextResponse || !auth.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   await dbConnect();
 
   try {
-    const adminUser = await User.findById(auth._id);
-    if (!adminUser || adminUser.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
-    }
+
 
     const { userId } = params;
     const user = await User.findById(userId);

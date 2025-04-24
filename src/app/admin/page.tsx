@@ -10,6 +10,7 @@ import { useAuth } from '../../../context/AuthContext';
 // import AdminEquityPackageForm from '../components/AdminEquityPackageForm';
 import AdminEquityPackages from '../components/AdminEquityPackages';
 import AdminProfitUpdate from '../components/admin/AdminProfitUpdate';
+import AdminKYCRequests from '../components/admin/AdminKYCRequests';
 
 interface User {
   _id: string;
@@ -104,6 +105,7 @@ export default function AdminDashboard() {
               {/* <EquityPackageList/> */}
               {/* <AdminEquityPanel/> */}
       </div>
+      <AdminKYCRequests/>
 <AdminProfitUpdate/>
       {/* Equity Ownership Tracking */}
       <div className="mb-8">

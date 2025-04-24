@@ -3,6 +3,19 @@ import dbConnect from '../lib/dbConnect';
 
 await dbConnect();
 
+
+export interface IKYC {
+  status: 'pending' | 'approved' | 'rejected';
+  fullName?: string;
+  dateOfBirth?: Date;
+  address?: string;
+  idType?: string;
+  idNumber?: string;
+  documents?: string[]; // URLs to uploaded documents
+  submittedAt?: Date;
+  approvedAt?: Date;
+}
+
 export interface IUser extends Document {
   email: string;
   password: string;
@@ -31,7 +44,21 @@ export interface IUser extends Document {
   }>;
 
 }
-
+const KycSchema: Schema = new Schema({
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  },
+  fullName: String,
+  dateOfBirth: Date,
+  address: String,
+  idType: String,
+  idNumber: String,
+  documents: [String],
+  submittedAt: Date,
+  approvedAt: Date,
+}, { _id: false });
 
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },
@@ -60,6 +87,8 @@ const UserSchema: Schema = new Schema({
     packageId: { type: Schema.Types.ObjectId, refPath: 'packageType', required: true },
     totalUnits: { type: Number, required: true },
   }],
+  
+  kyc: { type: KycSchema, default: { status: 'pending' } },
 
 });
 

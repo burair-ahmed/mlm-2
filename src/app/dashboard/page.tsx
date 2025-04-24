@@ -16,6 +16,7 @@ import ReferralInfo from "../components/ReferralInfo"
 import Account from "../components/user/user-profile"
 import Settings from "../components/user/settings"
 import { IUser } from '../../../models/User';
+import KYCForm from "../components/user/kyc/KYCForm"
 export default function Page() {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -91,6 +92,9 @@ export default function Page() {
           </div>
           <div className={activeTab === "Settings" ? "" : "hidden"}>
             <Settings />
+          </div>
+          <div className={activeTab === "KYC" ? "" : "hidden"}>
+            <KYCForm />
           </div>
         </div>
       </SidebarInset>

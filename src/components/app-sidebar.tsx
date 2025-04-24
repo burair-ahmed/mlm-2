@@ -125,14 +125,14 @@ const data = {
   ],
   documents: [
     {
+      name: "KYC",
+      url: "#",
+      icon: ClipboardListIcon,
+    },
+    {
       name: "Data Library",
       url: "#",
       icon: DatabaseIcon,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: ClipboardListIcon,
     },
     {
       name: "Word Assistant",
@@ -189,7 +189,7 @@ export function AppSidebar({ onTabChange, setActiveTab, ...props }: AppSidebarPr
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-          <NavDocuments items={data.documents} />
+        <NavDocuments items={data.documents} setActiveTab={setActiveTab} />
           <NavSecondary items={data.navSecondary} setActiveTab={setActiveTab} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

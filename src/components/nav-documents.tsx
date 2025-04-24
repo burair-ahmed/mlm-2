@@ -25,12 +25,14 @@ import {
 
 export function NavDocuments({
   items,
+  setActiveTab,
 }: {
   items: {
     name: string
     url: string
     icon: LucideIcon
   }[]
+  setActiveTab: (tab: string) => void
 }) {
   const { isMobile } = useSidebar()
 
@@ -41,7 +43,7 @@ export function NavDocuments({
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+            <a href={item.url} onClick={() => setActiveTab(item.name)}>
                 <item.icon />
                 <span>{item.name}</span>
               </a>

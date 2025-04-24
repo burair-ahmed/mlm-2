@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, } from 'react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -11,16 +11,27 @@ import { cn } from '@/lib/utils'
 import { SimpleCalendar } from '@/components/ui/simple-calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 
-export default function KYCForm() {
-    const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const [fullName, setFullName] = useState('')
-  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>()
-  const [address, setAddress] = useState('')
-  const [idType, setIdType] = useState('')
-  const [idNumber, setIdNumber] = useState('')
-  const [documents, setDocuments] = useState<string[]>([])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function KYCForm({ kyc }: { kyc?: any }) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+
+  const isApproved = kyc?.status === 'approved'
+  const [fullName, setFullName] = useState(kyc?.fullName || '')
+  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(
+    kyc?.dateOfBirth ? new Date(kyc.dateOfBirth) : undefined
+  )
+  const [address, setAddress] = useState(kyc?.address || '')
+  const [idType, setIdType] = useState(kyc?.idType || '')
+  const [idNumber, setIdNumber] = useState(kyc?.idNumber || '')
+  const [documents, setDocuments] = useState<string[]>(kyc?.documents || [])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,9 +78,9 @@ export default function KYCForm() {
       const res = await fetch('/api/users/kyc/submit', {
         method: 'POST',
         headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       })
 
@@ -91,55 +102,88 @@ export default function KYCForm() {
     <form onSubmit={handleSubmit} className="space-y-6 p-6 bg-white dark:bg-muted rounded-2xl shadow-md">
       <div className="grid gap-4">
         <div>
-          <Label>Full Name</Label>
-          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          <Label>Full Name (As Per Documents)</Label>
+          <Input
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            disabled={isApproved}
+          />
         </div>
 
         <div>
-          <Label>Date of Birth</Label>
+          <Label>Date of Birth (As Per Documents)</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn("w-full justify-start text-left font-normal", !dateOfBirth && "text-muted-foreground")}
+                disabled={isApproved}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {dateOfBirth ? format(dateOfBirth, 'PPP') : <span>Select date</span>}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-            <SimpleCalendar selected={dateOfBirth} onSelect={setDateOfBirth} />
-            </PopoverContent>
+            {!isApproved && (
+              <PopoverContent className="w-auto p-0">
+                <SimpleCalendar selected={dateOfBirth} onSelect={setDateOfBirth} />
+              </PopoverContent>
+            )}
           </Popover>
         </div>
 
         <div>
-          <Label>Address</Label>
-          <Textarea value={address} onChange={(e) => setAddress(e.target.value)} />
+          <Label>Address (As Per Documents)</Label>
+          <Textarea
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            disabled={isApproved}
+          />
         </div>
 
         <div>
           <Label>ID Type</Label>
-          <Input value={idType} onChange={(e) => setIdType(e.target.value)} placeholder="e.g. Passport, National ID" />
+          <Select value={idType} onValueChange={setIdType} disabled={isApproved}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select ID Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="National ID">National ID</SelectItem>
+              <SelectItem value="Passport">Passport</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
           <Label>ID Number</Label>
-          <Input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} />
+          <Input
+            value={idNumber}
+            onChange={(e) => setIdNumber(e.target.value)}
+            disabled={isApproved}
+          />
         </div>
 
         <div>
           <Label>Upload Documents</Label>
-          <Input type="file" multiple accept="image/*,.pdf" onChange={handleFileChange} />
+          <Input
+            type="file"
+            multiple
+            accept="image/*,.pdf"
+            onChange={handleFileChange}
+            disabled={isApproved}
+          />
           {documents.length > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">{documents.length} file(s) selected</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {documents.length} file(s) {isApproved ? 'submitted' : 'selected'}
+            </p>
           )}
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Submitting...' : 'Submit KYC'}
-      </Button>
+      {!isApproved && (
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit KYC'}
+        </Button>
+      )}
     </form>
   )
 }

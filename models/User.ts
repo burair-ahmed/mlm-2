@@ -5,7 +5,7 @@ await dbConnect();
 
 
 export interface IKYC {
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'unverified';
   fullName?: string;
   dateOfBirth?: Date;
   address?: string;
@@ -42,13 +42,13 @@ export interface IUser extends Document {
     packageId: mongoose.Types.ObjectId;  // Reference to the purchased package
     totalUnits: number;  // Number of units purchased
   }>;
-
+  kyc?: IKYC
 }
 const KycSchema: Schema = new Schema({
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending',
+    enum: ['pending', 'approved', 'rejected', 'unverified'],
+    default: 'unverified',
   },
   fullName: String,
   dateOfBirth: Date,
@@ -88,7 +88,7 @@ const UserSchema: Schema = new Schema({
     totalUnits: { type: Number, required: true },
   }],
   
-  kyc: { type: KycSchema, default: { status: 'pending' } },
+  kyc: { type: KycSchema, default: { status: 'unverified' } },
 
 });
 

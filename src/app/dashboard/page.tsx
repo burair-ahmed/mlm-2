@@ -94,7 +94,7 @@ export default function Page() {
             <Settings />
           </div>
           <div className={activeTab === "KYC" ? "" : "hidden"}>
-            <KYCForm />
+          <KYCForm kyc={user.kyc} />
           </div>
         </div>
       </SidebarInset>

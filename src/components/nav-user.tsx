@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   BellIcon,
@@ -6,13 +6,9 @@ import {
   LogOutIcon,
   MoreVerticalIcon,
   UserCircleIcon,
-} from "lucide-react"
+} from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,14 +17,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { useAuth } from '../../context/AuthContext';
+} from "@/components/ui/sidebar";
+import { useAuth } from "../../context/AuthContext";
+import { Badge } from "@/components/ui/badge";
+
 // import { useReactTable } from "@tanstack/react-table"
 
 // import { useEffect, useState } from "react"
@@ -46,7 +44,6 @@ export function NavUser({ setActiveTab }: NavUserProps) {
   const { isMobile } = useSidebar();
   const { user, logout } = useAuth();
 
- 
   if (!user) return null;
 
   return (
@@ -81,7 +78,48 @@ export function NavUser({ setActiveTab }: NavUserProps) {
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.fullName}</span>
+                  <div className="flex">
+                    <span className="truncate font-medium">
+                      {user.fullName}
+                    </span>
+                    <span className="font-[10px]">
+                      {user.kyc?.status === "pending" && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-yellow-200 text-yellow-800 text-[10px] pl-[5px] pr-[6px]"
+                        >
+                          Pending
+                        </Badge>
+                      )}
+
+                      {user.kyc?.status === "approved" && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-200 text-green-800 text-[10px] pl-[5px] pr-[6px]"
+                        >
+                          Approved
+                        </Badge>
+                      )}
+
+                      {user.kyc?.status === "rejected" && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-red-200 text-red-800 text-[10px] pl-[5px] pr-[6px]"
+                        >
+                          KYC Rejected
+                        </Badge>
+                      )}
+
+                      {user.kyc?.status === "unverified" && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-gray-200 text-gray-800 text-[10px] pl-[5px] pr-[6px]"
+                        >
+                          unverified
+                        </Badge>
+                      )}
+                    </span>
+                  </div>
                   <span className="truncate text-xs text-muted-foreground">
                     {user.email}
                   </span>

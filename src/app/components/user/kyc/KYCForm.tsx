@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { Calendar } from '@/components/ui/calendar'
+import { SimpleCalendar } from '@/components/ui/simple-calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Label } from '@/components/ui/label'
 
@@ -108,7 +108,7 @@ export default function KYCForm() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={dateOfBirth} onSelect={setDateOfBirth} initialFocus />
+            <SimpleCalendar selected={dateOfBirth} onSelect={setDateOfBirth} />
             </PopoverContent>
           </Popover>
         </div>

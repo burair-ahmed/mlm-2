@@ -47,7 +47,6 @@
     "node-cron": "^3.0.3",
     "react": "^19.0.0",
     "react-d3-tree": "^3.6.4",
-    "react-day-picker": "^8.10.1",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
     "recharts": "^2.15.2",

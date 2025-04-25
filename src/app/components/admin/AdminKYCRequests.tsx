@@ -67,8 +67,8 @@ export default function AdminKYCRequests() {
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success('KYC approved');
-        setRequests((prev) => prev.filter((u) => u._id !== userId));
+        toast.success(`KYC approved for ${data.user?.kyc?.fullName || data.user?.email || data.user?.userName}`);
+  setRequests((prev) => prev.filter((u) => u._id !== userId));
       } else {
         toast.error(data.error || 'Failed to approve KYC');
       }

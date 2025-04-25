@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
+import { toast } from "sonner";
+
 
 interface Package {
   _id: string;
@@ -28,10 +30,32 @@ const RentalPackage = () => {
   const [quantity, setQuantity] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [kycStatus, setKycStatus] = useState<string>("");
   
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
+
+    const fetchKycStatus = async () => {
+      try {
+        const response = await fetch("/api/users/kyc/kyc-status", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setKycStatus(data.kycStatus); // Store the KYC status (e.g., 'approved', 'pending', etc.)
+        } else {
+          console.error("Error fetching KYC status:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching KYC status:", error);
+      }
+    };
+
+    fetchKycStatus();
+
     fetch("/api/admin/long-term-rental")
       .then((res) => res.json())
       .then((data) => setPackages(data))
@@ -41,6 +65,11 @@ const RentalPackage = () => {
 
   const handlePurchase = async () => {
     if (!selectedPackage) return;
+
+    if (kycStatus !== "approved") {
+      toast.warning("Your KYC is not approved. Please complete your KYC to make a purchase.");
+    }
+
     setLoading(true);
 
     try {
@@ -59,9 +88,9 @@ const RentalPackage = () => {
 
       const data = await response.json();
       if (!response.ok) {
-        alert(data.error || "Purchase failed");
+        toast.error(data.error || "Purchase failed");
       } else {
-        alert("Purchase successful!");
+        toast.success("Purchase successful!");
         setPackages((prev) =>
           prev.map((pkg) =>
             pkg._id === selectedPackage._id
@@ -73,7 +102,7 @@ const RentalPackage = () => {
       }
     } catch (error) {
       console.error("Purchase error:", error);
-      alert("Error purchasing package");
+      toast.error("Error purchasing package");
     } finally {
       setLoading(false);
     }

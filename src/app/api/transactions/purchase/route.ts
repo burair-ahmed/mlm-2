@@ -59,6 +59,10 @@ export async function POST(req: NextRequest) {
       const user = await User.findById(auth._id).session(session);
       if (!user) throw new Error("User not found");
 
+      if (user.kyc.status !== 'approved') {
+        return NextResponse.json({ error: "Your KYC is not approved. Please complete your KYC to make a purchase." }, { status: 400 });
+      }
+
       // 9️⃣ Validate Purchase
       if (user.equityUnits < totalEquityUnits) {
         return NextResponse.json({ error: "Insufficient equity units" }, { status: 400 });

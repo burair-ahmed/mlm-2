@@ -86,7 +86,7 @@ export default function KYCForm({ kyc }: { kyc?: any }) {
 
       const result = await res.json()
       if (res.ok) {
-        toast.success('KYC submitted successfully')
+        toast.success('KYC submitted successfully for Approval')
       } else {
         toast.error(result.error || 'Submission failed')
       }
@@ -172,10 +172,30 @@ export default function KYCForm({ kyc }: { kyc?: any }) {
             disabled={isApproved}
           />
           {documents.length > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {documents.length} file(s) {isApproved ? 'submitted' : 'selected'}
-            </p>
-          )}
+  <div className="mt-2 space-y-2">
+    {documents.map((doc, index) => (
+      <div key={index} className="flex items-center gap-2">
+        {doc.startsWith("data:application/pdf") ? (
+          <a
+            href={doc}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm underline text-blue-600 dark:text-blue-400"
+          >
+            View PDF #{index + 1}
+          </a>
+        ) : (
+          <img
+            src={doc}
+            alt={`Uploaded file ${index + 1}`}
+            className="w-24 h-24 object-cover rounded border"
+          />
+        )}
+      </div>
+    ))}
+  </div>
+)}
+
         </div>
       </div>
 

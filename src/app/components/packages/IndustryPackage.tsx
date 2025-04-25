@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface Package {
   _id: string;
@@ -34,59 +35,86 @@ const IndustryPackage = () => {
   const [quantity, setQuantity] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
-
+  const [kycStatus, setKycStatus] = useState<string>("");
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  useEffect(() => {
-    fetch("/api/admin/long-term-industry")
-      .then((res) => res.json())
-      .then((data) => setPackages(data))
-      .catch((error) => console.error("Error fetching packages:", error))
-      .finally(() => setIsFetching(false));
-  }, []);
-
-  const handlePurchase = async () => {
-    if (!selectedPackage) return;
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/transactions/purchase", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          packageId: selectedPackage._id,
-          quantity,
-          packageType: "long-term-industry",
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        alert(data.error || "Purchase failed");
-      } else {
-        alert("Purchase successful!");
-        setPackages((prev) =>
-          prev.map((pkg) =>
-            pkg._id === selectedPackage._id
-              ? { ...pkg, availableUnits: pkg.availableUnits - quantity }
-              : pkg
-          )
-        );
-        setSelectedPackage(null);
-        setQuantity(1);
+    useEffect(() => {
+      // Fetch KYC status of the user
+      const fetchKycStatus = async () => {
+        try {
+          const response = await fetch("/api/users/kyc/kyc-status", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setKycStatus(data.kycStatus); // Store the KYC status (e.g., 'approved', 'pending', etc.)
+          } else {
+            console.error("Error fetching KYC status:", data.error);
+          }
+        } catch (error) {
+          console.error("Error fetching KYC status:", error);
+        }
+      };
+    
+      fetchKycStatus();
+    
+      fetch("/api/admin/long-term-industry")
+        .then((res) => res.json())
+        .then((data) => setPackages(data))
+        .catch((error) => console.error("Error fetching packages:", error))
+        .finally(() => setIsFetching(false));
+    }, [token]);
+    
+    const handlePurchase = async () => {
+      if (!selectedPackage) return;
+    
+      // Check if KYC is approved before allowing the purchase
+      if (kycStatus !== "approved") {
+        toast.warning("Your KYC is not approved. Please complete your KYC to make a purchase.");
+        return;
       }
-    } catch (error) {
-      console.error("Purchase error:", error);
-      alert("Error purchasing package");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    
+      setLoading(true);
+    
+      try {
+        const response = await fetch("/api/transactions/purchase", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            packageId: selectedPackage._id,
+            quantity,
+            packageType: "long-term-industry",
+          }),
+        });
+    
+        const data = await response.json();
+        if (!response.ok) {
+          toast.error(data.error || "Purchase failed");
+        } else {
+          toast.success("Purchase successful!");
+          setPackages((prev) =>
+            prev.map((pkg) =>
+              pkg._id === selectedPackage._id
+                ? { ...pkg, availableUnits: pkg.availableUnits - quantity }
+                : pkg
+            )
+          );
+          setSelectedPackage(null);
+          setQuantity(1);
+        }
+      } catch (error) {
+        console.error("Purchase error:", error);
+        toast.error("Error purchasing package");
+      } finally {
+        setLoading(false);
+      }
+    };
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 sm:p-6">
       {isFetching

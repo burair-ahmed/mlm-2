@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ChangePasswordForm from "./ChangePasswordForm";
 
 export default function Settings() {
   return (
@@ -22,10 +23,11 @@ export default function Settings() {
         <TabsContent value="account">
           <Card>
             <CardContent className="space-y-4 p-4">
-              <Input placeholder="New Email Address (dummy)" />
+          <ChangePasswordForm/>
+              {/* <Input placeholder="New Email Address (dummy)" />
               <Input placeholder="New Password (dummy)" type="password" />
               <Button>Change Password</Button>
-              <Button variant="outline">Delete Account</Button>
+              <Button variant="outline">Delete Account</Button> */}
             </CardContent>
           </Card>
         </TabsContent>

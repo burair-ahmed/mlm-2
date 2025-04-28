@@ -1,6 +1,7 @@
 // app/landing/page.tsx (or wherever your route is)
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
 import { ArrowRight, Lightbulb, Target } from "lucide-react";
+import Link from "next/link";
 // import { Lightbulb, Target } from "lucide-react";
 
 const steps = [
@@ -34,7 +36,32 @@ const steps = [
     hidden: { opacity: 0, y: 40 },
     show: { opacity: 1, y: 0 },
   };
-export default function LandingPage() {
+
+  export default function LandingPage() {
+    const [investors, setInvestors] = useState(0);
+    const [assets, setAssets] = useState(0);
+    const [satisfaction, setSatisfaction] = useState(0);
+  
+  useEffect(() => {
+    let inv = 0;
+    let ass = 0;
+    let sat = 0;
+
+    const interval = setInterval(() => {
+      if (inv < 10000) setInvestors((prev) => prev + 250);
+      if (ass < 5000000) setAssets((prev) => prev + 150000);
+      if (sat < 99) setSatisfaction((prev) => prev + 1);
+
+      inv += 250;
+      ass += 150000;
+      sat += 1;
+
+      if (inv >= 10000 && ass >= 5000000 && sat >= 99) clearInterval(interval);
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -51,22 +78,80 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="text-center py-20 px-6 bg-gradient-to-br from-primary to-secondary text-white">
-        <motion.h2
-          className="text-4xl font-bold mb-4"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          Smart Investments, Real Assets
-        </motion.h2>
-        <p className="text-lg max-w-xl mx-auto mb-6">
-          Explore equity packages with high returns in trading and long-term ventures.
-        </p>
-        <div className="flex justify-center gap-4">
-          <Button>Browse Packages</Button>
-          <Button variant="outline" className="text-black border-white">How It Works</Button>
+      <section className="relative py-24 px-6 md:px-16 text-white overflow-hidden">
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: "url('/hero-bg.jpg')",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Gradient overlay (left to right with transparency) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(to right, rgba(0,0,0,0.85) 30%, rgba(0,0,0,0.1))",
+          zIndex: 1,
+        }}
+      />
+
+      {/* Main content */}
+     <div className="flex justify-center">
+     <div className="grid grid-cols-12 w-[80%]">
+        
+        <div className="col-span-6 relative z-10 text-left">
+          <motion.h2
+            className="text-[72px] leading-tight font-extrabold mb-6"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <span className="text-white">Smart Investments</span>, <br />
+            <span className="text-white">Real Assets</span>
+          </motion.h2>
+  
+          <p className="text-2xl max-w-2xl mb-8">
+            Discover <span className="font-semibold text-white">high-return equity packages</span> in{" "}
+            <span className="font-semibold text-white">trading</span> and{" "}
+            <span className="font-semibold text-white">long-term ventures</span>.
+          </p>
+  
+          <div className="flex gap-4 mb-12">
+            <Button size="lg" className="text-lg px-8 py-6">Browse Packages</Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="text-lg px-8 py-6 border-white text-white bg-transparent hover:bg-white hover:text-black"
+            >
+              How It Works
+            </Button>
+          </div>
+  
+          <div className="flex items-center gap-10 text-white text-xl font-semibold">
+            <div className="flex flex-col">
+              <span className="text-4xl font-bold">{investors.toLocaleString()}+</span>
+              <span>Trusted <span className="text-primary-foreground">Investors</span></span>
+            </div>
+            <div className="h-10 w-px bg-white" />
+            <div className="flex flex-col">
+              <span className="text-4xl font-bold">${(assets / 1000000).toFixed(1)}M+</span>
+              <span>Total <span className="text-white">Assets Managed</span></span>
+            </div>
+            <div className="h-10 w-px bg-white" />
+            <div className="flex flex-col">
+              <span className="text-4xl font-bold">{satisfaction}%</span>
+              <span>User <span className="text-primary-foreground">Satisfaction Rate</span></span>
+            </div>
+          </div>
         </div>
-      </section>
+        <div className="col-span-6">
+          
+        </div>
+        </div>
+     </div>
+    </section>
 {/* Why Choose Us */}
 <section id="why-choose-us" className="py-16 px-6 bg-white">
   <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
@@ -74,7 +159,7 @@ export default function LandingPage() {
     <motion.img
       src="/why-choose-us.png" // Replace with your actual image path
       alt="Why Choose Us"
-      className="w-full rounded-2xl shadow-md"
+      className="w-full rounded-2xl"
       initial={{ opacity: 0, x: -50 }}
       whileInView={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6 }}
@@ -245,14 +330,17 @@ export default function LandingPage() {
             {
               title: "Trading Packages",
               description: "Poultry, dairy, fruits & vegetables, and more.",
+              url: "/trading-packages"
             },
             {
               title: "Long-Term Rental",
               description: "Fixed monthly returns from industrial sheds & yards.",
+              url: "/trading-packages"
             },
             {
               title: "Long-Term Industry",
               description: "Invest in processing plants and properties for higher growth.",
+              url: "/trading-packages"
             },
           ].map((pkg, i) => (
             <Card key={i} className="hover:shadow-xl transition">
@@ -260,7 +348,9 @@ export default function LandingPage() {
                 <h4 className="text-xl font-bold mb-2">{pkg.title}</h4>
                 <p className="text-sm text-muted-foreground mb-4">{pkg.description}</p>
                 <Button variant="link" className="p-0 text-primary">
+                  <Link href={pkg.url} className="p-0 text-primary">
                   View Packages <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

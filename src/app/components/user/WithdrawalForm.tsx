@@ -6,9 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useAuth } from '../../../../context/AuthContext';
 
 export default function WithdrawalForm() {
+  const { user } = useAuth();
   const [method, setMethod] = useState('');
   const [amount, setAmount] = useState('');
   const [details, setDetails] = useState({
@@ -19,48 +22,65 @@ export default function WithdrawalForm() {
     extraInfo: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+  const [agree, setAgree] = useState(false);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
 
-  const handleSubmit = async () => {
+  const numericAmount = parseFloat(amount);
+  if (!user) return <div>Loading user data...</div>;
+  const remainingBalance = user?.balance - (isNaN(numericAmount) ? 0 : numericAmount);
+
+  const handleSubmit = () => {
     if (!method || !amount || !details.accountNumber) {
       toast.error('Please fill all required fields');
       return;
     }
 
+    if (numericAmount > user.balance) {
+        toast.error('Insufficient balance');
+        return;
+    }
+    
+    setShowDialog(true);
+};
+
+const confirmSubmit = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/users/withdrawals/request', {
-        method: 'POST',
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        body: JSON.stringify({ method, amount: parseFloat(amount), details }),
-      });
-
+          method: 'POST',
+          headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ method, amount: parseFloat(amount), details }),
+        });
+        
       const data = await res.json();
       if (res.ok) {
-        toast.success('Withdrawal request submitted successfully!');
+          toast.success('Withdrawal request submitted successfully!');
         setAmount('');
         setMethod('');
         setDetails({
-          accountTitle: '',
-          accountNumber: '',
-          bankName: '',
-          eWalletType: '',
+            accountTitle: '',
+            accountNumber: '',
+            bankName: '',
+            eWalletType: '',
           extraInfo: '',
         });
-      } else {
+        setShowDialog(false);
+        setAgree(false);
+    } else {
         toast.error(data.error || 'Something went wrong');
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      toast.error('Network error, try again later');
+        toast.error('Network error, try again later');
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="max-w-lg w-full mx-auto space-y-4 p-4 border rounded-xl shadow-md bg-white">
       <h2 className="text-lg font-semibold">Request Withdrawal</h2>
@@ -82,16 +102,20 @@ export default function WithdrawalForm() {
       </div>
 
       <div>
-        <Label>Amount (PKR)</Label>
+        <Label>Amount ($)</Label>
         <Input
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="e.g. 5000"
         />
+        {!isNaN(numericAmount) && numericAmount > 0 && (
+          <p className="text-sm text-muted-foreground">
+            Remaining Balance: ${remainingBalance.toLocaleString()}
+          </p>
+        )}
       </div>
 
-      {/* Common Fields */}
       <div>
         <Label>Account Holder Name</Label>
         <Input
@@ -108,7 +132,6 @@ export default function WithdrawalForm() {
         />
       </div>
 
-      {/* Conditional Fields */}
       {method === 'Bank Transfer' && (
         <div>
           <Label>Bank Name</Label>
@@ -143,6 +166,39 @@ export default function WithdrawalForm() {
       <Button disabled={loading} onClick={handleSubmit} className="w-full">
         {loading ? 'Submitting...' : 'Submit Withdrawal Request'}
       </Button>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Withdrawal</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p>You are about to request ${numericAmount.toLocaleString()} withdrawal via <strong>{method}</strong>.</p>
+            <p><strong>Account Title:</strong> {details.accountTitle}</p>
+            <p><strong>Account/Wallet Number:</strong> {details.accountNumber}</p>
+            {method === 'Bank Transfer' && <p><strong>Bank Name:</strong> {details.bankName}</p>}
+            {['JazzCash', 'EasyPaisa', 'SadaPay', 'Other'].includes(method) && details.eWalletType && (
+              <p><strong>Wallet Type:</strong> {details.eWalletType}</p>
+            )}
+            {details.extraInfo && <p><strong>Extra Info:</strong> {details.extraInfo}</p>}
+            <div className="flex items-center space-x-2 pt-2">
+              <input
+                id="agree"
+                type="checkbox"
+                checked={agree}
+                onChange={(e) => setAgree(e.target.checked)}
+              />
+              <Label htmlFor="agree">I confirm the above information is correct.</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button disabled={!agree || loading} onClick={confirmSubmit}>
+              {loading ? 'Processing...' : 'Confirm Request'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

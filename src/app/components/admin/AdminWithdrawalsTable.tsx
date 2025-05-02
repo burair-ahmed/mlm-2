@@ -111,7 +111,7 @@ export default function AdminWithdrawalsTable() {
                   <div className="text-xs text-muted-foreground">{w.userId.email}</div>
                 </td>
                 <td className="p-2">{w.method}</td>
-                <td className="p-2">PKR {w.amount.toLocaleString()}</td>
+                <td className="p-2">${w.amount.toLocaleString()}</td>
                 <td className="p-2">
                   <Badge variant="outline">{w.status}</Badge>
                 </td>

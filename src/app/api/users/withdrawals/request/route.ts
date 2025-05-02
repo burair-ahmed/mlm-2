@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../../../../../lib/dbConnect';
 import WithdrawalRequest from '../../../../../../models/WithdrawalRequest';
+import User from '../../../../../../models/User'; // Make sure this is imported
 import { authenticate } from '../../../../../../middleware/auth';
 
 export async function POST(req: NextRequest) {
@@ -15,8 +16,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  // Double-check if user still has enough balance
+  const user = await User.findById(auth._id);
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  }
+
+  if (amount > user.balance) {
+    return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 });
+  }
+
+  // Deduct amount from user's balance
+  user.balance -= amount;
+  await user.save();
+
   const newRequest = await WithdrawalRequest.create({
-    userId: auth._id,
+    userId: user._id,
     method,
     amount,
     details,

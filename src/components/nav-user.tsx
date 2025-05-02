@@ -27,14 +27,6 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 
-// import { useReactTable } from "@tanstack/react-table"
-
-// import { useEffect, useState } from "react"
-
-// interface User {
-//   email: string
-//   balance: number
-// }
 
 interface NavUserProps {
   setActiveTab: (tab: string) => void;

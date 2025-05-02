@@ -130,7 +130,7 @@ const data = {
       icon: ClipboardListIcon,
     },
     {
-      name: "Data Library",
+      name: "Request Withdrawal",
       url: "#",
       icon: DatabaseIcon,
     },

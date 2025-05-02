@@ -226,14 +226,9 @@ const MyInvestments = () => {
                   <div className="grid grid-cols-12 gap-2 mt-4">
                     <div className="col-span-6 flex items-center">
                       <Button
-                        disabled={
-                          pkg.type === "long-term-rental" || !pkg.profitAmount
-                        }
+                        disabled={!pkg.profitAmount}
                         onClick={() => handleWithdraw(pkg._id)}
-                        className={`w-full transition ${
-                          pkg.type !== "long-term-industry" && pkg.type !== "trading"
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : pkg.profitAmount
+                        className={`w-full transition ${pkg.profitAmount
                             ? "bg-green-600 hover:bg-green-700"
                             : "bg-gray-400 cursor-not-allowed"
                         }`}

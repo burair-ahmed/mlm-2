@@ -17,6 +17,7 @@ import Account from "../components/user/user-profile"
 import Settings from "../components/user/settings"
 import { IUser } from '../../../models/User';
 import KYCForm from "../components/user/kyc/KYCForm"
+import WithdrawalForm from "../components/user/WithdrawalForm"
 export default function Page() {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -95,6 +96,9 @@ export default function Page() {
           </div>
           <div className={activeTab === "KYC" ? "" : "hidden"}>
           <KYCForm kyc={user.kyc} />
+          </div>
+          <div className={activeTab === "Request Withdrawal" ? "" : "hidden"}>
+          <WithdrawalForm/>
           </div>
         </div>
       </SidebarInset>

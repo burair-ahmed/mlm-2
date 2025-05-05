@@ -33,6 +33,7 @@ export default function AdminWithdrawalsTable() {
   const [selectedStatus, setSelectedStatus] = useState('All');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(false);
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
 
   useEffect(() => {
     fetchWithdrawals();
@@ -53,9 +54,12 @@ export default function AdminWithdrawalsTable() {
   };
 
   const updateStatus = async (id: string, status: string) => {
-    const res = await fetch(`/api/admin/withdrawals/update/${id}`, {
+    const res = await fetch(`/api/admin/withdrawals/update/[id]`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ status }),
     });
 

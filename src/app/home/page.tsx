@@ -13,6 +13,9 @@ import {
 import { motion } from "framer-motion";
 import { ArrowRight, Lightbulb, Target } from "lucide-react";
 import Link from "next/link";
+import IndustryPackage from "../components/packages/IndustryPackage";
+import RentalPackage from "../components/packages/RentalPackage";
+import TradingPackage from "../components/packages/TradingPackage";
 // import { Lightbulb, Target } from "lucide-react";
 
 const steps = [
@@ -358,7 +361,9 @@ const steps = [
         </div>
       </section>
 
-      {/* How It Works */}
+      <IndustryPackage/>
+      <RentalPackage/>
+      <TradingPackage/>
   {/* How It Works */}
   <section id="how-it-works" className="py-20 px-6 bg-muted">
       <h3 className="text-3xl font-semibold text-center mb-12">How It Works</h3>

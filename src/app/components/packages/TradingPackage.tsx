@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface Package {
   _id: string;
@@ -34,38 +35,84 @@ const TradingPackage = () => {
   
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    const fetchKycStatus = async () => {
-      try {
-        const response = await fetch("/api/users/kyc/kyc-status", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setKycStatus(data.kycStatus); // Store the KYC status (e.g., 'approved', 'pending', etc.)
-        } else {
-          console.error("Error fetching KYC status:", data.error);
+  //   const fetchKycStatus = async () => {
+  //     try {
+  //       const response = await fetch("/api/users/kyc/kyc-status", {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+  //       const data = await response.json();
+  //       if (response.ok) {
+  //         setKycStatus(data.kycStatus); // Store the KYC status (e.g., 'approved', 'pending', etc.)
+  //       } else {
+  //         console.error("Error fetching KYC status:", data.error);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching KYC status:", error);
+  //     }
+  //   };
+
+  //   fetchKycStatus();
+
+  //   fetch("/api/admin/trading")
+  //     .then((res) => res.json())
+  //     .then((data) => setPackages(data))
+  //     .catch((error) => console.error("Error fetching packages:", error))
+  //     .finally(() => setIsFetching(false));
+  // }, [token]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (token) {
+        try {
+          const response = await fetch("/api/users/kyc/kyc-status", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setKycStatus(data.kycStatus);
+          } else {
+            console.error("Error fetching KYC status:", data.error);
+          }
+        } catch (error) {
+          console.error("Error fetching KYC status:", error);
         }
+      }
+  
+      try {
+        const res = await fetch("/api/admin/trading");
+        const data = await res.json();
+        setPackages(data);
       } catch (error) {
-        console.error("Error fetching KYC status:", error);
+        console.error("Error fetching packages:", error);
+      } finally {
+        setIsFetching(false);
       }
     };
+  
+    fetchData();
+  }, []);
 
-    fetchKycStatus();
 
-    fetch("/api/admin/trading")
-      .then((res) => res.json())
-      .then((data) => setPackages(data))
-      .catch((error) => console.error("Error fetching packages:", error))
-      .finally(() => setIsFetching(false));
-  }, [token]);
 
   const handlePurchase = async () => {
     if (!selectedPackage) return;
-
+    if (!token) {
+      toast.warning(
+        <div className="flex flex-col space-y-1 z-10">
+          <span>You must be logged in to make a purchase.</span>
+          <Link href="/login" className="text-sm text-blue-500 underline hover:text-blue-600">
+            Go to Login
+          </Link>
+        </div>
+      );
+      return;
+    }
     if (kycStatus !== "approved") {
       toast.warning("Your KYC is not approved. Please complete your KYC to make a purchase.");
     }

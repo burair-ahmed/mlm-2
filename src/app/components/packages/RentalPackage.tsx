@@ -35,37 +35,46 @@ const RentalPackage = () => {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
-
-    const fetchKycStatus = async () => {
-      try {
-        const response = await fetch("/api/users/kyc/kyc-status", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setKycStatus(data.kycStatus); // Store the KYC status (e.g., 'approved', 'pending', etc.)
-        } else {
-          console.error("Error fetching KYC status:", data.error);
+    const fetchData = async () => {
+      if (token) {
+        try {
+          const response = await fetch("/api/users/kyc/kyc-status", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setKycStatus(data.kycStatus);
+          } else {
+            console.error("Error fetching KYC status:", data.error);
+          }
+        } catch (error) {
+          console.error("Error fetching KYC status:", error);
         }
+      }
+  
+      try {
+        const res = await fetch("/api/admin/long-term-rental");
+        const data = await res.json();
+        setPackages(data);
       } catch (error) {
-        console.error("Error fetching KYC status:", error);
+        console.error("Error fetching packages:", error);
+      } finally {
+        setIsFetching(false);
       }
     };
-
-    fetchKycStatus();
-
-    fetch("/api/admin/long-term-rental")
-      .then((res) => res.json())
-      .then((data) => setPackages(data))
-      .catch((error) => console.error("Error fetching packages:", error))
-      .finally(() => setIsFetching(false));
+  
+    fetchData();
   }, []);
+  
 
   const handlePurchase = async () => {
     if (!selectedPackage) return;
-
+    if (!token) {
+      toast.warning("Please log in to make a purchase.");
+      return;
+    }
     if (kycStatus !== "approved") {
       toast.warning("Your KYC is not approved. Please complete your KYC to make a purchase.");
     }

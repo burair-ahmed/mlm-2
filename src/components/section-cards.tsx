@@ -91,7 +91,7 @@ export function SectionCards() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4 lg:px-6 *:data-[slot=card]:shadow-xs *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 px-4 lg:px-6 *:data-[slot=card]:shadow-xs *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card">
       {/* Total Revenue */}
       <Card className="@container/card">
         <CardHeader className="relative">
@@ -213,6 +213,39 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card>
+      <Card className="@container/card">
+        <CardHeader className="relative">
+          <CardDescription>Wallet Balance</CardDescription>
+          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+            ${user?.balance || 0}
+          </CardTitle>
+          {/* <p
+            className="text-[12px] text-[#282828] cursor-pointer underline"
+            onClick={() => setShowBalanceInUSD(!showBalanceInUSD)}
+          >
+            {showBalanceInUSD
+              ? "Click to see in Equity Units"
+              : "Tap to see valuation in $"}
+          </p> */}
+          <div className="absolute right-4 top-4">
+            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+              <TrendingUpIcon className="size-3" />
+              +4.5%
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Based on all deposits and returns{" "}
+            <TrendingUpIcon className="size-4" />
+          </div>
+          <div className="text-muted-foreground">
+            This is your overall balance
+          </div>
+        </CardFooter>
+      </Card>
+    
+    
     </div>
   );
 }

@@ -40,38 +40,46 @@ const IndustryPackage = () => {
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
     useEffect(() => {
-      // Fetch KYC status of the user
-      const fetchKycStatus = async () => {
-        try {
-          const response = await fetch("/api/users/kyc/kyc-status", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const data = await response.json();
-          if (response.ok) {
-            setKycStatus(data.kycStatus); // Store the KYC status (e.g., 'approved', 'pending', etc.)
-          } else {
-            console.error("Error fetching KYC status:", data.error);
-          }
-        } catch (error) {
-          console.error("Error fetching KYC status:", error);
-        }
-      };
-    
-      fetchKycStatus();
-    
+      // Always fetch packages
       fetch("/api/admin/long-term-industry")
         .then((res) => res.json())
         .then((data) => setPackages(data))
         .catch((error) => console.error("Error fetching packages:", error))
         .finally(() => setIsFetching(false));
+    
+      // Only fetch KYC if logged in
+      if (token) {
+        const fetchKycStatus = async () => {
+          try {
+            const response = await fetch("/api/users/kyc/kyc-status", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            const data = await response.json();
+            if (response.ok) {
+              setKycStatus(data.kycStatus);
+            } else {
+              console.error("Error fetching KYC status:", data.error);
+            }
+          } catch (error) {
+            console.error("Error fetching KYC status:", error);
+          }
+        };
+    
+        fetchKycStatus();
+      }
     }, [token]);
     
+    
     const handlePurchase = async () => {
+      if (!token) {
+        toast.warning("Please log in to make a purchase.");
+        return;
+      }
+    
       if (!selectedPackage) return;
     
-      // Check if KYC is approved before allowing the purchase
       if (kycStatus !== "approved") {
         toast.warning("Your KYC is not approved. Please complete your KYC to make a purchase.");
         return;
@@ -115,6 +123,7 @@ const IndustryPackage = () => {
         setLoading(false);
       }
     };
+    
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 sm:p-6">
       {isFetching

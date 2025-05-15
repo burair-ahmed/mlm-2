@@ -12,6 +12,9 @@ import AdminEquityPackages from '../components/AdminEquityPackages';
 import AdminProfitUpdate from '../components/admin/AdminProfitUpdate';
 import AdminKYCRequests from '../components/admin/AdminKYCRequests';
 import AdminWithdrawalsTable from '../components/admin/AdminWithdrawalsTable';
+import AssignRoleToUser from '../components/admin/roles/AssignRoleToUser';
+import PermissionManagement from '../components/admin/roles/PermissionManagement';
+import RoleManagement from '../components/admin/roles/RoleManagement';
 
 interface User {
   _id: string;
@@ -108,6 +111,9 @@ export default function AdminDashboard() {
       </div>
       <AdminKYCRequests/>
       <AdminWithdrawalsTable/>
+      <AssignRoleToUser/>
+      <RoleManagement/>
+      <PermissionManagement/>
 <AdminProfitUpdate/>
       {/* Equity Ownership Tracking */}
       <div className="mb-8">

@@ -1,17 +1,16 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import dbConnect from '../lib/dbConnect';
+import mongoose, { Document, Schema } from "mongoose";
+import dbConnect from "../lib/dbConnect";
 
 await dbConnect();
 
-
 export interface IKYC {
-  status: 'pending' | 'approved' | 'rejected' | 'unverified';
+  status: "pending" | "approved" | "rejected" | "unverified";
   fullName?: string;
   dateOfBirth?: Date;
   address?: string;
   idType?: string;
   idNumber?: string;
-  documents?: string[]; // URLs to uploaded documents
+  documents?: string[];
   submittedAt?: Date;
   approvedAt?: Date;
 }
@@ -29,46 +28,46 @@ export interface IUser extends Document {
   balance: number;
   hierarchyLevel: number;
   commissionEarned: number;
-  equityUnits: number; 
+  equityUnits: number;
   isAdmin: boolean;
   withdrawnProfits: number;
-  // equityOwnership: Array<{
-  //   packageId: Schema.Types.ObjectId;
-  //   units: number;
-  //   purchaseDate: Date;
-  // }>;
-  // purchasedPackages: mongoose.Types.ObjectId[];
   purchasedPackages: Array<{
-    packageId: mongoose.Types.ObjectId;  // Reference to the purchased package
-    totalUnits: number;  // Number of units purchased
+    packageId: mongoose.Types.ObjectId;
+    totalUnits: number;
   }>;
-  kyc?: IKYC
+  kyc?: IKYC;
+  role?: string;
+  customRoleId?: mongoose.Types.ObjectId;
 }
-const KycSchema: Schema = new Schema({
-  status: {
-    type: String,
-    enum: ['pending', 'approved', 'rejected', 'unverified'],
-    default: 'unverified',
+
+const KycSchema: Schema = new Schema(
+  {
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected", "unverified"],
+      default: "unverified",
+    },
+    fullName: String,
+    dateOfBirth: Date,
+    address: String,
+    idType: String,
+    idNumber: String,
+    documents: [String],
+    submittedAt: Date,
+    approvedAt: Date,
   },
-  fullName: String,
-  dateOfBirth: Date,
-  address: String,
-  idType: String,
-  idNumber: String,
-  documents: [String],
-  submittedAt: Date,
-  approvedAt: Date,
-}, { _id: false });
+  { _id: false }
+);
 
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   userName: { type: String },
   fullName: { type: String },
-  profilePicture: { type: String }, // URL or base64 string
+  profilePicture: { type: String },
   referralCode: { type: String, required: true, unique: true },
-  referredBy: { type: Schema.Types.ObjectId, ref: 'User' },
-  referrals: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  referredBy: { type: Schema.Types.ObjectId, ref: "User" },
+  referrals: [{ type: Schema.Types.ObjectId, ref: "User" }],
   createdAt: { type: Date, default: Date.now },
   balance: { type: Number, default: 0 },
   hierarchyLevel: { type: Number, default: 0 },
@@ -77,25 +76,60 @@ const UserSchema: Schema = new Schema({
   isAdmin: { type: Boolean, default: false },
   withdrawnProfits: { type: Number, default: 0 },
 
-  // equityOwnership: [{
-  //   packageId: { type: Schema.Types.ObjectId, ref: 'EquityPackage' },
-  //   units: { type: Number, required: true },
-  //   purchaseDate: { type: Date, default: Date.now }
-  // }]
-  // purchasedPackages: [{ type: Schema.Types.ObjectId, ref: "PurchasedPackage" }],
-  purchasedPackages: [{
-    packageId: { type: Schema.Types.ObjectId, refPath: 'packageType', required: true },
-    totalUnits: { type: Number, required: true },
-  }],
-  
-  kyc: { type: KycSchema, default: { status: 'unverified' } },
+  purchasedPackages: [
+    {
+      packageId: {
+        type: Schema.Types.ObjectId,
+        refPath: "packageType",
+        required: true,
+      },
+      totalUnits: { type: Number, required: true },
+    },
+  ],
 
+  kyc: { type: KycSchema, default: { status: "unverified" } },
+
+  role: {
+    type: String,
+    default: "user", // Optional default
+  },
+
+  customRoleId: {
+    type: Schema.Types.ObjectId,
+    ref: "Role",
+    default: null,
+  },
+  customPermissions: [{ type: String }],
 });
 
-UserSchema.virtual('referralHierarchy', {
-  ref: 'User',
-  localField: '_id',
-  foreignField: 'referredBy',
+// Optional: referral hierarchy virtual
+UserSchema.virtual("referralHierarchy", {
+  ref: "User",
+  localField: "_id",
+  foreignField: "referredBy",
 });
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+// Optional: computed permissions virtual (requires population)
+UserSchema.methods.getEffectivePermissions = async function () {
+  let roleSlugs: string[] = [];
+
+  if (this.customRoleId) {
+    const Role = mongoose.model('Role');
+    const roleDoc = await Role.findById(this.customRoleId).populate({
+      path: 'permissions',
+      select: 'slug', // only pull slug
+    });
+
+    if (roleDoc && Array.isArray(roleDoc.permissions)) {
+      roleSlugs = roleDoc.permissions.map((perm: any) => perm.slug);
+    }
+  }
+
+  const customSlugs = this.customPermissions || [];
+
+  // Combine and deduplicate
+  return [...new Set([...roleSlugs, ...customSlugs])];
+};
+
+
+export default mongoose.models.User || mongoose.model<IUser>("User", UserSchema);

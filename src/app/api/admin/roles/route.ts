@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import User from '../../../../../models/User';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
+import Role from '../../../../../models/Role';
 
 export async function GET(req: NextRequest) {
   const auth = await authenticate(req);
@@ -12,15 +12,12 @@ export async function GET(req: NextRequest) {
   await dbConnect();
 
   try {
-    const users = await User.find({}, 'email balance commissionEarned isAdmin createdAt kyc fullName role')
-      .lean()
-      .exec();
-
-    return NextResponse.json(users || []);
+    const roles = await Role.find({}, 'name permissions').lean().exec();
+    return NextResponse.json(roles || []);
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: 'Error fetching users' },
+      { error: 'Error fetching roles' },
       { status: 500 }
     );
   }

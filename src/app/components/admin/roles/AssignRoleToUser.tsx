@@ -31,15 +31,14 @@ interface User {
   _id: string;
   email: string;
   fullName?: string;
-  role?: { _id: string; name: string };
-  // role?: { _id: string; name: string };
+  role?: string; // changed from object to string
   kyc?: { status: string };
 }
 
 interface Permission {
   _id: string;
   label: string;
-  slug: string; 
+  slug: string;
 }
 
 interface Role {
@@ -76,49 +75,46 @@ export default function AssignRoleToUser() {
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const headers = { Authorization: `Bearer ${token}` };
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const [userRes, permRes, roleRes] = await Promise.all([
-        axios.get("/api/admin/users", { headers }),
-        axios.get("/api/admin/permissions", { headers }),
-        axios.get("/api/admin/roles", { headers }),
-      ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [userRes, permRes, roleRes] = await Promise.all([
+          axios.get("/api/admin/users", { headers }),
+          axios.get("/api/admin/permissions", { headers }),
+          axios.get("/api/admin/roles", { headers }),
+        ]);
 
-      setUsers(userRes.data);
-      setPermissions(permRes.data);
-      setRoles(roleRes.data);
+        setUsers(userRes.data);
+        setPermissions(permRes.data);
+        setRoles(roleRes.data);
 
-      setSelectedRoles(
-        userRes.data.reduce((acc: Record<string, string>, user: User) => {
-          if (user.role) acc[user._id] = user.role.name === "custom" ? "custom" : user.role._id;
-          return acc;
-        }, {})
-      );
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load users, roles, or permissions");
-    }
+        setSelectedRoles(
+          userRes.data.reduce((acc: Record<string, string>, user: User) => {
+            if (user.role) acc[user._id] = user.role;
+            return acc;
+          }, {})
+        );
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load users, roles, or permissions");
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleCheckboxChange = (userId: string, slug: string) => {
+    setCustomPermissions((prev) => {
+      const existing = prev[userId] || [];
+      const updated = existing.includes(slug)
+        ? existing.filter((s) => s !== slug)
+        : [...existing, slug];
+      return { ...prev, [userId]: updated };
+    });
   };
 
-  fetchData();
-}, []);
-
-
-
-
-const handleCheckboxChange = (userId: string, slug: string) => {
-  setCustomPermissions((prev) => {
-    const existing = prev[userId] || [];
-    const updated = existing.includes(slug)
-      ? existing.filter((s) => s !== slug)
-      : [...existing, slug];
-    return { ...prev, [userId]: updated };
-  });
-};
-
   const handleRoleChange = async (userId: string, roleId: string) => {
-    if (roleId === "custom") return; // Don't process "custom" here anymore
+    if (roleId === "custom") return;
 
     try {
       const res = await axios.put(
@@ -138,7 +134,6 @@ const handleCheckboxChange = (userId: string, slug: string) => {
   };
 
   const handleAssignCustom = async (userId: string) => {
-    console.log("Assigning custom role to:", userId);
     const selected = customPermissions[userId] || [];
     try {
       const res = await axios.put(
@@ -151,10 +146,8 @@ const handleCheckboxChange = (userId: string, slug: string) => {
       );
 
       const updatedUser = res.data;
-
       toast.success("Custom role assigned");
       setCustomOpenUserId(null);
-
       setUsers((prev) => prev.map((u) => (u._id === userId ? updatedUser : u)));
     } catch {
       toast.error("Failed to assign custom role");
@@ -189,8 +182,7 @@ const handleCheckboxChange = (userId: string, slug: string) => {
             <TableRow key={user._id}>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.fullName || "—"}</TableCell>
-              <TableCell>{user.role?.name || "None"}</TableCell>
-
+              <TableCell>{user.role || "None"}</TableCell>
               <TableCell>{user.kyc?.status || "Not Submitted"}</TableCell>
               <TableCell>
                 <div className="flex gap-2 items-center">
@@ -200,10 +192,8 @@ const handleCheckboxChange = (userId: string, slug: string) => {
                         {selectedRoles[user._id]
                           ? selectedRoles[user._id] === "custom"
                             ? "Custom"
-                            : roles.find(
-                                (r) => r._id === selectedRoles[user._id]
-                              )?.name
-                          : user.role?.name || "Select Role"}
+                            : roles.find((r) => r._id === selectedRoles[user._id])?.name
+                          : user.role || "Select Role"}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -228,49 +218,58 @@ const handleCheckboxChange = (userId: string, slug: string) => {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  {(selectedRoles[user._id] === 'custom' || user.role?.name === 'custom') && (
-  <Popover
-    open={customOpenUserId === user._id}
-    onOpenChange={(open) => {
-      if (!open) setCustomOpenUserId(open ? user._id : null);
-    }}
-  >
-    <PopoverTrigger asChild>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setCustomOpenUserId(user._id)}
-      >
-        Set Permissions
-      </Button>
-    </PopoverTrigger>
-    <PopoverContent className="w-64 max-h-96 overflow-y-auto">
-      <h4 className="font-semibold mb-2">Select Permissions</h4>
-      <div className="space-y-2">
-        {permissions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No permissions found</p>
-        ) : (
-       permissions.map((perm) => (
-  <div key={perm.slug} className="flex items-center space-x-2">
-    <Checkbox
-      id={perm.slug}
-      checked={customPermissions[user._id]?.includes(perm.slug) || false}
-      onCheckedChange={() => handleCheckboxChange(user._id, perm.slug)}
-    />
-    <label htmlFor={perm.slug} className="text-sm">
-      {perm.label}
-    </label>
-  </div>
-))
-        )}
-        <Button onClick={() => handleAssignCustom(user._id)} className="mt-4 w-full">
-          Assign
-        </Button>
-      </div>
-    </PopoverContent>
-  </Popover>
-)}
 
+                  {(selectedRoles[user._id] === "custom" || user.role === "custom") && (
+                    <Popover
+                      open={customOpenUserId === user._id}
+                      onOpenChange={(open) => {
+                        if (!open) setCustomOpenUserId(null);
+                      }}
+                    >
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCustomOpenUserId(user._id)}
+                        >
+                          Set Permissions
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 max-h-96 overflow-y-auto">
+                        <h4 className="font-semibold mb-2">Select Permissions</h4>
+                        <div className="space-y-2">
+                          {permissions.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                              No permissions found
+                            </p>
+                          ) : (
+                            permissions.map((perm) => (
+                              <div key={perm.slug} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={perm.slug}
+                                  checked={
+                                    customPermissions[user._id]?.includes(perm.slug) || false
+                                  }
+                                  onCheckedChange={() =>
+                                    handleCheckboxChange(user._id, perm.slug)
+                                  }
+                                />
+                                <label htmlFor={perm.slug} className="text-sm">
+                                  {perm.label}
+                                </label>
+                              </div>
+                            ))
+                          )}
+                          <Button
+                            onClick={() => handleAssignCustom(user._id)}
+                            className="mt-4 w-full"
+                          >
+                            Assign
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

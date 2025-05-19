@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { useAuth } from "../../../context/AuthContext"
+import { WithPermission } from "../components/permissions/WithPermission"
 
 import Dashboard from "../components/user/user-dashboard"
 import CommissionHistory from "../components/CommissionHistory"
@@ -79,8 +80,13 @@ export default function Page() {
             <CommissionHistory />
           </div>
           <div className={activeTab === "Referrals" ? "" : "hidden"}>
+            <WithPermission
+    slug="view_users"
+    fallback={<p className="text-red-500">You don’t have access to this page.</p>}
+  >
           <ReferralInfo referralLink={referralLink} referralCode={referralCode}/>
             <HierarchyTree />
+            </WithPermission>
           </div>
           <div className={activeTab === "Active Packages" ? "" : "hidden"}>
             <MyInvestments />

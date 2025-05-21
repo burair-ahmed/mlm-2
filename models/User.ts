@@ -39,6 +39,7 @@ export interface IUser extends Document {
   role?: string;
   customRoleId?: mongoose.Types.ObjectId;
   permissions?: string[];
+  customPermissions?: string[];
 }
 
 const KycSchema: Schema = new Schema(

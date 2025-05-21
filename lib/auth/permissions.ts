@@ -6,6 +6,6 @@ import { IUser } from '../../models/User';  // or wherever your TS interface liv
  * `user.permissions` array.
  */
 export function hasPermission(user: IUser | null, slug: string): boolean {
-  if (!user?.permissions) return false;
-  return user.permissions.includes(slug);
+  if (!user?.customPermissions) return false;
+  return user.customPermissions.includes(slug);
 }

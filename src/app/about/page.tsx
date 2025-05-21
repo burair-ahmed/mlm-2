@@ -4,6 +4,8 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { Target, Users, LineChart, Building2 } from 'lucide-react';
+import Footer from '../components/footer/component';
+import Header from '../components/header/component';
 
 export default function AboutPage() {
   const stickyRef = useRef(null);
@@ -16,6 +18,8 @@ export default function AboutPage() {
   const opacity = useTransform(scrollYProgress, [0, 1], [0.5, 1]);
 
   return (
+    <>
+    <Header/>
     <div className="bg-[#f9f5f0] text-[#3e362e]">
       {/* Hero Section */}
       <section className="min-h-screen flex flex-col justify-center items-center px-6 bg-[#3e362e] text-white text-center py-20">
@@ -189,5 +193,7 @@ export default function AboutPage() {
         </div>
       </section>
     </div>
+<Footer/>
+    </>
   );
 }

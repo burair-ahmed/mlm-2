@@ -99,11 +99,12 @@ export default function RoleManagement() {
     }
   };
 
-  const startEditing = (role: Role) => {
-    setRoleName(role.name);
-    setSelectedPermissions(role.permissions.map(p => p._id));
-    setEditingRoleId(role._id);
-  };
+const startEditing = (role: Role) => {
+  setRoleName(role.name);
+  setSelectedPermissions(role.permissions.map(p => p._id));
+  setEditingRoleId(role._id);
+};
+
 
   return (
     <Card className="p-4 mb-6">
@@ -123,9 +124,10 @@ export default function RoleManagement() {
           {permissions.map((perm) => (
             <label key={perm._id} className="flex items-center gap-2 text-sm">
               <Checkbox
-                checked={selectedPermissions.includes(perm._id)}
-                onCheckedChange={() => handlePermissionToggle(perm._id)}
-              />
+  checked={selectedPermissions.includes(perm._id)}
+  onCheckedChange={() => handlePermissionToggle(perm._id)}
+/>
+
               {perm.label} ({perm.slug})
             </label>
           ))}

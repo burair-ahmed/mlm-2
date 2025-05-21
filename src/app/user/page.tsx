@@ -66,6 +66,10 @@ export default function Page() {
   
 
   return (
+      <WithPermission
+    slug="view_users"
+    fallback={<p className="text-red-500">You don’t have access to this page.</p>}
+  >
     <SidebarProvider>
       <AppSidebar onTabChange={setActiveTab} setActiveTab={setActiveTab} />
 
@@ -81,7 +85,7 @@ export default function Page() {
           </div>
           <div className={activeTab === "Referrals" ? "" : "hidden"}>
             <WithPermission
-    slug="view_users"
+    slug="view_commissions"
     fallback={<p className="text-red-500">You don’t have access to this page.</p>}
   >
           <ReferralInfo referralLink={referralLink} referralCode={referralCode}/>
@@ -109,6 +113,7 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </WithPermission>
   )
   
 }

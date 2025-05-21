@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+// import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import Header from "../components/header/component";
+import Footer from "../components/footer/component";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -65,18 +67,20 @@ export default function ContactPage() {
   }, []);
 
   return (
+    <>
+    <Header/>
     <div className="min-h-screen bg-[#f5f3f1] text-[#3e362e]">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-[#3e362e] text-[#a69080] shadow-md sticky top-0 z-50">
+      {/* <header className="flex items-center justify-between px-6 py-4 bg-[#3e362e] text-[#a69080] shadow-md sticky top-0 z-50">
         <h1 className="text-xl font-bold">Al Ashraf Holdings</h1>
         <nav className="hidden md:flex gap-6 text-sm">
           <Link href="/" className="hover:text-[#ac8968]">Home</Link>
           <Link href="/#packages" className="hover:text-[#ac8968]">Packages</Link>
           <Link href="/#how-it-works" className="hover:text-[#ac8968]">How It Works</Link>
-          <Link href="/dashboard" className="hover:text-[#ac8968]">Dashboard</Link>
+          <Link href="/user" className="hover:text-[#ac8968]">Dashboard</Link>
         </nav>
         <Button className="text-sm bg-[#865d36] hover:bg-[#93785b]">Get Started</Button>
-      </header>
+      </header> */}
 
       {/* Hero Banner */}
       <section className="relative py-24 px-6 md:px-16 text-white text-center overflow-hidden bg-[#3e362e]">
@@ -150,9 +154,11 @@ export default function ContactPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-6 text-center bg-[#3e362e] text-[#a69080] text-sm">
+      {/* <footer className="py-6 text-center bg-[#3e362e] text-[#a69080] text-sm">
         © {new Date().getFullYear()} Al Ashraf Holdings. All rights reserved.
-      </footer>
+      </footer> */}
     </div>
+    <Footer/>
+    </>
   );
 }

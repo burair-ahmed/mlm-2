@@ -1,3 +1,4 @@
+// src/app/api/admin/roles/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
@@ -10,15 +11,16 @@ export async function GET(req: NextRequest) {
   }
 
   await dbConnect();
-
   try {
-    const roles = await Role.find({}, 'name permissions').lean().exec();
+    // ← populate permissions with the fields your front-end needs
+    const roles = await Role.find({}, 'name permissions')
+      .populate('permissions', '_id slug label')
+      .lean()
+      .exec();
+
     return NextResponse.json(roles || []);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: 'Error fetching roles' },
-      { status: 500 }
-    );
+    console.error('Error fetching roles:', error);
+    return NextResponse.json({ error: 'Error fetching roles' }, { status: 500 });
   }
 }

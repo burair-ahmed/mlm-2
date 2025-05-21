@@ -15,6 +15,8 @@ import Link from "next/link";
 import IndustryPackage from "../components/packages/IndustryPackage";
 import RentalPackage from "../components/packages/RentalPackage";
 import TradingPackage from "../components/packages/TradingPackage";
+import Header from "../components/header/component";
+import Footer from "../components/footer/component";
 
 const steps = [
   "Browse & Choose a Package",
@@ -64,18 +66,20 @@ export default function LandingPage() {
   }, []);
 
   return (
+    <>
+    <Header/>
     <div className="min-h-screen bg-[#f5f3f1] text-[#3e362e]">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-[#3e362e] text-[#a69080] shadow-md">
+      {/* <header className="flex items-center justify-between px-6 py-4 bg-[#3e362e] text-[#a69080] shadow-md">
         <h1 className="text-xl font-bold">Al Ashraf Holdings</h1>
         <nav className="hidden md:flex gap-6 text-sm">
           <a href="#packages" className="hover:text-[#ac8968]">Packages</a>
           <a href="#how-it-works" className="hover:text-[#ac8968]">How It Works</a>
           <a href="#faq" className="hover:text-[#ac8968]">FAQ</a>
-          <a href="/dashboard" className="hover:text-[#ac8968]">Dashboard</a>
+          <a href="/user" className="hover:text-[#ac8968]">Dashboard</a>
         </nav>
         <Button className="text-sm bg-[#865d36] hover:bg-[#93785b]">Get Started</Button>
-      </header>
+      </header> */}
 
       {/* Hero Section */}
       <section className="relative py-24 px-6 md:px-16 text-white overflow-hidden">
@@ -338,9 +342,12 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-6 px-6 bg-[#3e362e] text-center text-sm text-[#a69080]">
+      {/* <footer className="py-6 px-6 bg-[#3e362e] text-center text-sm text-[#a69080]">
         &copy; {new Date().getFullYear()} Al Ashraf Holdings. All rights reserved.
-      </footer>
+      </footer> */}
     </div>
+    <Footer/>
+
+    </>
   );
 }

@@ -1,10 +1,10 @@
-// src/config/dashboardTabs.tsx
+// src/config/userTabs.tsx
 import Dashboard from "../app/components/user/user-dashboard"
 import CommissionHistory from "../app/components/CommissionHistory"
 import HierarchyTree from "../app/components/HierarchyTree"
 import MyInvestments from "../app/components/packages/PurchasedPackages"
 import BuyEquityUnitsForm from "../app/components/BuyEquityUnitsForm"
-import ReferralInfo from "../app/components/ReferralInfo"
+// import ReferralInfo from "../app/components/ReferralInfo"
 import Account from "../app/components/user/user-profile"
 import Settings from "../app/components/user/settings"
 import KYCForm from "../app/components/user/kyc/KYCForm"
@@ -14,6 +14,7 @@ export interface TabConfig {
   key: string            // unique id
   label: string          // “Dashboard”, “Referrals”, …
   slug: string           // permission required to see it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: React.FC<any>
 }
 

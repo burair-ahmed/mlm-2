@@ -15,6 +15,9 @@ import AdminWithdrawalsTable from '../components/admin/AdminWithdrawalsTable';
 import AssignRoleToUser from '../components/admin/roles/AssignRoleToUser';
 import PermissionManagement from '../components/admin/roles/PermissionManagement';
 import RoleManagement from '../components/admin/roles/RoleManagement';
+import Footer from '../components/footer/component';
+import Header from '../components/header/component';
+import Preloader from '../components/preloader/component';
 
 interface User {
   _id: string;
@@ -64,10 +67,12 @@ export default function AdminDashboard() {
   if (error) return <div className="p-4 text-red-500">{error}</div>;
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+  <>
+  <Header/>
+    <div className="p-4 max-w-6xl mx-auto mt-4">
+      {/* <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1> */}
       
-      <div className="bg-white p-6 rounded-lg shadow">
+      <div className="bg-white p-6 rounded-lg shadow mt-8">
         <h2 className="text-xl font-semibold mb-4">All Users</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -121,5 +126,8 @@ export default function AdminDashboard() {
         {/* <AdminEquityTracking /> */}
       </div>
     </div>
+    <Preloader/>
+    <Footer/>
+    </>
   );
 }

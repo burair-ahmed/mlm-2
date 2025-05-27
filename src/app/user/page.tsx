@@ -10,25 +10,45 @@ import { WithPermission } from "../components/permissions/WithPermission"
 
 import Dashboard from "../components/user/user-dashboard"
 import CommissionHistory from "../components/CommissionHistory"
-import HierarchyTree from "../components/HierarchyTree";
-import MyInvestments from '../components/packages/PurchasedPackages';
-import BuyEquityUnitsForm from "../components/BuyEquityUnitsForm";
+import HierarchyTree from "../components/HierarchyTree"
+import MyInvestments from '../components/packages/PurchasedPackages'
+import BuyEquityUnitsForm from "../components/BuyEquityUnitsForm"
 import ReferralInfo from "../components/ReferralInfo"
 import Account from "../components/user/user-profile"
 import Settings from "../components/user/settings"
-import { IUser } from '../../../models/User';
+import { IUser } from '../../../models/User'
 import KYCForm from "../components/user/kyc/KYCForm"
 import WithdrawalForm from "../components/user/WithdrawalForm"
+import NoAccess from "../components/NoAccess/component"
+
+import {
+  LayoutDashboardIcon,
+  BarChartIcon,
+  UsersIcon,
+  FolderIcon,
+  FileCodeIcon,
+} from "lucide-react"
+import AssignRoleToUser from "../components/admin/roles/AssignRoleToUser"
+import AdminEquityPackages from "../components/AdminEquityPackages"
+import AdminKYCRequests from "../components/admin/AdminKYCRequests"
+import AdminWithdrawalsTable from "../components/admin/AdminWithdrawalsTable"
+import RoleManagement from "../components/admin/roles/RoleManagement"
+import PermissionManagement from "../components/admin/roles/PermissionManagement"
+import AdminProfitUpdate from "../components/admin/AdminProfitUpdate"
+
 export default function Page() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const referralCode = user?.referralCode || '';
-  const referralLink = typeof window !== "undefined" && user 
-  ? `${window.location.origin}/register?ref=${referralCode}`
-  : '';
-
-
   const [activeTab, setActiveTab] = useState("Dashboard")
+
+  const referralCode = user?.referralCode || ''
+  const referralLink = typeof window !== "undefined" && user
+    ? `${window.location.origin}/register?ref=${referralCode}`
+    : ''
+
+  const hasPermission = (permission: string) => {
+    return user?.customPermissions?.includes(permission)
+  }
 
   useEffect(() => {
     if (!loading && !user) {
@@ -42,78 +62,101 @@ export default function Page() {
 
   if (!user) return null
 
+  const sidebarTabs = [
+    { title: "Dashboard", icon: LayoutDashboardIcon, permission: "access_admin_dashboard" },
+    { title: "Commission History", icon: BarChartIcon, permission: "view_commissions" },
+    { title: "Referrals", icon: UsersIcon, permission: "view_referrals" },
+    { title: "Active Packages", icon: FolderIcon, permission: "view_investments" },
+    { title: "Equity Units Converter", icon: FileCodeIcon, permission: "convert_units" },
+    { title: "Assign Roles", icon: FileCodeIcon, permission: "assign_roles" },
+    { title: "Equity Packages", icon: FileCodeIcon, permission: "create_package" },
+    { title: "KYC Requests", icon: FileCodeIcon, permission: "approve_kyc" },
+    { title: "Withdrawal Requests", icon: FileCodeIcon, permission: "handle_withdrawals" },
+    { title: "Role Management", icon: FileCodeIcon, permission: "manage_roles" },
+    { title: "Permission Management", icon: FileCodeIcon, permission: "create_permission" },
+    { title: "Admin Profit", icon: FileCodeIcon, permission: "profit_update" },
+  ]
 
-  // const renderAllTabs = () => (
-  //   <>
-  //     <div className={activeTab === "Dashboard" ? "" : "hidden"}>
-  //       <Dashboard />
-  //     </div>
-  //     <div className={activeTab === "Commission History" ? "" : "hidden"}>
-  //       <ReferralInfo referralLink={referralLink} referralCode={user.referralCode} />
-  //       <CommissionHistory />
-  //     </div>
-  //     <div className={activeTab === "Referrals" ? "" : "hidden"}>
-  //       <HierarchyTree />
-  //     </div>
-  //     <div className={activeTab === "Active Packages" ? "" : "hidden"}>
-  //       <MyInvestments />
-  //     </div>
-  //     <div className={activeTab === "Unit Converter" ? "" : "hidden"}>
-  //       <BuyEquityUnitsForm />
-  //     </div>
-  //   </>
-  // )
-  
+  const allowedTabs = sidebarTabs.filter(tab => hasPermission(tab.permission))
 
   return (
-      <WithPermission
-    slug="view_users"
-    fallback={<p className="text-red-500">You don’t have access to this page.</p>}
-  >
-    <SidebarProvider>
-      <AppSidebar onTabChange={setActiveTab} setActiveTab={setActiveTab} />
+    <WithPermission
+      slug="access_admin_dashboard"
+      fallback={<p className="text-red-500">You don’t have access to this page.</p>}
+    >
+      <SidebarProvider>
+        <AppSidebar
+          setActiveTab={setActiveTab}
+          onTabChange={setActiveTab}
+          tabs={allowedTabs}
+        />
 
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col px-4 py-6">
-          <div className={activeTab === "Dashboard" ? "" : "hidden"}>
-            <Dashboard />
+        <SidebarInset>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col px-4 py-6">
+            {activeTab === "Dashboard" && hasPermission("access_admin_dashboard") && <Dashboard />}
+
+            {activeTab === "Commission History" && hasPermission("view_commissions") && (
+              <>
+                <ReferralInfo referralLink={referralLink} referralCode={referralCode} />
+                <CommissionHistory />
+              </>
+            )}
+
+            {activeTab === "Referrals" && hasPermission("view_referrals") && (
+              <WithPermission slug="view_commissions" fallback={<NoAccess />}>
+                <ReferralInfo referralLink={referralLink} referralCode={referralCode} />
+                <HierarchyTree />
+              </WithPermission>
+            )}
+
+            {activeTab === "Active Packages" && hasPermission("view_investments") && (
+              <MyInvestments />
+            )}
+
+            {activeTab === "Equity Units Converter" && hasPermission("convert_units") && (
+              <BuyEquityUnitsForm />
+            )}
+
+            {activeTab === "Account" && hasPermission("view_account") && (
+              <Account user={user as IUser} />
+            )}
+
+            {activeTab === "Settings" && hasPermission("manage_settings") && (
+              <Settings />
+            )}
+
+            {activeTab === "KYC" && hasPermission("submit_kyc") && (
+              <KYCForm kyc={user.kyc} />
+            )}
+
+            {activeTab === "Request Withdrawal" && hasPermission("request_withdrawal") && (
+              <WithdrawalForm />
+            )}
+            {activeTab === "Assign Roles" && hasPermission("assign_roles") && (
+              <AssignRoleToUser/>
+            )}
+            {activeTab === "Equity Packages" && hasPermission("create_package") && (
+              <AdminEquityPackages/>
+            )}
+            {activeTab === "KYC Requests" && hasPermission("view_kyc") && (
+              <AdminKYCRequests/>
+            )}
+            {activeTab === "Withdrawal Requests" && hasPermission("handle_withdrawals") && (
+              <AdminWithdrawalsTable/>
+            )}
+            {activeTab === "Role Management" && hasPermission("manage_roles") && (
+              <RoleManagement/>
+            )}
+            {activeTab === "Permission Management" && hasPermission("create_permission") && (
+              <PermissionManagement/>
+            )}
+            {activeTab === "Admin Profit" && hasPermission("profit_update") && (
+              <AdminProfitUpdate/>
+            )}
           </div>
-          <div className={activeTab === "Commission History" ? "" : "hidden"}>
-            <ReferralInfo referralLink={referralLink} referralCode={referralCode} />
-            <CommissionHistory />
-          </div>
-          <div className={activeTab === "Referrals" ? "" : "hidden"}>
-            <WithPermission
-    slug="view_commissions"
-    fallback={<p className="text-red-500">You don’t have access to this page.</p>}
-  >
-          <ReferralInfo referralLink={referralLink} referralCode={referralCode}/>
-            <HierarchyTree />
-            </WithPermission>
-          </div>
-          <div className={activeTab === "Active Packages" ? "" : "hidden"}>
-            <MyInvestments />
-          </div>
-          <div className={activeTab === "Equity Units Converter" ? "" : "hidden"}>
-            <BuyEquityUnitsForm />
-          </div>
-          <div className={activeTab === "Account" ? "" : "hidden"}>
-            <Account user={user as IUser} />
-          </div>
-          <div className={activeTab === "Settings" ? "" : "hidden"}>
-            <Settings />
-          </div>
-          <div className={activeTab === "KYC" ? "" : "hidden"}>
-          <KYCForm kyc={user.kyc} />
-          </div>
-          <div className={activeTab === "Request Withdrawal" ? "" : "hidden"}>
-          <WithdrawalForm/>
-          </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
     </WithPermission>
   )
-  
 }

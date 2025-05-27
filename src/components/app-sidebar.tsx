@@ -3,20 +3,14 @@
 import * as React from "react"
 import {
   ArrowUpCircleIcon,
-  BarChartIcon,
   CameraIcon,
   ClipboardListIcon,
   DatabaseIcon,
   FileCodeIcon,
   FileIcon,
   FileTextIcon,
-  FolderIcon,
   HelpCircleIcon,
-  LayoutDashboardIcon,
-  // ListIcon,
-  // SearchIcon,
   SettingsIcon,
-  UsersIcon,
 } from "lucide-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -32,36 +26,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-// import { useAuth } from '../../context/AuthContext';
 
 const data = {
-  // navMain: [
-  //   {
-  //     title: "Dashboard",
-  //     url: "#",
-  //     icon: LayoutDashboardIcon,
-  //   },
-  //   {
-  //     title: "Lifecycle",
-  //     url: "#",
-  //     icon: ListIcon,
-  //   },
-  //   {
-  //     title: "Analytics",
-  //     url: "#",
-  //     icon: BarChartIcon,
-  //   },
-  //   {
-  //     title: "Projects",
-  //     url: "#",
-  //     icon: FolderIcon,
-  //   },
-  //   {
-  //     title: "Team",
-  //     url: "#",
-  //     icon: UsersIcon,
-  //   },
-  // ],
   navClouds: [
     {
       title: "Capture",
@@ -69,14 +35,8 @@ const data = {
       isActive: true,
       url: "#",
       items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
+        { title: "Active Proposals", url: "#" },
+        { title: "Archived", url: "#" },
       ],
     },
     {
@@ -84,14 +44,8 @@ const data = {
       icon: FileTextIcon,
       url: "#",
       items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
+        { title: "Active Proposals", url: "#" },
+        { title: "Archived", url: "#" },
       ],
     },
     {
@@ -99,14 +53,8 @@ const data = {
       icon: FileCodeIcon,
       url: "#",
       items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
+        { title: "Active Proposals", url: "#" },
+        { title: "Archived", url: "#" },
       ],
     },
   ],
@@ -121,7 +69,6 @@ const data = {
       url: "#",
       icon: HelpCircleIcon,
     },
-    
   ],
   documents: [
     {
@@ -142,24 +89,13 @@ const data = {
   ],
 }
 
-// types.ts
-export interface User {
-  email: string;
-  balance: number;
-}
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onTabChange?: (tab: string) => void;
-  setActiveTab: (tab: string) => void
+  setActiveTab: (tab: string) => void;
+  tabs: { title: string; icon: React.ElementType }[];
 }
 
-export function AppSidebar({ onTabChange, setActiveTab, ...props }: AppSidebarProps) {
-  const tabs = [
-    { title: "Dashboard", icon: LayoutDashboardIcon },
-    { title: "Commission History", icon: BarChartIcon },
-    { title: "Referrals", icon: UsersIcon },
-    { title: "Active Packages", icon: FolderIcon },
-    { title: "Equity Units Converter", icon: FileCodeIcon },
-  ]
+export function AppSidebar({ onTabChange, setActiveTab, tabs, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -177,23 +113,26 @@ export function AppSidebar({ onTabChange, setActiveTab, ...props }: AppSidebarPr
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain />
-      <SidebarMenu>
+        <SidebarMenu>
           {tabs.map(({ title, icon: Icon }) => (
             <SidebarMenuItem key={title}>
-              <SidebarMenuButton onClick={() => onTabChange?.(title)} className="p-[15px]"> 
+              <SidebarMenuButton onClick={() => onTabChange?.(title)} className="p-[15px]">
                 <Icon className="h-4 w-4" />
                 {title}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
+
         <NavDocuments items={data.documents} setActiveTab={setActiveTab} />
-          <NavSecondary items={data.navSecondary} setActiveTab={setActiveTab} className="mt-auto" />
+        <NavSecondary items={data.navSecondary} setActiveTab={setActiveTab} className="mt-auto" />
       </SidebarContent>
+
       <SidebarFooter>
-      <NavUser setActiveTab={setActiveTab}/>
+        <NavUser setActiveTab={setActiveTab} />
       </SidebarFooter>
     </Sidebar>
   )

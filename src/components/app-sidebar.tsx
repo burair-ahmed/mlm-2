@@ -13,7 +13,7 @@ import {
   SettingsIcon,
 } from "lucide-react"
 
-import { NavDocuments } from "@/components/nav-documents"
+// import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -127,7 +127,7 @@ export function AppSidebar({ onTabChange, setActiveTab, tabs, ...props }: AppSid
           ))}
         </SidebarMenu>
 
-        <NavDocuments items={data.documents} setActiveTab={setActiveTab} />
+        {/* <NavDocuments items={data.documents} setActiveTab={setActiveTab} /> */}
         <NavSecondary items={data.navSecondary} setActiveTab={setActiveTab} className="mt-auto" />
       </SidebarContent>
 

@@ -66,8 +66,10 @@ export default function Page() {
     { title: "Dashboard", icon: LayoutDashboardIcon, permission: "access_admin_dashboard" },
     { title: "Commission History", icon: BarChartIcon, permission: "view_commissions" },
     { title: "Referrals", icon: UsersIcon, permission: "view_referrals" },
+    { title: "KYC", icon: FolderIcon, permission: "view_kyc" },
     { title: "Active Packages", icon: FolderIcon, permission: "view_investments" },
     { title: "Equity Units Converter", icon: FileCodeIcon, permission: "convert_units" },
+    // { title: "Referrals", icon: FileCodeIcon, permission: "view_referrals" },
     { title: "Assign Roles", icon: FileCodeIcon, permission: "assign_roles" },
     { title: "Equity Packages", icon: FileCodeIcon, permission: "create_package" },
     { title: "KYC Requests", icon: FileCodeIcon, permission: "approve_kyc" },
@@ -126,7 +128,7 @@ export default function Page() {
               <Settings />
             )}
 
-            {activeTab === "KYC" && hasPermission("submit_kyc") && (
+            {activeTab === "KYC" && hasPermission("view_kyc") && (
               <KYCForm kyc={user.kyc} />
             )}
 
@@ -139,7 +141,7 @@ export default function Page() {
             {activeTab === "Equity Packages" && hasPermission("create_package") && (
               <AdminEquityPackages/>
             )}
-            {activeTab === "KYC Requests" && hasPermission("view_kyc") && (
+            {activeTab === "KYC Requests" && hasPermission("approve_kyc") && (
               <AdminKYCRequests/>
             )}
             {activeTab === "Withdrawal Requests" && hasPermission("handle_withdrawals") && (

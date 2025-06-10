@@ -35,6 +35,7 @@ import AdminWithdrawalsTable from "../components/admin/AdminWithdrawalsTable"
 import RoleManagement from "../components/admin/roles/RoleManagement"
 import PermissionManagement from "../components/admin/roles/PermissionManagement"
 import AdminProfitUpdate from "../components/admin/AdminProfitUpdate"
+import RequestDeposit from "../components/requestDeposit/component"
 
 export default function Page() {
   const { user, loading } = useAuth()
@@ -156,6 +157,14 @@ export default function Page() {
             {activeTab === "Admin Profit" && hasPermission("profit_update") && (
               <AdminProfitUpdate/>
             )}
+            {activeTab === "Deposit" && (
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold">Deposit</h2>
+    {/* Replace this with your actual deposit component */}
+    <RequestDeposit/>
+  </div>
+)}
+
           </div>
         </SidebarInset>
       </SidebarProvider>

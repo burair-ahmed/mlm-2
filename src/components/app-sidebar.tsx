@@ -26,6 +26,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 const data = {
   navClouds: [
@@ -105,17 +106,18 @@ export function AppSidebar({ onTabChange, setActiveTab, tabs, ...props }: AppSid
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link href="/">
                 <ArrowUpCircleIcon className="h-5 w-5" />
                 <span className="text-base font-semibold">Al Ashraf Holdings</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain />
+       <NavMain setActiveTab={setActiveTab} />
+
         <SidebarMenu>
           {tabs.map(({ title, icon: Icon }) => (
             <SidebarMenuItem key={title}>

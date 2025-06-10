@@ -42,7 +42,7 @@ export default function RegisterPage() {
       }
 
       await login(email, password);
-      router.push('/');
+      router.push('/user');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {

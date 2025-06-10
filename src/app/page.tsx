@@ -17,6 +17,7 @@ import IndustryPackage from './components/packages/IndustryPackage';
 import RentalPackage from './components/packages/RentalPackage';
 import TradingPackage from './components/packages/TradingPackage';
 import MyInvestments from './components/packages/PurchasedPackages';
+import LandingPage from './home/page';
 
 export default function Home() {
   const { user, logout, loading } = useAuth();
@@ -31,9 +32,9 @@ export default function Home() {
   if (loading) return <div className="flex justify-center items-center h-screen text-lg">Loading...</div>;
 
   return (
-    <div className="p-4 mx-auto">
+    <div className="p-0 mx-auto">
       {/* Navbar */}
-      <div className="flex justify-between items-center mb-8">
+      {/* <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Equity Platform</h1>
         <nav>
           {user ? (
@@ -60,26 +61,10 @@ export default function Home() {
             </div>
           )}
         </nav>
-      </div>
+      </div> */}
 
       {user && (
-        <div className="bg-white p-6 rounded-lg shadow space-y-4">
-          <AccountOverview user={user} />
-          <ReferralInfo referralLink={referralLink} referralCode={user.referralCode} />
-          <div className="pt-4">
-            <h3 className="text-lg font-semibold mb-4">Referral Hierarchy</h3>
-            <HierarchyTree />
-          </div>
-          <DepositForm />
-          <BuyEquityUnitsForm />
-          <EquitySummary user={user} />
-          <MyInvestments/>
-          <IndustryPackage/>
-          <RentalPackage/>
-          <TradingPackage/>
-          <TransactionHistory />
-          <CommissionHistory />
-        </div>
+     <LandingPage/>
       )}
     </div>
   );

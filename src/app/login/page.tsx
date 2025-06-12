@@ -13,7 +13,6 @@ export default function LoginPage() {
   const { user, login } = useAuth();
   const router = useRouter();
 
-  // Move navigation to useEffect
   useEffect(() => {
     if (user) {
       router.push('/user');
@@ -21,7 +20,7 @@ export default function LoginPage() {
   }, [user, router]);
 
   if (user) {
-    return null; // Temporary return while redirecting
+    return null;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +30,6 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_err) {
       setError('Invalid email or password');
     } finally {
@@ -40,17 +38,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-[#a69080]">
+      <div className="max-w-md w-full space-y-8 p-8 bg-[#3e362e] rounded-2xl shadow-2xl">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Sign in to your account
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
+          <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-[#ac8968]">
                 Email address
               </label>
               <input
@@ -61,11 +59,11 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full px-4 py-2 border border-[#865d36] rounded-md bg-[#a69080] text-[#3e362e] placeholder-[#93785b] focus:outline-none focus:ring-2 focus:ring-[#ac8968] focus:border-[#ac8968] sm:text-sm"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-[#ac8968]">
                 Password
               </label>
               <input
@@ -76,13 +74,13 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full px-4 py-2 border border-[#865d36] rounded-md bg-[#a69080] text-[#3e362e] placeholder-[#93785b] focus:outline-none focus:ring-2 focus:ring-[#ac8968] focus:border-[#ac8968] sm:text-sm"
               />
             </div>
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm text-center">
+            <div className="text-[#ac8968] text-sm text-center">
               {error}
             </div>
           )}
@@ -91,18 +89,18 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#865d36] hover:bg-[#ac8968] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ac8968] disabled:opacity-50 transition-all duration-300"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
         </form>
 
-        <div className="text-center text-sm">
-        <span className="text-gray-600">Don&apos;t have an account? </span>
+        <div className="text-center text-sm mt-4">
+          <span className="text-[#a69080]">Don&apos;t have an account? </span>
           <Link 
-            href="/register" 
-            className="font-medium text-blue-600 hover:text-blue-500"
+            href="/register"
+            className="font-medium text-[#ac8968] hover:text-white transition-colors duration-200"
           >
             Register here
           </Link>

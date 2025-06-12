@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import Tilt from "react-parallax-tilt";
+import Image from "next/image";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +14,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
-import { toast } from "sonner";
 
 interface Package {
   _id: string;
@@ -36,213 +37,197 @@ const IndustryPackage = () => {
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [kycStatus, setKycStatus] = useState<string>("");
+
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-    useEffect(() => {
-      // Always fetch packages
-      fetch("/api/admin/long-term-industry")
-        .then((res) => res.json())
-        .then((data) => setPackages(data))
-        .catch((error) => console.error("Error fetching packages:", error))
-        .finally(() => setIsFetching(false));
-    
-      // Only fetch KYC if logged in
-      if (token) {
-        const fetchKycStatus = async () => {
-          try {
-            const response = await fetch("/api/users/kyc/kyc-status", {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            const data = await response.json();
-            if (response.ok) {
-              setKycStatus(data.kycStatus);
-            } else {
-              console.error("Error fetching KYC status:", data.error);
-            }
-          } catch (error) {
-            console.error("Error fetching KYC status:", error);
+  useEffect(() => {
+    fetch("/api/admin/long-term-industry")
+      .then((res) => res.json())
+      .then((data) => setPackages(data))
+      .catch((error) => console.error("Error fetching packages:", error))
+      .finally(() => setIsFetching(false));
+
+    if (token) {
+      const fetchKycStatus = async () => {
+        try {
+          const response = await fetch("/api/users/kyc/kyc-status", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setKycStatus(data.kycStatus);
+          } else {
+            console.error("Error fetching KYC status:", data.error);
           }
-        };
-    
-        fetchKycStatus();
-      }
-    }, [token]);
-    
-    
-    const handlePurchase = async () => {
-      if (!token) {
-        toast.warning("Please log in to make a purchase.");
-        return;
-      }
-    
-      if (!selectedPackage) return;
-    
-      if (kycStatus !== "approved") {
-        toast.warning("Your KYC is not approved. Please complete your KYC to make a purchase.");
-        return;
-      }
-    
-      setLoading(true);
-    
-      try {
-        const response = await fetch("/api/transactions/purchase", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            packageId: selectedPackage._id,
-            quantity,
-            packageType: "long-term-industry",
-          }),
-        });
-    
-        const data = await response.json();
-        if (!response.ok) {
-          toast.error(data.error || "Purchase failed");
-        } else {
-          toast.success("Purchase successful!");
-          setPackages((prev) =>
-            prev.map((pkg) =>
-              pkg._id === selectedPackage._id
-                ? { ...pkg, availableUnits: pkg.availableUnits - quantity }
-                : pkg
-            )
-          );
-          setSelectedPackage(null);
-          setQuantity(1);
+        } catch (error) {
+          console.error("Error fetching KYC status:", error);
         }
-      } catch (error) {
-        console.error("Purchase error:", error);
-        toast.error("Error purchasing package");
-      } finally {
-        setLoading(false);
+      };
+
+      fetchKycStatus();
+    }
+  }, [token]);
+
+  const handlePurchase = async () => {
+    if (!token) {
+      toast.warning("Please log in to make a purchase.");
+      return;
+    }
+
+    if (!selectedPackage) return;
+
+    if (kycStatus !== "approved") {
+      toast.warning("Your KYC is not approved. Please complete your KYC to make a purchase.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/transactions/purchase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          packageId: selectedPackage._id,
+          quantity,
+          packageType: "long-term-industry",
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.error || "Purchase failed");
+      } else {
+        toast.success("Purchase successful!");
+        setPackages((prev) =>
+          prev.map((pkg) =>
+            pkg._id === selectedPackage._id
+              ? { ...pkg, availableUnits: pkg.availableUnits - quantity }
+              : pkg
+          )
+        );
+        setSelectedPackage(null);
+        setQuantity(1);
       }
-    };
-    
+    } catch (error) {
+      console.error("Purchase error:", error);
+      toast.error("Error purchasing package");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 sm:p-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 p-6 bg-[#f4f1eb]">
       {isFetching
         ? [...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-60 rounded-lg" />
+            <Skeleton key={i} className="w-full h-60 rounded-xl" />
           ))
-        : packages.map((pkg) => (
-            <Card
+        : packages.map((pkg, i) => (
+            <motion.div
               key={pkg._id}
-              className="transition rounded-md overflow-hidden flex flex-col"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
             >
-              <CardHeader className="p-0">
-                <div className="relative w-full h-48 overflow-hidden">
-                  <Image
-                    src={pkg.image}
-                    fill
-                    alt={pkg.name}
-                    className="cursor-pointer object-cover transition-transform duration-300 hover:scale-105"
-                    onClick={() => setSelectedPackage(pkg)}
-                  />
-                </div>
-                <div className="px-4 py-2">
-                  <CardTitle
-                    className="text-lg font-bold cursor-pointer hover:text-[#00ab82] transition-all duration-300"
-                    onClick={() => setSelectedPackage(pkg)}
-                  >
-                    {pkg.name}
-                  </CardTitle>
-                </div>
-              </CardHeader>
-
-              <CardContent className="flex-1 flex flex-col justify-between p-4">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-gray-600 text-sm">Equity Units</div>
-                      <div className="font-bold text-black text-[16px]">
-                        {pkg.equityUnits}{" "}
-                        <span className="text-xs">Per unit</span>
-                      </div>
-                    </div>
+              <Tilt glareEnable glareMaxOpacity={0.3} scale={1.02}>
+                <div
+                  className="bg-white/20 backdrop-blur-lg border border-[#ac896840] shadow-2xl rounded-2xl overflow-hidden transition duration-300 hover:scale-[1.02] hover:shadow-[#ac896890]"
+                  onClick={() => setSelectedPackage(pkg)}
+                >
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={pkg.image}
+                      fill
+                      alt={pkg.name}
+                      className="object-cover transition-transform duration-300 hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-4 space-y-2 text-[#3e362e]">
+                    <h3 className="text-xl font-bold">{pkg.name}</h3>
+                    <p className="text-sm text-[#a69080]">
+                      {pkg.category} · {pkg.availableUnits} units left
+                    </p>
+                    <p className="text-md font-medium">
+                      Equity: {pkg.equityUnits} | Return:{" "}
+                      <span className="text-[#865d36] font-semibold">
+                        {pkg.estimatedReturn}%
+                      </span>
+                    </p>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      className="w-full mt-2 bg-gradient-to-r from-[#865d36] to-[#ac8968] text-white hover:from-[#3e362e] hover:to-[#865d36] rounded-full shadow"
                       onClick={() => setSelectedPackage(pkg)}
                     >
                       Invest Now
                     </Button>
                   </div>
-
-                  <hr />
-
-                  <div className="flex justify-between items-center text-sm">
-                    <p className="font-bold text-[#ff3342]">
-                      {pkg.availableUnits} Units Available
-                    </p>
-                    <p className="font-semibold">
-                      Min Holding: {pkg.minHoldingPeriod}{" "}
-                      {pkg.minHoldingPeriodUnit}
-                    </p>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </Tilt>
+            </motion.div>
           ))}
 
-      {/* Dialog for Package Details */}
       {selectedPackage && (
-        <Dialog
-          open={!!selectedPackage}
-          onOpenChange={() => setSelectedPackage(null)}
-        >
-          <DialogContent className="max-w-sm mx-auto">
+        <Dialog open onOpenChange={() => setSelectedPackage(null)}>
+          <DialogContent className="bg-white/90 backdrop-blur-md text-[#3e362e] rounded-xl max-w-md shadow-xl border border-[#ac896840]">
             <DialogHeader>
-              <DialogTitle className="text-center">
+              <DialogTitle className="text-2xl text-[#865d36] font-bold">
                 {selectedPackage.name}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="w-full h-48 relative overflow-hidden rounded-md">
-                <Image
-                  src={selectedPackage.image}
-                  fill
-                  alt={selectedPackage.name}
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="text-sm space-y-1">
-                <p><strong>Category:</strong> {selectedPackage.category}</p>
-                <p><strong>Equity Units:</strong> {selectedPackage.equityUnits}</p>
-                <p><strong>Estimated Return:</strong> {selectedPackage.estimatedReturn}%</p>
-                <p><strong>Available Units:</strong> {selectedPackage.availableUnits}</p>
-                <p><strong>Min Holding:</strong> {selectedPackage.minHoldingPeriod} {selectedPackage.minHoldingPeriodUnit}</p>
-                <p><strong>Buyback:</strong> {selectedPackage.buybackOption ? "Yes" : "No"}</p>
-                <p><strong>Resale Allowed:</strong> {selectedPackage.resaleAllowed ? "Yes" : "No"}</p>
-              </div>
-
+            <div className="space-y-3">
+              <Image
+                src={selectedPackage.image}
+                alt="image"
+                width={600}
+                height={300}
+                className="rounded-md w-full h-48 object-cover"
+              />
+              <p>
+                <strong>Category:</strong> {selectedPackage.category}
+              </p>
+              <p>
+                <strong>Return:</strong> {selectedPackage.estimatedReturn}%
+              </p>
+              <p>
+                <strong>Equity:</strong> {selectedPackage.equityUnits}
+              </p>
+              <p>
+                <strong>Holding:</strong> {selectedPackage.minHoldingPeriod}{" "}
+                {selectedPackage.minHoldingPeriodUnit}
+              </p>
+              <p>
+                <strong>Available Units:</strong>{" "}
+                {selectedPackage.availableUnits}
+              </p>
+              <p>
+                <strong>Buyback:</strong>{" "}
+                {selectedPackage.buybackOption ? "Yes" : "No"}
+              </p>
               <Input
                 type="number"
                 value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                onChange={(e) => setQuantity(Number(e.target.value))}
                 min={1}
                 max={selectedPackage.availableUnits}
-                className="my-2"
               />
             </div>
-            <DialogFooter className="flex justify-between">
+            <DialogFooter className="mt-4">
               <Button
                 variant="outline"
                 onClick={() => setSelectedPackage(null)}
-                className="w-1/2"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handlePurchase}
                 disabled={loading}
-                className="w-1/2"
+                className="bg-gradient-to-r from-[#865d36] to-[#3e362e] text-white hover:scale-105"
               >
                 {loading ? "Processing..." : "Buy Now"}
               </Button>

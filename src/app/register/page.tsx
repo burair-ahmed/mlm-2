@@ -51,18 +51,17 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-[#a69080]">
+      <div className="max-w-md w-full space-y-8 p-8 bg-[#3e362e] rounded-2xl shadow-2xl">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Create new account
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-
+          <div className="space-y-4">
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="fullName" className="block text-sm font-medium text-[#ac8968]">
                 Full Name
               </label>
               <input
@@ -72,12 +71,12 @@ export default function RegisterPage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
+                className="mt-1 block w-full px-4 py-2 border border-[#865d36] rounded-md bg-[#a69080] text-[#3e362e] placeholder-[#93785b] focus:outline-none focus:ring-2 focus:ring-[#ac8968] focus:border-[#ac8968] sm:text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="username" className="block text-sm font-medium text-[#ac8968]">
                 Username
               </label>
               <input
@@ -87,12 +86,12 @@ export default function RegisterPage() {
                 required
                 value={userName}
                 onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
+                className="mt-1 block w-full px-4 py-2 border border-[#865d36] rounded-md bg-[#a69080] text-[#3e362e] placeholder-[#93785b] focus:outline-none focus:ring-2 focus:ring-[#ac8968] focus:border-[#ac8968] sm:text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-[#ac8968]">
                 Email address
               </label>
               <input
@@ -103,12 +102,12 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
+                className="mt-1 block w-full px-4 py-2 border border-[#865d36] rounded-md bg-[#a69080] text-[#3e362e] placeholder-[#93785b] focus:outline-none focus:ring-2 focus:ring-[#ac8968] focus:border-[#ac8968] sm:text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-[#ac8968]">
                 Password
               </label>
               <input
@@ -119,12 +118,12 @@ export default function RegisterPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
+                className="mt-1 block w-full px-4 py-2 border border-[#865d36] rounded-md bg-[#a69080] text-[#3e362e] placeholder-[#93785b] focus:outline-none focus:ring-2 focus:ring-[#ac8968] focus:border-[#ac8968] sm:text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="referralCode" className="block text-sm font-medium text-[#ac8968]">
                 Referral Code (optional)
               </label>
               <input
@@ -133,29 +132,32 @@ export default function RegisterPage() {
                 type="text"
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
+                className="mt-1 block w-full px-4 py-2 border border-[#865d36] rounded-md bg-[#a69080] text-[#3e362e] placeholder-[#93785b] focus:outline-none focus:ring-2 focus:ring-[#ac8968] focus:border-[#ac8968] sm:text-sm"
                 maxLength={8}
                 pattern="[A-Z0-9]{8}"
               />
             </div>
           </div>
 
-          {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+          {error && <div className="text-[#ac8968] text-sm text-center">{error}</div>}
 
           <div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 px-4 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+              className="w-full py-2 px-4 rounded-md text-sm font-medium text-white bg-[#865d36] hover:bg-[#ac8968] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ac8968] disabled:opacity-50 transition-all duration-300"
             >
               {loading ? 'Registering...' : 'Create Account'}
             </button>
           </div>
         </form>
 
-        <div className="text-center text-sm">
-          <span className="text-gray-600">Already have an account? </span>
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+        <div className="text-center text-sm mt-4">
+          <span className="text-[#a69080]">Already have an account? </span>
+          <Link 
+            href="/login"
+            className="font-medium text-[#ac8968] hover:text-white transition-colors duration-200"
+          >
             Login here
           </Link>
         </div>

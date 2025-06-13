@@ -1,20 +1,20 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { motion} from 'framer-motion';
+// import { useRef } from 'react';
 import { Target, Users, LineChart, Building2 } from 'lucide-react';
 import Footer from '../components/footer/component';
 import Header from '../components/header/component';
 
 export default function AboutPage() {
-  const stickyRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: stickyRef,
-    offset: ['start end', 'end start'],
-  });
+  // const stickyRef = useRef(null);
+  // const { scrollYProgress } = useScroll({
+  //   target: stickyRef,
+  //   offset: ['start end', 'end start'],
+  // });
 
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
-  const opacity = useTransform(scrollYProgress, [0, 1], [0.5, 1]);
+  // const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+  // const opacity = useTransform(scrollYProgress, [0, 1], [0.5, 1]);
 
   return (
     <>
@@ -186,7 +186,7 @@ export default function AboutPage() {
           { title: 'First 100 Clients', delay: 0.1 },
           { title: 'New Projects', delay: 0.2 },
           { title: 'Future Goals', delay: 0.3 },
-        ].map(({ title, delay }, index) => (
+        ].map(({ title, delay }) => (
           <motion.div
             key={title}
             initial={{ opacity: 0, y: 40 }}

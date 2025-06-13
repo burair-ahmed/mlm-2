@@ -36,6 +36,7 @@ import RoleManagement from "../components/admin/roles/RoleManagement"
 import PermissionManagement from "../components/admin/roles/PermissionManagement"
 import AdminProfitUpdate from "../components/admin/AdminProfitUpdate"
 import RequestDeposit from "../components/requestDeposit/component"
+import GetHelp from "../components/user/GetHelp"
 
 export default function Page() {
   const { user, loading } = useAuth()
@@ -127,6 +128,9 @@ export default function Page() {
 
             {activeTab === "Settings" && hasPermission("manage_settings") && (
               <Settings />
+            )}
+            {activeTab === "Get Help" && hasPermission("manage_settings") && (
+              <GetHelp/>
             )}
 
             {activeTab === "KYC" && hasPermission("view_kyc") && (

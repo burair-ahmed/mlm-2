@@ -30,6 +30,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_err) {
       setError('Invalid email or password');
     } finally {

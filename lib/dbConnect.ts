@@ -6,19 +6,16 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-// Define a type-safe cache interface
 interface MongooseGlobal {
   conn: Mongoose | null;
   promise: Promise<Mongoose> | null;
 }
 
-// Extend the global object with typed mongoose cache
 declare global {
   // eslint-disable-next-line no-var
   var mongooseCache: MongooseGlobal | undefined;
 }
 
-// Initialize cache if it doesn't exist
 const globalWithMongoose = global as typeof globalThis & {
   mongooseCache: MongooseGlobal;
 };
@@ -33,7 +30,13 @@ async function dbConnect(): Promise<Mongoose> {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI!).then((mongoose) => mongoose);
+    cached.promise = mongoose.connect(MONGODB_URI!).then(async (mongooseInstance) => {
+      // ✅ Dynamic import to avoid `require()` error
+      await import('../models/Permission');
+      await import('../models/Role');
+      await import('../models/User');
+      return mongooseInstance;
+    });
   }
 
   cached.conn = await cached.promise;

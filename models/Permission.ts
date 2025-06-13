@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import dbConnect from '../lib/dbConnect';
+// import dbConnect from '../lib/dbConnect';
 
-await dbConnect();
+// await dbConnect();
 
 export interface IPermission extends Document {
 

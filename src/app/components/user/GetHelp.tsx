@@ -51,7 +51,7 @@ export default function GetHelp() {
           <AccordionItem value="q3">
             <AccordionTrigger>What should I do if my withdrawal is delayed?</AccordionTrigger>
             <AccordionContent>
-              If your withdrawal hasn't been processed in the expected timeframe, please contact us via WhatsApp or email with your transaction ID.
+              If your withdrawal hasn&apos;t been processed in the expected timeframe, please contact us via WhatsApp or email with your transaction ID.
             </AccordionContent>
           </AccordionItem>
         </Accordion>

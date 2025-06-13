@@ -2,26 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import Link from "next/link";
-import HierarchyTree from "./components/HierarchyTree";
-import TransactionHistory from "./components/TransactionHistory";
-import CommissionHistory from "./components/CommissionHistory";
-import DepositForm from "./components/DepositForm";
-import BuyEquityUnitsForm from "./components/BuyEquityUnitsForm";
-import AccountOverview from "./components/AccountOverview";
-import ReferralInfo from "./components/ReferralInfo";
-import EquitySummary from "./components/EquitySummary";
+// import Link from "next/link";
+// import HierarchyTree from "./components/HierarchyTree";
+// import TransactionHistory from "./components/TransactionHistory";
+// import CommissionHistory from "./components/CommissionHistory";
+// import DepositForm from "./components/DepositForm";
+// import BuyEquityUnitsForm from "./components/BuyEquityUnitsForm";
+// import AccountOverview from "./components/AccountOverview";
+// import ReferralInfo from "./components/ReferralInfo";
+// import EquitySummary from "./components/EquitySummary";
 
 // import UserInvestments from './components/UserInvestments';
-import IndustryPackage from './components/packages/IndustryPackage';
-import RentalPackage from './components/packages/RentalPackage';
-import TradingPackage from './components/packages/TradingPackage';
-import MyInvestments from './components/packages/PurchasedPackages';
+// import IndustryPackage from './components/packages/IndustryPackage';
+// import RentalPackage from './components/packages/RentalPackage';
+// import TradingPackage from './components/packages/TradingPackage';
+// import MyInvestments from './components/packages/PurchasedPackages';
 import LandingPage from './home/page';
 
 export default function Home() {
-  const { user, logout, loading } = useAuth();
-  const [referralLink, setReferralLink] = useState('');
+  const { user, loading } = useAuth();
+  const [, setReferralLink] = useState('');
 
   useEffect(() => {
     if (user) {

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '../../../../../lib/dbConnect';
 import User from '../../../../../models/User';
 import Role from '../../../../../models/Role';
+// import Permission from '../../../../../models/Permission';
 import { generateReferralCode } from '../../../../../utils/referral';
 
 export async function POST(request: NextRequest) {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     const { email, password, userName, fullName, referralCode } = await request.json();
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email, userName });
     if (existingUser) {
       return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
     }

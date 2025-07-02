@@ -108,7 +108,7 @@ export function AppSidebar({ onTabChange, setActiveTab, tabs, ...props }: AppSid
             >
               <Link href="/">
                 <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Al Ashraf Holdings</span>
+                <span className="text-base font-semibold">Back to Home</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

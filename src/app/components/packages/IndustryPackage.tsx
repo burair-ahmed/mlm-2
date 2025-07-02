@@ -124,7 +124,7 @@ const IndustryPackage = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 p-6 bg-[#f4f1eb]">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 p-6 bg-[#93785b]">
       {isFetching
         ? [...Array(6)].map((_, i) => (
             <Skeleton key={i} className="w-full h-60 rounded-xl" />

@@ -3,7 +3,7 @@ import Header from "../components/header/component";
 import IndustryPackage from "../components/packages/IndustryPackage";
 import RentalPackage from "../components/packages/RentalPackage";
 import TradingPackage from "../components/packages/TradingPackage";
-import { motion} from 'framer-motion';
+// import { motion} from 'framer-motion';
 
 export default function OurPackages() {
     return (

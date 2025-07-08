@@ -8,8 +8,8 @@ import Link from 'next/link';
 const navLinks = [
   { name: 'Home', href: '/' },
   { name: 'About', href: '/about' },
-  { name: 'Packages', href: '/packages' },
-  { name: 'Referrals', href: '/referrals' },
+  { name: 'Packages', href: '/our-packages' },
+  // { name: 'Referrals', href: '/referrals' },
   { name: 'Contact', href: '/contact-us' },
 ];
 
@@ -80,6 +80,7 @@ const Header = () => {
           transition={{ duration: 0.3 }}
           className="md:hidden bg-[#3e362e] px-6 py-4 text-[#a69080]"
         >
+          
           <nav className="flex flex-col gap-3">
             {navLinks.map((link) => (
               <Link

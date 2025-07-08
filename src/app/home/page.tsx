@@ -108,7 +108,9 @@ export default function LandingPage() {
                   size="lg"
                   className="flex-1 bg-[#865d36] hover:bg-[#93785b] text-lg py-6"
                 >
+                  <Link href="/our-packages">
                   Browse Packages
+                  </Link>
                 </Button>
                 <Button
                   variant="outline"
@@ -183,8 +185,9 @@ export default function LandingPage() {
               </ul>
 
               <Button className="bg-[#865d36] hover:bg-[#93785b]">
+                <Link href="/our-packages">
                 Explore Investment Options
-              </Button>
+              </Link></Button>
             </motion.div>
           </div>
         </section>
@@ -241,19 +244,19 @@ export default function LandingPage() {
               {
                 title: "Trading Packages",
                 description: "Poultry, dairy, fruits & vegetables, and more.",
-                url: "/trading-packages",
+                url: "/our-packages",
               },
               {
                 title: "Long‑Term Rental",
                 description:
                   "Fixed monthly returns from industrial sheds & yards.",
-                url: "/trading-packages",
+                url: "/our-packages",
               },
               {
                 title: "Long‑Term Industry",
                 description:
                   "Invest in processing plants and properties for higher growth.",
-                url: "/trading-packages",
+                url: "/our-packages",
               },
             ].map((pkg) => (
               <Card

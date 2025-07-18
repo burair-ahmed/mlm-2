@@ -14,9 +14,9 @@ export default function Settings() {
       <Tabs defaultValue="account" className="w-full">
         <TabsList className="grid grid-cols-4 w-full mb-6">
           <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
+          {/* <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="investments">Investments</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger> */}
         </TabsList>
 
         {/* Account Settings */}
@@ -33,7 +33,7 @@ export default function Settings() {
         </TabsContent>
 
         {/* Profile Settings */}
-        <TabsContent value="profile">
+        {/* <TabsContent value="profile">
           <Card>
             <CardContent className="space-y-4 p-4">
               <div className="flex items-center justify-between">
@@ -51,10 +51,10 @@ export default function Settings() {
               <Input placeholder="Preferred Language (dummy)" />
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         {/* Investment Preferences */}
-        <TabsContent value="investments">
+        {/* <TabsContent value="investments">
           <Card>
             <CardContent className="space-y-4 p-4">
               <div className="flex items-center justify-between">
@@ -65,10 +65,10 @@ export default function Settings() {
               <Input placeholder="Profit Withdrawal Method (dummy)" />
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         {/* Security Settings */}
-        <TabsContent value="security">
+        {/* <TabsContent value="security">
           <Card>
             <CardContent className="space-y-4 p-4">
               <Button>View Login Activity (dummy)</Button>
@@ -81,7 +81,7 @@ export default function Settings() {
               <Button variant="outline">Upload KYC Documents (dummy)</Button>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

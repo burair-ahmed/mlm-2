@@ -16,6 +16,44 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
+    if (!process.env.MONGODB_URI) {
+      const mockInvestments = [
+        {
+          _id: "mock-purchased-1",
+          type: "trading",
+          name: "Poultry Standard Yield",
+          category: "poultry",
+          quantity: 2,
+          equityUnits: 10,
+          minHoldingPeriod: 5,
+          minHoldingPeriodUnit: "minutes",
+          purchaseDate: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+          profitAmount: 1.5,
+        },
+        {
+          _id: "mock-purchased-2",
+          type: "long-term-rental",
+          name: "Warehouse Rental A",
+          category: "industrial-materials",
+          quantity: 1,
+          equityUnits: 100,
+          minHoldingPeriod: 3,
+          minHoldingPeriodUnit: "months",
+          purchaseDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          profitAmount: 15,
+          returnPercentage: 12,
+          resaleAllowed: true,
+        }
+      ];
+      return NextResponse.json({
+        success: true,
+        data: mockInvestments,
+        user: {
+          withdrawnProfit: 0,
+        }
+      });
+    }
+
     // ✅ Fetch user details including withdrawnProfit
     const userDetails = await User.findById(user._id).lean();
 

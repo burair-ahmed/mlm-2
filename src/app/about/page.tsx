@@ -1,225 +1,207 @@
-'use client';
+"use client";
 
-import { motion} from 'framer-motion';
-// import { useRef } from 'react';
-import { Target, Users, LineChart, Building2 } from 'lucide-react';
-import Footer from '../components/footer/component';
-import Header from '../components/header/component';
+import { motion } from "framer-motion";
+import { Target, Users, LineChart, CheckCircle, Sparkles } from "lucide-react";
+import Footer from "../components/footer/component";
+import Header from "../components/header/component";
 
 export default function AboutPage() {
-  // const stickyRef = useRef(null);
-  // const { scrollYProgress } = useScroll({
-  //   target: stickyRef,
-  //   offset: ['start end', 'end start'],
-  // });
-
-  // const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
-  // const opacity = useTransform(scrollYProgress, [0, 1], [0.5, 1]);
-
   return (
     <>
       <Header />
-      <div className="bg-[#f9f5f0] text-[#3e362e]">
+      <div className="bg-slate-950 text-slate-100 min-h-screen pt-16 relative overflow-hidden">
+        {/* Ambient background glows */}
+        <div className="absolute top-40 left-10 w-96 h-96 rounded-full bg-glow-emerald pointer-events-none opacity-30" />
+        <div className="absolute bottom-40 right-10 w-96 h-96 rounded-full bg-glow-gold pointer-events-none opacity-20" />
+
         {/* Hero Section */}
-        <section className="min-h-screen flex flex-col justify-center items-center px-6 bg-[#3e362e] text-white text-center py-20">
-          <motion.h1
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-5xl md:text-6xl font-bold"
-          >
-            About Al Ashraf Holdings
-          </motion.h1>
-          <p className="mt-6 text-lg max-w-2xl text-[#ac8968]">
-            Building your future with ethical, transparent, and profitable investments.
-          </p>
+        <section className="relative min-h-[50vh] flex flex-col justify-center items-center px-6 text-center py-24">
+          <div className="absolute inset-0 bg-[url('/hero-bg.jpg')] bg-cover bg-center opacity-10" />
+          <div className="relative z-10 max-w-4xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-accent text-glow-gold">
+              <Sparkles className="h-3.5 w-3.5" /> About Our Venture
+            </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight"
+            >
+              Who We Are
+            </motion.h1>
+            <p className="max-w-2xl mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed">
+              Al Ashraf Holdings is established to construct ethical, transparent, and sharia-compliant investment models that connect global investors directly to physical, high-yield assets.
+            </p>
+          </div>
         </section>
 
-        {/* Mission and Vision Combined Section */}
-        <section className="py-20 px-6 bg-[#ac8968] text-white text-center">
-          <div className="max-w-4xl mx-auto grid grid-cols-1 gap-12">
+        {/* Mission and Vision Section */}
+        <section className="py-20 px-6 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="bg-[#3e362e] text-white rounded-2xl p-8 shadow-2xl"
+              className="rounded-3xl border border-white/5 bg-slate-900/30 backdrop-blur-xl p-8 md:p-10 space-y-4 hover:border-primary/20 transition-all duration-300 shadow-2xl relative"
             >
-              <Target className="w-10 h-10 mx-auto text-[#ac8968] mb-4" />
-              <h2 className="text-3xl font-bold mb-2">Our Mission</h2>
-              <p>
-                We’re committed to ethical investment avenues that deliver real value to individuals, communities, and the world.
+              <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-glow-emerald">
+                <Target className="w-6 h-6" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Our Mission</h2>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                We are committed to building sharia-compliant investment avenues that deliver actual physical asset ownership, verifiable operational yields, and long-term values to our global partners.
               </p>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
-              className="bg-[#3e362e] text-white rounded-2xl p-8 shadow-2xl"
+              className="rounded-3xl border border-white/5 bg-slate-900/30 backdrop-blur-xl p-8 md:p-10 space-y-4 hover:border-primary/20 transition-all duration-300 shadow-2xl relative"
             >
-              <LineChart className="w-10 h-10 mx-auto text-[#ac8968] mb-4" />
-              <h2 className="text-3xl font-bold mb-2">Our Vision</h2>
-              <p>
-                To be a leading name in halal investment innovation, growing wealth and empowering communities globally.
+              <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-glow-emerald">
+                <LineChart className="w-6 h-6" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Our Vision</h2>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                To be the leading global platform for ethical asset investments, democratizing access to safe yields and real estate ownership through modern technological transparency.
               </p>
             </motion.div>
           </div>
         </section>
 
         {/* Trusted by Thousands */}
-        <section className="py-20 px-6 bg-[#3e362e] text-white">
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <Users className="w-10 h-10 text-[#ac8968] mb-4" />
+        <section className="py-20 bg-slate-900/20 border-y border-white/5">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary text-glow-emerald">
+                <Users className="w-4 h-4" /> Global Trust
+              </div>
               <motion.h2
-                initial={{ opacity: 0, x: -40 }}
+                initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.7 }}
+                transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
-                className="text-3xl font-bold mb-4"
+                className="text-3xl sm:text-4xl font-bold text-foreground"
               >
-                Trusted by Thousands
+                Trusted by Thousands of Global Partners
               </motion.h2>
-              <p>
-                Thousands rely on Al Ashraf Holdings for transparent investment and long-term financial growth rooted in values.
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                Thousands of partners rely on Al Ashraf Holdings to manage their investments. Our dedication to complete auditing, regular reports, and real-asset security ensures your portfolio is in safe hands.
               </p>
             </div>
-            <motion.img
-              src="/team-discussion.webp"
-              alt="Team"
-              className="rounded-xl shadow-lg"
-              initial={{ opacity: 0, x: 50 }}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-            />
-          </div>
-        </section>
-
-        {/* Investment Solutions */}
-        <section className="py-20 px-6 bg-[#ac8968] text-white">
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-            <motion.img
-              src="/investment-planning.jpg"
-              alt="Investment"
-              className="rounded-xl shadow-lg"
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7 }}
-              viewport={{ once: true }}
-            />
-            <div>
-              <Building2 className="w-10 h-10 text-[#f9f5f0] mb-4" />
-              <motion.h2
-                initial={{ opacity: 0, x: 40 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.7 }}
-                viewport={{ once: true }}
-                className="text-3xl font-bold mb-4"
-              >
-                Tailored Solutions
-              </motion.h2>
-              <p>
-                Choose from diverse halal investment options to match your risk, timeline, and growth goals.
-              </p>
-            </div>
+              className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 h-80 lg:h-96"
+            >
+              <img
+                src="/team-discussion.webp"
+                alt="Team Discussion"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+            </motion.div>
           </div>
         </section>
 
         {/* Core Values */}
-        <section className="py-20 bg-[#f9f5f0]">
-          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 text-center">
+        <section className="py-24 max-w-7xl mx-auto px-6">
+          <div className="text-center space-y-3 mb-16">
+            <h2 className="text-3xl font-bold text-foreground">Our Core Principles</h2>
+            <p className="text-muted-foreground">The pillars that define Al Ashraf Holdings operations.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { title: 'Integrity', icon: <Target className="mx-auto text-[#865d36]" /> },
-              { title: 'Transparency', icon: <LineChart className="mx-auto text-[#865d36]" /> },
-              { title: 'Ethical Growth', icon: <Users className="mx-auto text-[#865d36]" /> },
-            ].map(({ title, icon }, idx) => (
+              { title: "Uncompromising Integrity", desc: "Honesty and directness in all dealings, audits, and agreements." },
+              { title: "Complete Transparency", desc: "Daily dashboard insights, operations logs, and reports accessible 24/7." },
+              { title: "Ethical Yields", desc: "100% sharia-compliant assets free from interest-based compounding." },
+            ].map(({ title, desc }, idx) => (
               <motion.div
                 key={title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.2 }}
+                transition={{ duration: 0.5, delay: idx * 0.15 }}
                 viewport={{ once: true }}
-                className="bg-white p-6 rounded-xl shadow-md"
+                className="bg-slate-900/30 border border-white/5 p-8 rounded-2xl hover:border-primary/20 hover:bg-slate-900/60 transition-all duration-300 space-y-4"
               >
-                <div className="mb-4">{icon}</div>
-                <h3 className="text-xl font-semibold">{title}</h3>
-                <p className="mt-2 text-[#93785b]">
-                  We uphold {title.toLowerCase()} in all our dealings.
-                </p>
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-glow-emerald">
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground">{title}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{desc}</p>
               </motion.div>
             ))}
           </div>
         </section>
 
-        {/* Horizontal Timeline */}
-        {/* <section className="py-16 bg-[#93785b] text-white overflow-x-auto">
-          <div className="whitespace-nowrap flex gap-8 px-6 scroll-smooth">
-            {['Foundation', 'First 100 Clients', 'New Projects', 'Future Goals'].map((item) => (
-              <motion.div
-                key={item}
-                whileInView={{ scale: 1.05 }}
-                transition={{ duration: 0.4 }}
-                viewport={{ once: true }}
-                className="min-w-[200px] bg-[#3e362e] py-6 px-4 rounded-xl shadow-md text-center"
-              >
-                <h3 className="text-lg font-semibold">{item}</h3>
-              </motion.div>
-            ))}
+        {/* Journey Timeline pathway */}
+        <section className="py-24 bg-slate-900/35 border-t border-white/5 relative">
+          <div className="max-w-7xl mx-auto px-6">
+            <h2 className="text-3xl font-bold text-center text-foreground mb-16">Our Journey</h2>
+
+            {/* Stepper pathway */}
+            <div className="relative flex flex-col md:flex-row items-center justify-center gap-10 md:gap-4 max-w-5xl mx-auto">
+              {/* Horizontal line for desktop, vertical line for mobile */}
+              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/10 rounded-full transform -translate-y-1/2 hidden md:block z-0" />
+              <div className="absolute left-1/2 top-0 w-0.5 h-full bg-white/10 rounded-full transform -translate-x-1/2 md:hidden z-0" />
+
+              {[
+                { title: "Foundation", year: "2024", desc: "Established with core sharia vision." },
+                { title: "Growth Milestones", year: "2025", desc: "Exceeded 5,000+ active investors." },
+                { title: "Expanded Portfolios", year: "2026", desc: "Introduced industrial and rental packages." },
+                { title: "Future Expansion", year: "2027+", desc: "Targeting international asset classes." },
+              ].map(({ title, year, desc }, i) => (
+                <motion.div
+                  key={title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: i * 0.15 }}
+                  viewport={{ once: true }}
+                  className="relative z-10 w-64 rounded-2xl border border-white/5 bg-slate-950 p-5 text-center shadow-xl hover:scale-102 hover:border-primary/30 transition-all duration-300"
+                >
+                  {/* Stepper Dot */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[150px] md:-translate-y-[45px] h-4 w-4 bg-primary border-2 border-slate-950 rounded-full shadow-lg shadow-primary/40 z-20" />
+                  
+                  <span className="text-xs font-bold text-primary tracking-widest uppercase">{year}</span>
+                  <h3 className="text-lg font-bold text-foreground mt-1">{title}</h3>
+                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{desc}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </section> */}
-{/* Horizontal Timeline – Enhanced & Centered */}
-<section className="py-20 bg-[#93785b] text-white">
-  <div className="max-w-6xl mx-auto px-4">
-    <h2 className="text-3xl font-bold text-center mb-12">Our Journey</h2>
-    
-    {/* Timeline line */}
-    <div className="relative flex items-center justify-center">
-      <div className="absolute -top-1/4 left-0 w-full h-1 bg-[#f9f5f0] rounded-full transform -translate-y-1/2 z-0" />
-      
-      {/* Timeline items */}
-      <div className="flex flex-wrap justify-center gap-10 z-10 relative">
-        {[
-          { title: 'Foundation', delay: 0 },
-          { title: 'First 100 Clients', delay: 0.1 },
-          { title: 'New Projects', delay: 0.2 },
-          { title: 'Future Goals', delay: 0.3 },
-        ].map(({ title, delay }) => (
-          <motion.div
-            key={title}
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay }}
-            viewport={{ once: true }}
-            className="relative bg-[#3e362e] px-6 py-4 rounded-xl shadow-lg text-center min-w-[180px] hover:scale-105 transition-transform duration-300"
-          >
-            {/* Connector Dot */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-5 w-4 h-4 bg-[#ac8968] border-2 border-white rounded-full z-10" />
-            <h3 className="text-lg font-semibold">{title}</h3>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  </div>
-</section>
+        </section>
 
         {/* Meet the Team */}
-        <section className="bg-[#a69080] text-[#3e362e] py-20 px-6">
-          <h2 className="text-4xl font-bold text-center mb-12">Meet the Team</h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[1, 2, 3].map((i) => (
+        <section className="py-24 max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center text-foreground mb-16">Meet the Team</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { name: "Suleman Al Ashraf", role: "Chief Executive Officer", desc: "Expert in sharia-compliant finance structures and property acquisitions." },
+              { name: "Farhan Ahmed", role: "Head of Operations", desc: "Manages asset tracking systems and operations team." },
+              { name: "Zainab Ali", role: "Investor Relations", desc: "Assists global partners with onboarding, KYC, and withdrawals." },
+            ].map((member, i) => (
               <motion.div
-                key={i}
+                key={member.name}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.5, delay: i * 0.15 }}
                 viewport={{ once: true }}
-                className="bg-white text-[#3e362e] p-6 rounded-xl shadow-md text-center"
+                className="bg-slate-900/30 border border-white/5 p-6 rounded-2xl hover:border-primary/20 hover:bg-slate-900/60 transition-all duration-300 text-center space-y-3"
               >
-                <h3 className="text-xl font-semibold">Team Member {i}</h3>
-                <p className="text-[#865d36] mt-2">Specialist in ethical finance & community growth.</p>
+                <div className="h-16 w-16 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mx-auto text-primary text-glow-emerald font-bold text-xl">
+                  {member.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-foreground">{member.name}</h3>
+                  <p className="text-xs font-semibold text-accent text-glow-gold">{member.role}</p>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{member.desc}</p>
               </motion.div>
             ))}
           </div>

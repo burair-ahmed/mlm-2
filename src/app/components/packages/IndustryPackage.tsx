@@ -1,19 +1,15 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import Tilt from "react-parallax-tilt";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  CustomDialog, 
+  CustomDialogHeader, 
+  CustomDialogTitle, 
+  CustomDialogFooter 
+} from "@/components/custom/CustomDialog";
 
 interface Package {
   _id: string;
@@ -30,7 +26,7 @@ interface Package {
   image: string;
 }
 
-const IndustryPackage = () => {
+export default function IndustryPackage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
@@ -38,29 +34,34 @@ const IndustryPackage = () => {
   const [isFetching, setIsFetching] = useState(true);
   const [kycStatus, setKycStatus] = useState<string>("");
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     fetch("/api/admin/long-term-industry")
       .then((res) => res.json())
-      .then((data) => setPackages(data))
-      .catch((error) => console.error("Error fetching packages:", error))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setPackages(data);
+        } else {
+          console.error("Error fetching industry packages: response is not an array:", data);
+          setPackages([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching packages:", error);
+        setPackages([]);
+      })
       .finally(() => setIsFetching(false));
 
     if (token) {
       const fetchKycStatus = async () => {
         try {
           const response = await fetch("/api/users/kyc/kyc-status", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           });
           const data = await response.json();
           if (response.ok) {
             setKycStatus(data.kycStatus);
-          } else {
-            console.error("Error fetching KYC status:", data.error);
           }
         } catch (error) {
           console.error("Error fetching KYC status:", error);
@@ -80,7 +81,7 @@ const IndustryPackage = () => {
     if (!selectedPackage) return;
 
     if (kycStatus !== "approved") {
-      toast.warning("Your KYC is not approved. Please complete your KYC to make a purchase.");
+      toast.warning("Your KYC is not approved. Please complete and get your KYC approved first.");
       return;
     }
 
@@ -124,119 +125,171 @@ const IndustryPackage = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 p-6 bg-[#93785b]">
-      {isFetching
-        ? [...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-60 rounded-xl" />
+    <div className="space-y-8">
+      {/* Grid of Packages */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {isFetching ? (
+          [...Array(3)].map((_, i) => (
+            <div key={i} className="h-96 rounded-3xl border border-white/5 bg-white/5 animate-pulse" />
           ))
-        : packages.map((pkg, i) => (
+        ) : packages.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-muted-foreground">
+            No active industry packages available at this time.
+          </div>
+        ) : (
+          packages.map((pkg, i) => (
             <motion.div
               key={pkg._id}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              onClick={() => {
+                setSelectedPackage(pkg);
+                setQuantity(1);
+              }}
+              className="group cursor-pointer rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/60 backdrop-blur-xl hover:border-primary/30 transition-all duration-300 overflow-hidden shadow-2xl relative"
             >
-              <Tilt glareEnable glareMaxOpacity={0.3} scale={1.02}>
-                <div
-                  className="bg-white/20 backdrop-blur-lg border border-[#ac896840] shadow-2xl rounded-2xl overflow-hidden transition duration-300 hover:scale-[1.02] hover:shadow-[#ac896890]"
-                  onClick={() => setSelectedPackage(pkg)}
-                >
-                  <div className="relative w-full h-48">
-                    <Image
-                      src={pkg.image}
-                      fill
-                      alt={pkg.name}
-                      className="object-cover transition-transform duration-300 hover:scale-110"
-                    />
+              {/* Image Banner */}
+              <div className="relative w-full h-48 overflow-hidden bg-slate-950/20">
+                <Image
+                  src={pkg.image || "/default-package.jpg"}
+                  fill
+                  alt={pkg.name}
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
+                <span className="absolute top-4 right-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md">
+                  Industry Yield
+                </span>
+              </div>
+
+              {/* Card Body */}
+              <div className="p-6 space-y-4">
+                <div>
+                  <span className="text-xs font-semibold text-accent uppercase tracking-wider text-glow-gold">
+                    {pkg.category}
+                  </span>
+                  <h3 className="text-xl font-bold text-foreground mt-1 group-hover:text-primary transition-colors duration-300">
+                    {pkg.name}
+                  </h3>
+                </div>
+
+                {/* Return Details */}
+                <div className="grid grid-cols-2 gap-4 py-3 border-y border-white/5">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase">Equity Cost</p>
+                    <p className="text-base font-bold text-foreground">{pkg.equityUnits} Units</p>
                   </div>
-                  <div className="p-4 space-y-2 text-[#3e362e]">
-                    <h3 className="text-xl font-bold">{pkg.name}</h3>
-                    <p className="text-sm text-[#a69080]">
-                      {pkg.category} · {pkg.availableUnits} units left
-                    </p>
-                    <p className="text-md font-medium">
-                      Equity: {pkg.equityUnits} | Return:{" "}
-                      <span className="text-[#865d36] font-semibold">
-                        {pkg.estimatedReturn}%
-                      </span>
-                    </p>
-                    <Button
-                      className="w-full mt-2 bg-gradient-to-r from-[#865d36] to-[#ac8968] text-white hover:from-[#3e362e] hover:to-[#865d36] rounded-full shadow"
-                      onClick={() => setSelectedPackage(pkg)}
-                    >
-                      Invest Now
-                    </Button>
+                  <div className="space-y-0.5 pl-4 border-l border-white/5">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase">Estimated Return</p>
+                    <p className="text-base font-bold text-primary text-glow-emerald">+{pkg.estimatedReturn}%</p>
                   </div>
                 </div>
-              </Tilt>
-            </motion.div>
-          ))}
 
-      {selectedPackage && (
-        <Dialog open onOpenChange={() => setSelectedPackage(null)}>
-          <DialogContent className="bg-white/90 backdrop-blur-md text-[#3e362e] rounded-xl max-w-md shadow-xl border border-[#ac896840]">
-            <DialogHeader>
-              <DialogTitle className="text-2xl text-[#865d36] font-bold">
-                {selectedPackage.name}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <Image
-                src={selectedPackage.image}
-                alt="image"
-                width={600}
-                height={300}
-                className="rounded-md w-full h-48 object-cover"
-              />
-              <p>
-                <strong>Category:</strong> {selectedPackage.category}
-              </p>
-              <p>
-                <strong>Return:</strong> {selectedPackage.estimatedReturn}%
-              </p>
-              <p>
-                <strong>Equity:</strong> {selectedPackage.equityUnits}
-              </p>
-              <p>
-                <strong>Holding:</strong> {selectedPackage.minHoldingPeriod}{" "}
-                {selectedPackage.minHoldingPeriodUnit}
-              </p>
-              <p>
-                <strong>Available Units:</strong>{" "}
-                {selectedPackage.availableUnits}
-              </p>
-              <p>
-                <strong>Buyback:</strong>{" "}
-                {selectedPackage.buybackOption ? "Yes" : "No"}
-              </p>
-              <Input
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                min={1}
-                max={selectedPackage.availableUnits}
-              />
+                {/* Footer details */}
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>Available: {pkg.availableUnits} / {pkg.totalUnits} Units</span>
+                  <span>Min holding: {pkg.minHoldingPeriod} {pkg.minHoldingPeriodUnit}</span>
+                </div>
+
+                {/* Invest Now trigger button */}
+                <button
+                  className="w-full py-3 bg-gradient-to-r from-primary to-emerald-600 text-white hover:opacity-90 font-bold text-sm rounded-xl transition-all duration-300 shadow-lg shadow-primary/10 group-hover:scale-[1.02]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPackage(pkg);
+                    setQuantity(1);
+                  }}
+                >
+                  Invest Now
+                </button>
+              </div>
+            </motion.div>
+          ))
+        )}
+      </div>
+
+      {/* Package Purchase dialog */}
+      <CustomDialog open={!!selectedPackage} onOpenChange={() => setSelectedPackage(null)}>
+        {selectedPackage && (
+          <div className="space-y-6">
+            <CustomDialogHeader>
+              <span className="text-xs font-bold text-accent uppercase tracking-wider">{selectedPackage.category}</span>
+              <CustomDialogTitle className="text-2xl mt-1">{selectedPackage.name}</CustomDialogTitle>
+            </CustomDialogHeader>
+
+            {/* Content Details */}
+            <div className="space-y-5">
+              <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-white/5">
+                <Image
+                  src={selectedPackage.image || "/default-package.jpg"}
+                  alt={selectedPackage.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+
+              {/* Grid values */}
+              <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Equity Cost</p>
+                  <p className="text-sm font-bold text-foreground">{selectedPackage.equityUnits} Units / Qty</p>
+                </div>
+                <div className="space-y-1 border-l border-white/5 pl-4">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Estimated Return</p>
+                  <p className="text-sm font-bold text-primary">+{selectedPackage.estimatedReturn}%</p>
+                </div>
+                <div className="space-y-1 pt-2 border-t border-white/5">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Minimum Holding</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {selectedPackage.minHoldingPeriod} {selectedPackage.minHoldingPeriodUnit}
+                  </p>
+                </div>
+                <div className="space-y-1 pt-2 border-t border-white/5 border-l pl-4">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Resale Option</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {selectedPackage.resaleAllowed ? "Allowed" : "Restricted"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quantity selector */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Select Quantity (Units to buy)</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                    min={1}
+                    max={selectedPackage.availableUnits}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-foreground focus:outline-none focus:border-primary/50 transition-all duration-300"
+                  />
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    Total: {selectedPackage.equityUnits * quantity} Equity Units
+                  </span>
+                </div>
+              </div>
             </div>
-            <DialogFooter className="mt-4">
-              <Button
-                variant="outline"
+
+            <CustomDialogFooter>
+              <button
                 onClick={() => setSelectedPackage(null)}
+                className="w-full sm:w-auto px-5 py-2.5 border border-white/10 hover:bg-white/5 rounded-xl text-sm font-bold text-muted-foreground hover:text-foreground transition-all duration-300"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={handlePurchase}
                 disabled={loading}
-                className="bg-gradient-to-r from-[#865d36] to-[#3e362e] text-white hover:scale-105"
+                className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-primary to-emerald-600 text-white font-bold text-sm rounded-xl transition-all duration-300 shadow-lg shadow-primary/20 hover:opacity-90 disabled:opacity-50"
               >
-                {loading ? "Processing..." : "Buy Now"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+                {loading ? "Processing..." : "Confirm Purchase"}
+              </button>
+            </CustomDialogFooter>
+          </div>
+        )}
+      </CustomDialog>
     </div>
   );
-};
-
-export default IndustryPackage;
+}

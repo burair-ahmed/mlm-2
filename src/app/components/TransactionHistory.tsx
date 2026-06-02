@@ -1,7 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import { useEffect, useState } from "react";
+import { useAuth } from "../../../context/AuthContext";
+import { 
+  CustomTable, 
+  CustomTableHeader, 
+  CustomTableBody, 
+  CustomTableRow, 
+  CustomTableHead, 
+  CustomTableCell 
+} from "@/components/custom/CustomTable";
+import { ArrowLeftRight, ArrowDownLeft, ArrowUpRight, Calendar, Info } from "lucide-react";
 
 interface Transaction {
   _id: string;
@@ -18,8 +27,8 @@ export default function TransactionHistory() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [activeType, setActiveType] = useState<string>('all');
+  const [error, setError] = useState("");
+  const [activeType, setActiveType] = useState<string>("all");
   const [transactionCounts, setTransactionCounts] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -28,31 +37,28 @@ export default function TransactionHistory() {
     try {
       if (!user?._id) return;
 
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
 
       const params = new URLSearchParams({
         page: page.toString(),
         limit: ITEMS_PER_PAGE.toString(),
       });
 
-      if (activeType !== 'all') params.append('type', activeType);
+      if (activeType !== "all") params.append("type", activeType);
 
       const response = await fetch(`/api/transactions?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch transactions');
+      if (!response.ok) throw new Error("Failed to fetch transactions");
 
       const res = await response.json();
       setTransactions(res.transactions || []);
       setTotalPages(res.totalPages || 1);
       setTransactionCounts(res.counts || { all: 0 });
-
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load transactions');
+      setError(err instanceof Error ? err.message : "Failed to load transactions");
       setTransactions([]);
     } finally {
       setLoading(false);
@@ -63,20 +69,35 @@ export default function TransactionHistory() {
     fetchTransactions();
   }, [user, activeType, page]);
 
-  const staticTypeOrder = ['all', 'deposit', 'purchase', 'commission', 'profit-withdrawal', 'cash_to_equity'];
-
-  const transactionTypes = staticTypeOrder.filter((type) => type === 'all' || transactionCounts[type] > 0);
+  const staticTypeOrder = ["all", "deposit", "purchase", "commission", "profit-withdrawal", "cash_to_equity"];
+  const transactionTypes = staticTypeOrder.filter((type) => type === "all" || transactionCounts[type] > 0);
 
   const getAmountDisplay = (tx: Transaction) => {
     return tx.amount > 0
-      ? `$${tx.amount.toFixed(2)}`
-      : `${tx.equityUnits} Equity Units`;
+      ? `$${tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+      : `${tx.equityUnits} Units`;
   };
 
-  const getColorClass = (type: string) => {
-    if (type === 'commission' || type === 'profit-withdrawal') return 'text-green-600';
-    if (type === 'equity_purchase' || type === 'cash_to_equity') return 'text-blue-600';
-    return 'text-red-600';
+  const getTxTypeStyle = (type: string) => {
+    if (type === "commission" || type === "deposit") {
+      return {
+        badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-glow-emerald",
+        text: "text-emerald-400 font-bold",
+        icon: <ArrowDownLeft className="h-4.5 w-4.5 text-emerald-400" />,
+      };
+    }
+    if (type === "profit-withdrawal" || type === "withdrawal") {
+      return {
+        badge: "bg-red-500/10 text-red-400 border-red-500/20",
+        text: "text-red-400 font-semibold",
+        icon: <ArrowUpRight className="h-4.5 w-4.5 text-red-400" />,
+      };
+    }
+    return {
+      badge: "bg-amber-500/10 text-accent border-amber-500/20 text-glow-gold",
+      text: "text-accent font-semibold",
+      icon: <ArrowLeftRight className="h-4.5 w-4.5 text-accent" />,
+    };
   };
 
   const handleFilterChange = (type: string) => {
@@ -84,15 +105,26 @@ export default function TransactionHistory() {
     setPage(1);
   };
 
-  if (loading) return <div className="text-gray-500 p-4">Loading transactions...</div>;
-  if (error) return <div className="text-red-500 p-4">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12 text-muted-foreground animate-pulse text-sm">
+        Loading transaction history...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-500/10 border border-red-500/25 p-4 rounded-2xl text-red-400 text-sm">
+        {error}
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-lg shadow mt-4">
-      <h3 className="text-lg font-semibold mb-4">Transaction History</h3>
-
+    <div className="space-y-6">
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2">
         {transactionTypes.map((type) => {
           const isActive = type === activeType;
           const count = transactionCounts[type] || 0;
@@ -101,18 +133,18 @@ export default function TransactionHistory() {
             <button
               key={type}
               onClick={() => handleFilterChange(type)}
-              className={`flex items-center px-3 py-1 rounded-full transition-all font-medium text-sm
-                ${isActive
-                  ? 'bg-black text-white'
-                  : 'bg-black/10 text-black/70 hover:bg-black hover:text-white'
-                }`}
+              className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-semibold border transition-all duration-300 ${
+                isActive
+                  ? "bg-gradient-to-r from-primary/20 to-primary/5 text-primary border-primary/25 border-glow-emerald"
+                  : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
+              }`}
             >
-              <span className="capitalize mr-2">{type.replace(/_/g, ' ')}</span>
-              <span className={`px-2 py-0.5 text-xs rounded-full 
-                ${isActive
-                  ? 'bg-white text-black'
-                  : 'bg-white text-black/70'
-                }`}>
+              <span className="capitalize">{type.replace(/_/g, " ")}</span>
+              <span
+                className={`h-4.5 px-1.5 flex items-center justify-center text-[10px] font-bold rounded-md ${
+                  isActive ? "bg-primary/20 text-primary" : "bg-white/5 text-muted-foreground"
+                }`}
+              >
                 {count}
               </span>
             </button>
@@ -120,64 +152,76 @@ export default function TransactionHistory() {
         })}
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left border-b text-gray-600">
-              <th className="py-2 px-2">Date</th>
-              <th className="py-2 px-2">Type</th>
-              <th className="py-2 px-2">Amount</th>
-              <th className="py-2 px-2">Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.length > 0 ? (
-              transactions.map((tx) => (
-                <tr key={tx._id} className="border-t">
-                  <td className="py-2 px-2 whitespace-nowrap">
+      {/* Dynamic Custom Table */}
+      <CustomTable>
+        <CustomTableHeader>
+          <CustomTableRow>
+            <CustomTableHead>Date</CustomTableHead>
+            <CustomTableHead>Type</CustomTableHead>
+            <CustomTableHead>Amount / Value</CustomTableHead>
+            <CustomTableHead>Description</CustomTableHead>
+          </CustomTableRow>
+        </CustomTableHeader>
+        <CustomTableBody>
+          {transactions.length > 0 ? (
+            transactions.map((tx) => {
+              const style = getTxTypeStyle(tx.type);
+              return (
+                <CustomTableRow key={tx._id}>
+                  <CustomTableCell className="font-semibold text-foreground flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
                     {new Date(tx.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className={`py-2 px-2 capitalize whitespace-nowrap ${getColorClass(tx.type)}`}>
-                    {tx.type.replace(/_/g, ' ')}
-                  </td>
-                  <td className={`py-2 px-2 whitespace-nowrap ${getColorClass(tx.type)}`}>
+                  </CustomTableCell>
+                  <CustomTableCell>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-semibold capitalize ${style.badge}`}>
+                      {style.icon}
+                      {tx.type.replace(/_/g, " ")}
+                    </span>
+                  </CustomTableCell>
+                  <CustomTableCell className={style.text}>
                     {getAmountDisplay(tx)}
-                  </td>
-                  <td className="py-2 px-2 text-wrap break-words max-w-xs">
-                    {tx.description || 'No description'}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="py-4 text-center text-gray-500">
-                  No transactions found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </CustomTableCell>
+                  <CustomTableCell>
+                    <span className="flex items-center gap-1.5 max-w-sm truncate text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      {tx.description || "No description provided"}
+                    </span>
+                  </CustomTableCell>
+                </CustomTableRow>
+              );
+            })
+          ) : (
+            <CustomTableRow>
+              <CustomTableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                No transaction activities recorded.
+              </CustomTableCell>
+            </CustomTableRow>
+          )}
+        </CustomTableBody>
+      </CustomTable>
 
-      {/* Pagination */}
-      <div className="flex justify-center items-center mt-4 space-x-2 text-sm">
-        <button
-          disabled={page <= 1}
-          onClick={() => setPage((p) => Math.max(p - 1, 1))}
-          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
-        <span className="px-3">{page} / {totalPages}</span>
-        <button
-          disabled={page >= totalPages}
-          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {/* Custom Stepper Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 pt-2 text-sm text-muted-foreground">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-foreground text-xs font-bold rounded-xl disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-muted-foreground transition-all duration-300"
+          >
+            Previous
+          </button>
+          <span className="text-xs font-bold text-foreground bg-white/5 border border-white/5 px-3 py-1.5 rounded-lg">
+            {page} / {totalPages}
+          </span>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+            className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-foreground text-xs font-bold rounded-xl disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-muted-foreground transition-all duration-300"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

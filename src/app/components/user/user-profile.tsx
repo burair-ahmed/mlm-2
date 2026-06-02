@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Types } from "mongoose";
+import { User as UserIcon, Camera, Edit2, Check, X, Shield, Wallet, Award, Network } from "lucide-react";
 
 interface UserProfileProps {
   user?: {
@@ -19,13 +18,12 @@ interface UserProfileProps {
     commissionEarned: number;
     equityUnits: number;
     withdrawnProfits: number;
-  }
+  };
 }
 
 type ObjectId = Types.ObjectId;
 
 export default function UserProfile({ user }: UserProfileProps) {
-    
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<{
     userName?: string;
@@ -52,7 +50,6 @@ export default function UserProfile({ user }: UserProfileProps) {
     equityUnits: user?.equityUnits || 0,
     withdrawnProfits: user?.withdrawnProfits || 0,
   });
-  
 
   useEffect(() => {
     if (user) {
@@ -76,6 +73,7 @@ export default function UserProfile({ user }: UserProfileProps) {
     };
     reader.readAsDataURL(file);
   };
+
   const handleSave = async () => {
     try {
       const res = await fetch("/api/users/update-profile", {
@@ -83,65 +81,152 @@ export default function UserProfile({ user }: UserProfileProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-  
+
       if (!res.ok) {
-        const errorData = await res.text(); // Get the error page content as text
+        const errorData = await res.text();
         console.error("Failed to update profile:", errorData);
         return;
       }
-  
-      const data = await res.json();  // Parse the response as JSON
-      console.log("Profile updated successfully:", data);
+
       setIsEditing(false);
     } catch (err) {
       console.error("Error updating profile:", err);
     }
   };
-  
 
   const toggleEdit = () => setIsEditing(!isEditing);
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow rounded-2xl">
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative w-20 h-20 rounded-full overflow-hidden border">
-          <Image
-            src={formData.profilePicture || "/default-profile.png"}
-            alt="Profile"
-            layout="fill"
-            objectFit="cover"
-          />
+    <div className="max-w-3xl mx-auto rounded-3xl border border-white/5 bg-slate-900/35 backdrop-blur-xl p-6 md:p-8 shadow-2xl space-y-8 relative overflow-hidden">
+      {/* Background glow blob */}
+      <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-glow-emerald pointer-events-none opacity-20" />
+
+      {/* Profile Header & Avatar section */}
+      <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-white/5">
+        <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-white/10 shrink-0 bg-slate-950/20 flex items-center justify-center group shadow-lg">
+          {formData.profilePicture ? (
+            <Image
+              src={formData.profilePicture}
+              alt="Profile"
+              layout="fill"
+              objectFit="cover"
+              className="transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <UserIcon className="h-10 w-10 text-muted-foreground" />
+          )}
+
+          {isEditing && (
+            <label className="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <Camera className="h-5 w-5 text-white" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </label>
+          )}
         </div>
-        {isEditing && (
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-          />
-        )}
+
+        <div className="text-center sm:text-left space-y-1">
+          <h2 className="text-2xl font-bold text-foreground">
+            {formData.fullName || "User Profile"}
+          </h2>
+          <p className="text-xs text-muted-foreground">{formData.email}</p>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary tracking-wider uppercase mt-2">
+            <Shield className="h-3 w-3 text-glow-emerald" /> Level {formData.hierarchyLevel} Node
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-4">
-        <Field label="User Name" name="userName" value={formData.userName || ""} onChange={handleChange} isEditing={isEditing} />
-        <Field label="Full Name" name="fullName" value={formData.fullName || ""} onChange={handleChange} isEditing={isEditing} />
-        <Field label="Email" name="email" value={formData.email} onChange={handleChange} isEditing={false} />
-        <Field label="Referral Code" name="referralCode" value={formData.referralCode} onChange={handleChange} isEditing={false} />
-        <Field label="Referred By" name="referredBy" value={formData.referredBy ? formData.referredBy.toString() : ""} onChange={handleChange} isEditing={false} />
-        <Field label="Balance" name="balance" value={formData.balance.toString()} onChange={handleChange} isEditing={false} />
-        <Field label="Hierarchy Level" name="hierarchyLevel" value={formData.hierarchyLevel.toString()} onChange={handleChange} isEditing={false} />
-        <Field label="Commission Earned" name="commissionEarned" value={formData.commissionEarned.toString()} onChange={handleChange} isEditing={false} />
-        <Field label="Equity Units" name="equityUnits" value={formData.equityUnits.toString()} onChange={handleChange} isEditing={false} />
-        <Field label="Withdrawn Profits" name="withdrawnProfits" value={formData.withdrawnProfits.toString()} onChange={handleChange} isEditing={false} />
+      {/* Grid details */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <Field
+          label="Username"
+          name="userName"
+          value={formData.userName || ""}
+          onChange={handleChange}
+          isEditing={isEditing}
+          icon={<UserIcon className="h-4 w-4" />}
+        />
+        <Field
+          label="Full Name"
+          name="fullName"
+          value={formData.fullName || ""}
+          onChange={handleChange}
+          isEditing={isEditing}
+          icon={<UserIcon className="h-4 w-4" />}
+        />
+        <Field
+          label="Email Address"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          isEditing={false}
+          icon={<UserIcon className="h-4 w-4" />}
+        />
+        <Field
+          label="Referral Code"
+          name="referralCode"
+          value={formData.referralCode}
+          onChange={handleChange}
+          isEditing={false}
+          icon={<Award className="h-4 w-4 text-accent text-glow-gold" />}
+        />
       </div>
 
-      <div className="mt-6 flex gap-4">
+      {/* Asset valuation statistics */}
+      <div className="space-y-4">
+        <h4 className="text-xs font-bold text-accent uppercase tracking-wider text-glow-gold">Portfolio Overview</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center space-y-1 shadow-lg relative">
+            <Wallet className="h-4 w-4 text-primary absolute top-3 right-3 opacity-60" />
+            <p className="text-[10px] text-muted-foreground uppercase">Balance</p>
+            <p className="text-base font-bold text-foreground">${formData.balance?.toLocaleString()}</p>
+          </div>
+          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center space-y-1 shadow-lg relative">
+            <Award className="h-4 w-4 text-accent absolute top-3 right-3 opacity-60" />
+            <p className="text-[10px] text-muted-foreground uppercase">Equity Units</p>
+            <p className="text-base font-bold text-accent text-glow-gold">{formData.equityUnits?.toLocaleString()}</p>
+          </div>
+          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center space-y-1 shadow-lg relative">
+            <Network className="h-4 w-4 text-primary absolute top-3 right-3 opacity-60" />
+            <p className="text-[10px] text-muted-foreground uppercase">Yield Earnings</p>
+            <p className="text-base font-bold text-primary">${formData.commissionEarned?.toLocaleString()}</p>
+          </div>
+          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center space-y-1 shadow-lg relative">
+            <Wallet className="h-4 w-4 text-muted-foreground absolute top-3 right-3 opacity-60" />
+            <p className="text-[10px] text-muted-foreground uppercase">Withdrawn</p>
+            <p className="text-base font-bold text-foreground">${formData.withdrawnProfits?.toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Form buttons */}
+      <div className="flex gap-3 pt-4 border-t border-white/5">
         {isEditing ? (
           <>
-            <Button onClick={handleSave}>Save</Button>
-            <Button variant="outline" onClick={toggleEdit}>Cancel</Button>
+            <button
+              onClick={handleSave}
+              className="px-5 py-2.5 bg-gradient-to-r from-primary to-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 flex items-center gap-1.5 transition-all duration-300"
+            >
+              <Check className="h-4 w-4" /> Save Profile
+            </button>
+            <button
+              onClick={toggleEdit}
+              className="px-5 py-2.5 border border-white/10 hover:bg-white/5 text-muted-foreground hover:text-foreground font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all duration-300"
+            >
+              <X className="h-4 w-4" /> Cancel
+            </button>
           </>
         ) : (
-          <Button onClick={toggleEdit}>Edit Profile</Button>
+          <button
+            onClick={toggleEdit}
+            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-foreground font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all duration-300"
+          >
+            <Edit2 className="h-3.5 w-3.5 text-primary" /> Edit Profile
+          </button>
         )}
       </div>
     </div>
@@ -154,20 +239,36 @@ function Field({
   value,
   onChange,
   isEditing,
+  icon,
 }: {
   label: string;
   name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isEditing: boolean;
+  icon?: React.ReactNode;
 }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-muted-foreground uppercase">{label}</label>
       {isEditing ? (
-        <Input type="text" name={name} value={value} onChange={onChange} />
+        <div className="relative flex items-center w-full">
+          {icon && <div className="absolute left-4 text-muted-foreground pointer-events-none">{icon}</div>}
+          <input
+            type="text"
+            name={name}
+            value={value}
+            onChange={onChange}
+            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all duration-300 ${
+              icon ? "pl-11" : ""
+            }`}
+          />
+        </div>
       ) : (
-        <div className="text-gray-900">{value}</div>
+        <div className="bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-foreground font-semibold flex items-center gap-2.5 w-full">
+          {icon && <div className="text-muted-foreground shrink-0">{icon}</div>}
+          <span className="truncate">{value || <span className="text-muted-foreground text-xs italic">Not configured</span>}</span>
+        </div>
       )}
     </div>
   );

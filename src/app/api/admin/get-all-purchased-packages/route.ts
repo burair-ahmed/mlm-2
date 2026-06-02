@@ -8,6 +8,30 @@ import TradingPackage from "../../../../../models/TradingPackage";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(_req: NextRequest) {
+    if (!process.env.MONGODB_URI) {
+      const mockAllPackages = [
+        {
+          _id: "mock-purchased-1",
+          type: "trading",
+          name: "Poultry Standard Yield",
+          category: "poultry",
+          quantity: 2,
+          equityUnits: 10,
+          purchaseDate: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+          user: {
+            _id: "60d0fe4f5311236168a109ca",
+            name: "Admin User",
+            email: "admin@example.com",
+            phone: "+1234567890",
+          },
+        }
+      ];
+      return NextResponse.json({
+        success: true,
+        data: mockAllPackages,
+      });
+    }
+
   try {
     await dbConnect();
 

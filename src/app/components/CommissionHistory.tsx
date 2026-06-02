@@ -1,7 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import { useEffect, useState } from "react";
+import { useAuth } from "../../../context/AuthContext";
+import { 
+  CustomTable, 
+  CustomTableHeader, 
+  CustomTableBody, 
+  CustomTableRow, 
+  CustomTableHead, 
+  CustomTableCell 
+} from "@/components/custom/CustomTable";
+import { Calendar } from "lucide-react";
 
 interface Commission {
   _id: string;
@@ -15,28 +24,26 @@ export default function CommissionHistory() {
   const { user } = useAuth();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchCommissions = async () => {
       try {
         if (!user?._id) return;
 
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No authentication token found');
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No authentication token found");
 
         const response = await fetch(`/api/transactions/commissions?userId=${user._id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) throw new Error('Failed to fetch commissions');
+        if (!response.ok) throw new Error("Failed to fetch commissions");
 
         const data = await response.json();
         setCommissions(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load commissions');
+        setError(err instanceof Error ? err.message : "Failed to load commissions");
         setCommissions([]);
       } finally {
         setLoading(false);
@@ -46,70 +53,94 @@ export default function CommissionHistory() {
     fetchCommissions();
   }, [user]);
 
-  if (loading) return <div className="text-gray-500 p-4">Loading commissions...</div>;
-  if (error) return <div className="text-red-500 p-4">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12 text-muted-foreground animate-pulse text-sm">
+        Loading commission logs...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-500/10 border border-red-500/25 p-4 rounded-2xl text-red-400 text-sm">
+        {error}
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow mt-4">
-      <h3 className="text-lg font-semibold mb-4">Commission History</h3>
-
-      {/* Table for larger screens */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr>
-              <th className="text-left py-2">Date</th>
-              <th className="text-left py-2">Amount</th>
-              <th className="text-left py-2">Source</th>
-              <th className="text-left py-2">Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            {commissions.length > 0 ? (
-              commissions.map((commission) => (
-                <tr key={commission._id} className="border-t">
-                  <td className="py-2">
-                    {new Date(commission.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="text-green-600 py-2">
-                    +${commission.amount.toFixed(2)}
-                  </td>
-                  <td className="py-2">{commission.sourceUser}</td>
-                  <td className="py-2">{commission.description}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="py-4 text-center text-gray-500">
-                  No commissions found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+    <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 backdrop-blur-xl p-6 md:p-8 shadow-2xl space-y-6">
+      <div className="space-y-1">
+        <h3 className="text-lg font-bold text-foreground">Commission History</h3>
+        <p className="text-xs text-muted-foreground">List of downline commissions credited to your account.</p>
       </div>
 
-      {/* Stacked cards for mobile */}
-      <div className="md:hidden flex flex-col gap-4">
+      {/* Table for larger screens */}
+      <div className="hidden md:block">
+        <CustomTable>
+          <CustomTableHeader>
+            <CustomTableRow>
+              <CustomTableHead>Date</CustomTableHead>
+              <CustomTableHead>Amount</CustomTableHead>
+              <CustomTableHead>Source User</CustomTableHead>
+              <CustomTableHead>Description</CustomTableHead>
+            </CustomTableRow>
+          </CustomTableHeader>
+          <CustomTableBody>
+            {commissions.length > 0 ? (
+              commissions.map((commission) => (
+                <CustomTableRow key={commission._id}>
+                  <CustomTableCell className="font-semibold text-foreground flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {new Date(commission.createdAt).toLocaleDateString()}
+                  </CustomTableCell>
+                  <CustomTableCell className="text-primary font-bold text-glow-emerald">
+                    +${commission.amount.toFixed(2)}
+                  </CustomTableCell>
+                  <CustomTableCell className="font-mono text-xs">{commission.sourceUser}</CustomTableCell>
+                  <CustomTableCell>{commission.description}</CustomTableCell>
+                </CustomTableRow>
+              ))
+            ) : (
+              <CustomTableRow>
+                <CustomTableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                  No commissions credited yet.
+                </CustomTableCell>
+              </CustomTableRow>
+            )}
+          </CustomTableBody>
+        </CustomTable>
+      </div>
+
+      {/* Stacked cards for mobile view */}
+      <div className="md:hidden space-y-3">
         {commissions.length > 0 ? (
           commissions.map((commission) => (
-            <div key={commission._id} className="border p-4 rounded-md shadow-sm">
-              <div className="text-sm text-gray-600">
-                {new Date(commission.createdAt).toLocaleDateString()}
+            <div
+              key={commission._id}
+              className="rounded-2xl border border-white/5 bg-white/5 p-4 space-y-3 shadow-lg relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {new Date(commission.createdAt).toLocaleDateString()}
+                </span>
+                <span className="text-xs font-bold text-accent text-glow-gold uppercase">Referral Yield</span>
               </div>
-              <div className="text-green-600 font-semibold text-lg mt-1">
-                +${commission.amount.toFixed(2)}
+              <div className="flex items-baseline justify-between pt-1">
+                <span className="text-xl font-extrabold text-primary text-glow-emerald">
+                  +${commission.amount.toFixed(2)}
+                </span>
+                <span className="text-[10px] text-muted-foreground font-mono">Source: {commission.sourceUser}</span>
               </div>
-              <div className="text-sm mt-2">
-                <strong>Source:</strong> {commission.sourceUser}
-              </div>
-              <div className="text-sm mt-1">
-                <strong>Description:</strong> {commission.description}
-              </div>
+              <p className="text-xs text-muted-foreground border-t border-white/5 pt-2 leading-relaxed">
+                {commission.description}
+              </p>
             </div>
           ))
         ) : (
-          <div className="text-center text-gray-500">No commissions found</div>
+          <div className="text-center py-6 text-xs text-muted-foreground">No commissions found.</div>
         )}
       </div>
     </div>

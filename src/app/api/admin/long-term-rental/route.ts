@@ -4,8 +4,6 @@ import LongTermRental from "../../../../../models/LongTermRental";
 
 // POST API - Create a New Long-Term Industry Package
 export async function POST(req: NextRequest) {
-  await dbConnect();
-
   try {
     const body = await req.json();
     // console.log("Received Body:", body);
@@ -14,6 +12,12 @@ export async function POST(req: NextRequest) {
     if (!body.name || !body.category || !body.totalUnits || !body.equityUnits || !body.minHoldingPeriod || !body.minHoldingPeriodUnit) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ message: "Rental Package created successfully! (Mock Mode)", data: { ...body, _id: "mock-" + Date.now() } }, { status: 201 });
+    }
+
+    await dbConnect();
 
     // Create a new industry package
     const packageData = new LongTermRental({
@@ -47,9 +51,50 @@ export async function POST(req: NextRequest) {
 
 // GET API - Fetch All Long-Term Industry Packages
 export async function GET() {
-  await dbConnect();
-
   try {
+    if (!process.env.MONGODB_URI) {
+      const mockRentalPackages = [
+        {
+          _id: "mock-rental-pkg-1",
+          name: "Warehouse Lease A",
+          category: "industrial-materials",
+          totalUnits: 100,
+          availableUnits: 75,
+          equityUnits: 100,
+          returnPercentage: 12,
+          minHoldingPeriod: 3,
+          minHoldingPeriodUnit: "months",
+          duration: {
+            value: 12,
+            unit: "months"
+          },
+          resaleAllowed: true,
+          image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=600&q=80",
+          createdAt: new Date(),
+        },
+        {
+          _id: "mock-rental-pkg-2",
+          name: "Commercial Storefront B",
+          category: "general",
+          totalUnits: 50,
+          availableUnits: 42,
+          equityUnits: 250,
+          returnPercentage: 15,
+          minHoldingPeriod: 6,
+          minHoldingPeriodUnit: "months",
+          duration: {
+            value: 24,
+            unit: "months"
+          },
+          resaleAllowed: false,
+          image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80",
+          createdAt: new Date(),
+        }
+      ];
+      return NextResponse.json(mockRentalPackages, { status: 200 });
+    }
+
+    await dbConnect();
     const packages = await LongTermRental.find({});
     return NextResponse.json(packages, { status: 200 });
   } catch (error) {

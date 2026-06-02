@@ -1,11 +1,5 @@
 import mongoose, { Mongoose } from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
-
 interface MongooseGlobal {
   conn: Mongoose | null;
   promise: Promise<Mongoose> | null;
@@ -27,10 +21,16 @@ if (!globalWithMongoose.mongooseCache) {
 const cached = globalWithMongoose.mongooseCache;
 
 async function dbConnect(): Promise<Mongoose> {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    console.warn('Warning: MONGODB_URI environment variable is not defined. Database operations will fail.');
+    return mongoose;
+  }
+
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI!).then(async (mongooseInstance) => {
+    cached.promise = mongoose.connect(MONGODB_URI).then(async (mongooseInstance) => {
       // ✅ Dynamic import to avoid `require()` error
       await import('../models/Permission');
       await import('../models/Role');

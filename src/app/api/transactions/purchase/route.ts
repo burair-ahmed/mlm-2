@@ -30,6 +30,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid input data" }, { status: 400 });
     }
 
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({
+        success: true,
+        message: "Purchase successful (Mock Mode)",
+        quantity,
+        newEquityUnits: 100 - (10 * quantity),
+      });
+    }
+
     // 4️⃣ Determine Package Model
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const packageModels: Record<string, Model<any>> = {

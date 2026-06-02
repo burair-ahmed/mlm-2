@@ -1,17 +1,7 @@
 "use client";
 
-import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
+import { TrendingDown, TrendingUp, Wallet, Users, ArrowUpRight, Award } from "lucide-react";
 import { useEffect, useState } from "react";
-
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
 import { useAuth } from "../../context/AuthContext";
 
 interface Investment {
@@ -19,12 +9,9 @@ interface Investment {
 }
 
 export function SectionCards() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [investments, setInvestments] = useState<Investment[]>([]);
   const [totalProfit, setTotalProfit] = useState(0);
   const [referralCount, setReferralCount] = useState(0);
-
-  const { user } = useAuth(); // ✅ get user from AuthContext
+  const { user } = useAuth();
 
   const [showProfitInUSD, setShowProfitInUSD] = useState(false);
   const [showWithdrawnInUSD, setShowWithdrawnInUSD] = useState(false);
@@ -33,7 +20,7 @@ export function SectionCards() {
   const formatValue = (value: number, inUSD: boolean) => {
     return inUSD
       ? `$${(value * 10).toLocaleString()}`
-      : `${value} Equity Units`;
+      : `${value.toLocaleString()} Units`;
   };
 
   useEffect(() => {
@@ -51,7 +38,6 @@ export function SectionCards() {
 
         if (data.success) {
           const investmentsData = data.data?.investments || data.data;
-          setInvestments(investmentsData);
 
           const total = investmentsData.reduce(
             (sum: number, pkg: Investment) => sum + (pkg.profitAmount || 0),
@@ -66,6 +52,7 @@ export function SectionCards() {
 
     fetchInvestments();
   }, []);
+
   useEffect(() => {
     const fetchReferralCount = async () => {
       const token = localStorage.getItem("token");
@@ -91,161 +78,137 @@ export function SectionCards() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 px-4 lg:px-6 *:data-[slot=card]:shadow-xs *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card">
-      {/* Total Revenue */}
-      <Card className="@container/card">
-        <CardHeader className="relative">
-          <CardDescription>Profit Available for Withdrawal</CardDescription>
-          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {formatValue(totalProfit, showProfitInUSD)}
-          </CardTitle>
-          <p
-            className="text-[12px] text-[#282828] cursor-pointer underline"
-            onClick={() => setShowProfitInUSD(!showProfitInUSD)}
-          >
-            {showProfitInUSD
-              ? "Click to see in Equity Units"
-              : "Tap to see valuation in $"}
-          </p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      {/* 1. Profit Available */}
+      <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/50 hover:border-primary/20 backdrop-blur-xl p-6 transition-all duration-300 group shadow-2xl flex flex-col justify-between">
+        {/* Glow overlay */}
+        <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-glow-emerald pointer-events-none opacity-20" />
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Withdrawable Yield</span>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-primary text-glow-emerald shrink-0">
+              <TrendingUp className="h-4 w-4" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-foreground group-hover:text-primary transition-colors duration-300">
+              {formatValue(totalProfit, showProfitInUSD)}
+            </h3>
+            <button
+              onClick={() => setShowProfitInUSD(!showProfitInUSD)}
+              className="text-[10px] text-accent hover:underline font-bold mt-1 text-glow-gold tracking-wide uppercase"
+            >
+              {showProfitInUSD ? "Show in Units" : "Show Valuation in USD"}
+            </button>
+          </div>
+        </div>
+        <div className="text-[11px] text-muted-foreground border-t border-white/5 pt-3 mt-4 flex items-center gap-1.5">
+          <span className="text-emerald-400 font-bold flex items-center gap-0.5"><ArrowUpRight className="h-3.5 w-3.5" /> +12.5%</span>
+          <span>from active portfolios</span>
+        </div>
+      </div>
 
-          <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingUpIcon className="size-3" />
-              +12.5%
-            </Badge>
+      {/* 2. Withdrawn Profit */}
+      <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/50 hover:border-destructive/20 backdrop-blur-xl p-6 transition-all duration-300 group shadow-2xl flex flex-col justify-between">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Withdrawn Profit</span>
+            <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 shrink-0">
+              <TrendingDown className="h-4 w-4" />
+            </div>
           </div>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <TrendingUpIcon className="size-4" />
+          <div>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-foreground hover:text-red-400 transition-colors duration-300">
+              {formatValue(user?.withdrawnProfits || 0, showWithdrawnInUSD)}
+            </h3>
+            <button
+              onClick={() => setShowWithdrawnInUSD(!showWithdrawnInUSD)}
+              className="text-[10px] text-accent hover:underline font-bold mt-1 text-glow-gold tracking-wide uppercase"
+            >
+              {showWithdrawnInUSD ? "Show in Units" : "Show Valuation in USD"}
+            </button>
           </div>
-          <div className="text-muted-foreground">
-            Profit Available for Withdrawal across all investments
-          </div>
-        </CardFooter>
-      </Card>
+        </div>
+        <div className="text-[11px] text-muted-foreground border-t border-white/5 pt-3 mt-4 flex items-center gap-1.5">
+          <span>Processed safely to bank/wallet</span>
+        </div>
+      </div>
 
-      {/* Withdrawn Profit */}
-      <Card className="@container/card">
-        <CardHeader className="relative">
-          <CardDescription>Withdrawn Profit</CardDescription>
-          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {formatValue(user?.withdrawnProfits || 0, showWithdrawnInUSD)}
-          </CardTitle>
-          <p
-            className="text-[12px] text-[#282828] cursor-pointer underline"
-            onClick={() => setShowWithdrawnInUSD(!showWithdrawnInUSD)}
-          >
-            {showWithdrawnInUSD
-              ? "Click to see in Equity Units"
-              : "Tap to see valuation in $"}
-          </p>
-          <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingDownIcon className="size-3" />
-              -3.2%
-            </Badge>
+      {/* 3. Total Referrals */}
+      <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/50 hover:border-primary/20 backdrop-blur-xl p-6 transition-all duration-300 group shadow-2xl flex flex-col justify-between">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Referrals</span>
+            <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+              <Users className="h-4 w-4" />
+            </div>
           </div>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Withdrawals this month <TrendingDownIcon className="size-4" />
+          <div>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-foreground group-hover:text-blue-400 transition-colors duration-300">
+              {referralCount} Users
+            </h3>
+            <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wide">
+              Level {user?.hierarchyLevel || 0} Network depth
+            </p>
           </div>
-          <div className="text-muted-foreground">
-            Total profit already withdrawn
-          </div>
-        </CardFooter>
-      </Card>
+        </div>
+        <div className="text-[11px] text-muted-foreground border-t border-white/5 pt-3 mt-4 flex items-center gap-1.5">
+          <span className="text-emerald-400 font-bold flex items-center gap-0.5"><ArrowUpRight className="h-3.5 w-3.5" /> +8.9%</span>
+          <span>signups this month</span>
+        </div>
+      </div>
 
-      {/* Total Referrals */}
-      <Card className="@container/card">
-        <CardHeader className="relative">
-          <CardDescription>Total Referrals</CardDescription>
-          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {referralCount}
-          </CardTitle>
-          <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingUpIcon className="size-3" />
-              +8.9%
-            </Badge>
+      {/* 4. Equity Units Balance */}
+      <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/50 hover:border-accent/20 backdrop-blur-xl p-6 transition-all duration-300 group shadow-2xl flex flex-col justify-between">
+        <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-glow-gold pointer-events-none opacity-15" />
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Equity Balance</span>
+            <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-accent text-glow-gold shrink-0">
+              <Award className="h-4 w-4" />
+            </div>
           </div>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            New signups from your code <TrendingUpIcon className="size-4" />
+          <div>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-foreground group-hover:text-accent transition-colors duration-300">
+              {formatValue(user?.equityUnits || 0, showBalanceInUSD)}
+            </h3>
+            <button
+              onClick={() => setShowBalanceInUSD(!showBalanceInUSD)}
+              className="text-[10px] text-accent hover:underline font-bold mt-1 text-glow-gold tracking-wide uppercase"
+            >
+              {showBalanceInUSD ? "Show in Units" : "Show Valuation in USD"}
+            </button>
           </div>
-          <div className="text-muted-foreground">
-            Referrals linked through your code
-          </div>
-        </CardFooter>
-      </Card>
+        </div>
+        <div className="text-[11px] text-muted-foreground border-t border-white/5 pt-3 mt-4 flex items-center gap-1.5">
+          <span>Active package capital</span>
+        </div>
+      </div>
 
-      {/* Equity Units Balance */}
-      <Card className="@container/card">
-        <CardHeader className="relative">
-          <CardDescription>Total Balance</CardDescription>
-          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {formatValue(user?.equityUnits || 0, showBalanceInUSD)}
-          </CardTitle>
-          <p
-            className="text-[12px] text-[#282828] cursor-pointer underline"
-            onClick={() => setShowBalanceInUSD(!showBalanceInUSD)}
-          >
-            {showBalanceInUSD
-              ? "Click to see in Equity Units"
-              : "Tap to see valuation in $"}
-          </p>
-          <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingUpIcon className="size-3" />
-              +4.5%
-            </Badge>
+      {/* 5. Wallet Balance */}
+      <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/50 hover:border-primary/20 backdrop-blur-xl p-6 transition-all duration-300 group shadow-2xl flex flex-col justify-between">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Wallet Balance</span>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-primary shrink-0">
+              <Wallet className="h-4 w-4" />
+            </div>
           </div>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Based on all deposits and returns{" "}
-            <TrendingUpIcon className="size-4" />
+          <div>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-foreground group-hover:text-primary transition-colors duration-300">
+              ${user?.balance?.toLocaleString() || 0}
+            </h3>
+            <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wide">
+              Available liquid USD
+            </p>
           </div>
-          <div className="text-muted-foreground">
-            This is your overall balance
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader className="relative">
-          <CardDescription>Wallet Balance</CardDescription>
-          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            ${user?.balance || 0}
-          </CardTitle>
-          {/* <p
-            className="text-[12px] text-[#282828] cursor-pointer underline"
-            onClick={() => setShowBalanceInUSD(!showBalanceInUSD)}
-          >
-            {showBalanceInUSD
-              ? "Click to see in Equity Units"
-              : "Tap to see valuation in $"}
-          </p> */}
-          <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingUpIcon className="size-3" />
-              +4.5%
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Based on all deposits and returns{" "}
-            <TrendingUpIcon className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            This is your overall balance
-          </div>
-        </CardFooter>
-      </Card>
-    
-    
+        </div>
+        <div className="text-[11px] text-muted-foreground border-t border-white/5 pt-3 mt-4 flex items-center gap-1.5">
+          <span>Ready for purchase/deposit</span>
+        </div>
+      </div>
     </div>
   );
 }

@@ -89,8 +89,8 @@ export default {
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		},
 		fontFamily: {
-			heading: ['Playfair Display', 'serif'],
-			body: ['Lato', 'sans-serif'],
+			heading: ["var(--font-geist-sans)", "Outfit", "Inter", "sans-serif"],
+			body: ["var(--font-geist-sans)", "Inter", "sans-serif"],
 		} 
   	}
   },

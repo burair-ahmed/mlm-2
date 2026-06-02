@@ -4,8 +4,6 @@ import LongTermIndustry from "../../../../../models/LongTermIndustry";
 
 // POST API - Create a New Long-Term Industry Package
 export async function POST(req: NextRequest) {
-  await dbConnect();
-
   try {
     const body = await req.json();
     // console.log("Received Body:", body);
@@ -14,6 +12,12 @@ export async function POST(req: NextRequest) {
     if (!body.name || !body.category || !body.totalUnits || !body.equityUnits || !body.minHoldingPeriod || !body.minHoldingPeriodUnit) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ message: "Industry Package created successfully! (Mock Mode)", data: { ...body, _id: "mock-" + Date.now() } }, { status: 201 });
+    }
+
+    await dbConnect();
 
     // Create a new industry package
     const packageData = new LongTermIndustry({
@@ -43,9 +47,44 @@ export async function POST(req: NextRequest) {
 
 // GET API - Fetch All Long-Term Industry Packages
 export async function GET() {
-  await dbConnect();
-
   try {
+    if (!process.env.MONGODB_URI) {
+      const mockIndustryPackages = [
+        {
+          _id: "mock-industry-pkg-1",
+          name: "Solar Farm Infrastructure",
+          category: "industrial-materials",
+          totalUnits: 1500,
+          availableUnits: 1200,
+          equityUnits: 50,
+          estimatedReturn: 18,
+          minHoldingPeriod: 12,
+          minHoldingPeriodUnit: "months",
+          buybackOption: true,
+          resaleAllowed: true,
+          image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=600&q=80",
+          createdAt: new Date(),
+        },
+        {
+          _id: "mock-industry-pkg-2",
+          name: "Automated Assembly Line",
+          category: "automobiles",
+          totalUnits: 800,
+          availableUnits: 650,
+          equityUnits: 120,
+          estimatedReturn: 22,
+          minHoldingPeriod: 18,
+          minHoldingPeriodUnit: "months",
+          buybackOption: false,
+          resaleAllowed: true,
+          image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80",
+          createdAt: new Date(),
+        }
+      ];
+      return NextResponse.json(mockIndustryPackages, { status: 200 });
+    }
+
+    await dbConnect();
     const packages = await LongTermIndustry.find({});
     return NextResponse.json(packages, { status: 200 });
   } catch (error) {

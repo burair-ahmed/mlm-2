@@ -1,19 +1,26 @@
+"use client";
+
 import { SectionCards } from "@/components/section-cards";
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import TransactionHistory from "../TransactionHistory";
 
 export default function Dashboard() {
-    return (
-        <div className="flex flex-1 flex-col">
-        <div className="@container/main flex flex-1 flex-col gap-2">
-          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-            <SectionCards />
-            <div className="px-4 lg:px-6">
-              {/* <ChartAreaInteractive /> */}
-<TransactionHistory />
-            </div>
-            {/* <DataTable data={data} /> */}
-          </div>
+  return (
+    <div className="space-y-8">
+      {/* 1. Header cards */}
+      <SectionCards />
+
+      {/* 2. Chart analytics section */}
+      <ChartAreaInteractive />
+
+      {/* 3. Transaction history */}
+      <div className="rounded-3xl border border-white/5 bg-slate-900/20 backdrop-blur-xl p-6 md:p-8 shadow-2xl">
+        <div className="space-y-1 mb-6">
+          <h3 className="text-xl font-bold text-foreground">Transaction Logs</h3>
+          <p className="text-xs text-muted-foreground">List of your latest deposits, purchases, withdrawals, and commissions.</p>
         </div>
+        <TransactionHistory />
       </div>
-    )
+    </div>
+  );
 }

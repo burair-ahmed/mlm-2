@@ -24,10 +24,16 @@ interface CustomSidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   tabs: SidebarTab[];
+  isAdminView?: boolean;
 }
 
-export function CustomSidebar({ activeTab, setActiveTab, tabs }: CustomSidebarProps) {
+export function CustomSidebar({ activeTab, setActiveTab, tabs, isAdminView = false }: CustomSidebarProps) {
   const { user, logout } = useAuth();
+  const hasPermission = (permission: string) => {
+    if (!user) return false;
+    if (user.isAdmin || user.role === "admin" || user.role === "Super Admin") return true;
+    return user.customPermissions?.includes(permission) || false;
+  };
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -37,19 +43,66 @@ export function CustomSidebar({ activeTab, setActiveTab, tabs }: CustomSidebarPr
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
   const toggleMobileSidebar = () => setIsMobileOpen(!isMobileOpen);
 
-  // Group tabs into User and Admin console categories
-  const adminTabTitles = [
-    "Assign Roles",
-    "Equity Packages",
-    "KYC Requests",
-    "Withdrawal Requests",
-    "Role Management",
-    "Permission Management",
-    "Admin Profit"
-  ];
+  const renderTabList = () => {
+    if (isAdminView) {
+      return (
+        <div className="space-y-1.5">
+          {!isCollapsed && (
+            <span className="text-[10px] font-bold text-accent uppercase tracking-wider px-4 text-glow-gold">
+              Admin Panel
+            </span>
+          )}
+          <div className="space-y-1">
+            {tabs.map(renderTabButton)}
+          </div>
+        </div>
+      );
+    }
 
-  const userTabs = tabs.filter(tab => !adminTabTitles.includes(tab.title));
-  const adminTabs = tabs.filter(tab => adminTabTitles.includes(tab.title));
+    const adminTabTitles = [
+      "Assign Roles",
+      "Equity Packages",
+      "KYC Requests",
+      "Withdrawal Requests",
+      "Role Management",
+      "Permission Management",
+      "Admin Profit",
+      "Deposit Requests"
+    ];
+
+    const userTabs = tabs.filter(tab => !adminTabTitles.includes(tab.title));
+    const adminTabs = tabs.filter(tab => adminTabTitles.includes(tab.title));
+
+    return (
+      <>
+        {/* User Workspace Section */}
+        <div className="space-y-1.5">
+          {!isCollapsed && (
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-4">
+              Workspace
+            </span>
+          )}
+          <div className="space-y-1">
+            {userTabs.map(renderTabButton)}
+          </div>
+        </div>
+
+        {/* Admin Console Section (only if admin tabs exist in standard view) */}
+        {adminTabs.length > 0 && (
+          <div className="space-y-1.5">
+            {!isCollapsed && (
+              <span className="text-[10px] font-bold text-accent uppercase tracking-wider px-4 text-glow-gold">
+                Admin Panel
+              </span>
+            )}
+            <div className="space-y-1">
+              {adminTabs.map(renderTabButton)}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
 
   const renderTabButton = (tab: SidebarTab) => {
     const Icon = tab.icon;
@@ -107,9 +160,9 @@ export function CustomSidebar({ activeTab, setActiveTab, tabs }: CustomSidebarPr
               <TrendingUp className="h-5 w-5 text-white" />
             </div>
             {!isCollapsed && (
-              <span className="font-bold text-base bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Al Ashraf
-              </span>
+                <span className="font-bold text-base bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {isAdminView ? "Al Ashraf Admin" : "Al Ashraf"}
+                </span>
             )}
           </Link>
 
@@ -123,45 +176,23 @@ export function CustomSidebar({ activeTab, setActiveTab, tabs }: CustomSidebarPr
         </div>
 
         {/* Quick Deposit button */}
-        <div className="p-4 border-b border-white/5">
-          <button
-            onClick={() => setActiveTab("Deposit")}
-            className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-primary to-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20 ${
-              isCollapsed ? "px-2" : ""
-            }`}
-          >
-            <LayoutDashboard className="h-4 w-4 text-white" />
-            {!isCollapsed && <span className="text-white">Quick Deposit</span>}
-          </button>
-        </div>
+        {!isAdminView && hasPermission("request_deposit") && (
+          <div className="p-4 border-b border-white/5">
+            <button
+              onClick={() => setActiveTab("Deposit")}
+              className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-primary to-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20 ${
+                isCollapsed ? "px-2" : ""
+              }`}
+            >
+              <LayoutDashboard className="h-4 w-4 text-white" />
+              {!isCollapsed && <span className="text-white">Quick Deposit</span>}
+            </button>
+          </div>
+        )}
 
         {/* Tabs / Navigation Section */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin">
-          {/* User Workspace Section */}
-          <div className="space-y-1.5">
-            {!isCollapsed && (
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-4">
-                Workspace
-              </span>
-            )}
-            <div className="space-y-1">
-              {userTabs.map(renderTabButton)}
-            </div>
-          </div>
-
-          {/* Admin Console Section (only if admin tabs exist) */}
-          {adminTabs.length > 0 && (
-            <div className="space-y-1.5">
-              {!isCollapsed && (
-                <span className="text-[10px] font-bold text-accent uppercase tracking-wider px-4 text-glow-gold">
-                  Admin Panel
-                </span>
-              )}
-              <div className="space-y-1">
-                {adminTabs.map(renderTabButton)}
-              </div>
-            </div>
-          )}
+          {renderTabList()}
         </div>
 
         {/* Footer / User Profile Section */}
@@ -208,16 +239,37 @@ export function CustomSidebar({ activeTab, setActiveTab, tabs }: CustomSidebarPr
               <div className={`absolute z-50 bottom-16 left-4 right-4 p-2 rounded-2xl border border-white/10 glass-panel shadow-2xl space-y-1 ${
                 isCollapsed ? "w-48 left-16" : ""
               }`}>
-                <button
-                  onClick={() => {
-                    setActiveTab("Account");
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:bg-white/5 hover:text-foreground transition-all duration-300"
-                >
-                  <UserIcon className="h-4 w-4" />
-                  My Profile
-                </button>
+                {hasPermission("view_account") && (
+                  <button
+                    onClick={() => {
+                      setActiveTab("Account");
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:bg-white/5 hover:text-foreground transition-all duration-300"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                    My Profile
+                  </button>
+                )}
+                {isAdminView ? (
+                  <Link
+                    href="/user"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-accent hover:bg-white/5 hover:text-foreground transition-all duration-300"
+                  >
+                    <LayoutDashboard className="h-4 w-4 text-accent text-glow-gold" />
+                    User Workspace
+                  </Link>
+                ) : (
+                  (user.isAdmin || user.role === "admin" || user.role === "Super Admin" || user.customPermissions?.includes("access_admin_dashboard")) && (
+                    <Link
+                      href="/admin"
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-accent hover:bg-white/5 hover:text-foreground transition-all duration-300"
+                    >
+                      <LayoutDashboard className="h-4 w-4 text-accent text-glow-gold" />
+                      Admin Panel
+                    </Link>
+                  )
+                )}
                 <div className="h-px bg-white/5 my-1" />
                 <button
                   onClick={() => {

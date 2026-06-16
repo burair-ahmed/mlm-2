@@ -71,12 +71,14 @@ export default function AssignRoleToUser() {
     currentPage * usersPerPage
   );
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers = { Authorization: `Bearer ${token}` };
+  const getHeaders = () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    return { Authorization: `Bearer ${token}` };
+  };
 
   useEffect(() => {
     const fetchData = async () => {
+      const headers = getHeaders();
       try {
         const [userRes, permRes, roleRes] = await Promise.all([
           axios.get("/api/admin/users", { headers }),
@@ -90,7 +92,14 @@ export default function AssignRoleToUser() {
 
         setSelectedRoles(
           userRes.data.reduce((acc: Record<string, string>, user: User) => {
-            if (user.role) acc[user._id] = user.role;
+            if (user.role) {
+              if (user.role === "custom") {
+                acc[user._id] = "custom";
+              } else {
+                const foundRole = roleRes.data.find((r: Role) => r.name === user.role);
+                acc[user._id] = foundRole ? foundRole._id : user.role;
+              }
+            }
             return acc;
           }, {})
         );
@@ -120,7 +129,7 @@ export default function AssignRoleToUser() {
       const res = await axios.put(
         `/api/admin/users/${userId}/role`,
         { roleId },
-        { headers }
+        { headers: getHeaders() }
       );
       const updatedUser = res.data;
 
@@ -142,13 +151,14 @@ export default function AssignRoleToUser() {
           roleId: "custom",
           permissions: selected,
         },
-        { headers }
+        { headers: getHeaders() }
       );
 
       const updatedUser = res.data;
       toast.success("Custom role assigned");
       setCustomOpenUserId(null);
       setUsers((prev) => prev.map((u) => (u._id === userId ? updatedUser : u)));
+      setSelectedRoles((prev) => ({ ...prev, [userId]: "custom" }));
     } catch {
       toast.error("Failed to assign custom role");
     }
@@ -192,7 +202,9 @@ export default function AssignRoleToUser() {
                         {selectedRoles[user._id]
                           ? selectedRoles[user._id] === "custom"
                             ? "Custom"
-                            : roles.find((r) => r._id === selectedRoles[user._id])?.name
+                            : (roles.find((r) => r._id === selectedRoles[user._id])?.name ||
+                               roles.find((r) => r.name === selectedRoles[user._id])?.name ||
+                               selectedRoles[user._id])
                           : user.role || "Select Role"}
                       </Button>
                     </DropdownMenuTrigger>

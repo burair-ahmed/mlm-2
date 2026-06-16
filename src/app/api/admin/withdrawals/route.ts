@@ -3,11 +3,15 @@ import Withdrawal from '../../../../../models/Withdrawal';
 import User from '../../../../../models/User';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
+import { hasPermission } from '../../../../../lib/auth/permissionUtils';
 
 export async function PUT(req: NextRequest) {
   const auth = await authenticate(req);
-  if (auth instanceof NextResponse || !auth.isAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (auth instanceof NextResponse) return auth;
+
+  const allowed = await hasPermission(auth, 'handle_withdrawals');
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   await dbConnect();

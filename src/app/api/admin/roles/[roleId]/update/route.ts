@@ -3,13 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../../../../../../lib/dbConnect';
 import Role from '../../../../../../../models/Role';
 import { authenticate } from '../../../../../../../middleware/auth';
+import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
 import mongoose from 'mongoose';
 
 export async function PUT(req: NextRequest, { params }: { params: { roleId: string } }) {
-
   const auth = await authenticate(req);
-  if (!auth || !auth.isAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (auth instanceof NextResponse) return auth;
+
+  const allowed = await hasPermission(auth, 'manage_roles');
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   await dbConnect();

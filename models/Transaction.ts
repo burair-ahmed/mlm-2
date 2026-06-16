@@ -6,7 +6,7 @@ await dbConnect();
 export interface ITransaction extends Document {
   userId: mongoose.Types.ObjectId;
   amount: number;
-  type: 'deposit' | 'purchase' | 'commission' | 'equity_purchase'| 'cash_to_equity' | 'profit-withdrawal';
+  type: 'deposit' | 'purchase' | 'commission' | 'equity_purchase'| 'cash_to_equity' | 'profit-withdrawal' | 'profit' | 'resale';
   equityUnits: number;
   referralLevel?: number;
   description?: string;
@@ -19,7 +19,7 @@ const TransactionSchema: Schema = new Schema({
   amount: { type: Number, required: true },
   type: { 
     type: String, 
-    enum: ['deposit', 'purchase', 'commission', 'equity_purchase', 'cash_to_equity', 'profit-withdrawal'], 
+    enum: ['deposit', 'purchase', 'commission', 'equity_purchase', 'cash_to_equity', 'profit-withdrawal', 'profit', 'resale'], 
     required: true 
   },  
   equityUnits: { type: Number, required: true, default: 0 },

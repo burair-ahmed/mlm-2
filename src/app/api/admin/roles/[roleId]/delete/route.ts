@@ -9,14 +9,11 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { roleId: string } }
 ) {
-  // 1) Authenticate
+  // 1) Authenticate & Authorize
   const auth = await authenticate(req);
-  if (!auth || !auth.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (auth instanceof NextResponse) return auth;
 
-  // 2) Permission check
-  const allowed = await hasPermission(auth.user, 'manage_roles');
+  const allowed = await hasPermission(auth, 'manage_roles');
   if (!allowed) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

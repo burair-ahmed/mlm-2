@@ -15,11 +15,20 @@ type ChartDataPoint = {
 export function ChartAreaInteractive() {
   const [timeRange, setTimeRange] = React.useState("30d");
   const [data, setData] = React.useState<ChartDataPoint[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(`/api/chart-data?days=${timeRange.replace("d", "")}`);
+        const token = localStorage.getItem("token");
+        const headers: HeadersInit = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+        const res = await fetch(`/api/chart-data?days=${timeRange.replace("d", "")}`, {
+          headers,
+        });
         const json = await res.json();
 
         if (res.ok && Array.isArray(json)) {
@@ -30,6 +39,8 @@ export function ChartAreaInteractive() {
       } catch (error) {
         console.error("Error fetching chart data:", error);
         setData([]);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -116,9 +127,13 @@ export function ChartAreaInteractive() {
 
       {/* Recharts Container */}
       <div className="h-[300px] w-full pt-4">
-        {data.length === 0 ? (
+        {loading ? (
           <div className="h-full flex items-center justify-center text-sm text-muted-foreground animate-pulse">
             Loading analytics data...
+          </div>
+        ) : data.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+            No transaction data available for this period.
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">

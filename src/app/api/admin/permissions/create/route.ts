@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../../../../../lib/dbConnect';
 import Permission from '../../../../../../models/Permission';
 import { authenticate } from '../../../../../../middleware/auth';
+import { hasPermission } from '../../../../../../lib/auth/permissionUtils';
 
 export async function POST(req: NextRequest) {
   const auth = await authenticate(req);
-  if (!auth || !auth.isAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (auth instanceof NextResponse) return auth;
+
+  const allowed = await hasPermission(auth, 'create_permission');
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   await dbConnect();

@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "../../../../../lib/dbConnect";
 import LongTermRental from "../../../../../models/LongTermRental";
+import { authenticate } from "../../../../../middleware/auth";
+import { hasPermission } from "../../../../../lib/auth/permissionUtils";
 
 // POST API - Create a New Long-Term Industry Package
 export async function POST(req: NextRequest) {
+  const auth = await authenticate(req);
+  if (auth instanceof NextResponse) return auth;
+
+  const allowed = await hasPermission(auth, 'create_package');
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
     // console.log("Received Body:", body);

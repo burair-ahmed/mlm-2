@@ -7,7 +7,8 @@ import {
   Calendar, 
   Upload, 
   ChevronDown, 
-  Eye 
+  Eye,
+  XCircle 
 } from 'lucide-react';
 
 interface KYCInfo {
@@ -25,6 +26,7 @@ export default function KYCForm({ kyc }: { kyc?: KYCInfo }) {
 
   const isApproved = kyc?.status === 'approved';
   const isPending = kyc?.status === 'pending';
+  const isRejected = kyc?.status === 'rejected';
   
   const [fullName, setFullName] = useState(kyc?.fullName || '');
   const [dateOfBirth, setDateOfBirth] = useState<string>(
@@ -112,6 +114,13 @@ export default function KYCForm({ kyc }: { kyc?: KYCInfo }) {
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-amber-400 text-xs font-semibold">
           <Calendar className="h-5 w-5 shrink-0 text-glow-gold" />
           <span>Your KYC submission is currently under review by compliance. Approval takes up to 24 hours.</span>
+        </div>
+      )}
+
+      {isRejected && (
+        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-400 text-xs font-semibold">
+          <XCircle className="h-5 w-5 shrink-0 text-glow-red" />
+          <span>Your KYC verification was rejected. Please review your documents and details and submit them again.</span>
         </div>
       )}
 

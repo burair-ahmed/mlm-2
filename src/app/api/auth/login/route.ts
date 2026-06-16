@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
-    // Check if MongoDB is configured or if we are using the hardcoded admin credentials
-    if (!process.env.MONGODB_URI || email === 'admin@example.com') {
+    // Check if MongoDB is configured
+    if (!process.env.MONGODB_URI) {
       return NextResponse.json(
         { ...mockUser, email: email || 'admin@example.com', token: 'mock-jwt-token-value' },
         { status: 200 }

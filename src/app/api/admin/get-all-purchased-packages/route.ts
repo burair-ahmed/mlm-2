@@ -6,9 +6,19 @@ import LongTermIndustry from "../../../../../models/LongTermIndustry";
 import TradingPackage from "../../../../../models/TradingPackage";
 // import User from "../../../../../models/User";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(_req: NextRequest) {
-    if (!process.env.MONGODB_URI) {
+import { authenticate } from "../../../../../middleware/auth";
+import { hasPermission } from "../../../../../lib/auth/permissionUtils";
+
+export async function GET(req: NextRequest) {
+  const auth = await authenticate(req);
+  if (auth instanceof NextResponse) return auth;
+
+  const allowed = await hasPermission(auth, "manage_purchased_packages");
+  if (!allowed) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (!process.env.MONGODB_URI) {
       const mockAllPackages = [
         {
           _id: "mock-purchased-1",
@@ -53,6 +63,8 @@ export async function GET(_req: NextRequest) {
         quantity: pkg.quantity,
         equityUnits: pkg.equityUnits,
         purchaseDate: pkg.purchaseDate,
+        profitAmount: pkg.profitAmount || 0,
+        lastProfitDate: pkg.lastProfitDate || null,
         user: {
           _id: pkg.userId?._id,
           name: pkg.userId?.name,

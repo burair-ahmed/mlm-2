@@ -20,6 +20,7 @@ type CommonFields = {
   minHoldingPeriod?: number;
   minHoldingPeriodUnit?: string;
   purchaseDate: string;
+  status?: "active" | "sell-requested" | "sold";
 };
 
 type LongTermRentalPackage = CommonFields & {
@@ -103,7 +104,8 @@ const MyInvestments = () => {
 
         const data = await response.json();
         if (Array.isArray(data.data)) {
-          setPurchasedPackages(data.data);
+          const activePkgs = data.data.filter((pkg: any) => pkg.status !== "sold");
+          setPurchasedPackages(activePkgs);
         } else {
           throw new Error("Invalid API response format");
         }
@@ -142,6 +144,39 @@ const MyInvestments = () => {
       if (!response.ok) throw new Error(result.error || "Withdraw failed");
 
       alert("Profit withdrawn successfully!");
+    } catch (err) {
+      console.error(err);
+      alert((err as Error).message);
+    }
+  };
+
+  const handleRequestSell = async (purchasedPackageId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    if (!confirm("Are you sure you want to request to sell this package? Once submitted, the package cannot be sold or have its yields withdrawn until approved/rejected by an admin.")) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/transactions/request-sell", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ purchasedPackageId }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to submit resale request");
+
+      alert("Resale request submitted successfully!");
+      setPurchasedPackages((prev) =>
+        prev.map((pkg) =>
+          pkg._id === purchasedPackageId ? { ...pkg, status: "sell-requested" } : pkg
+        )
+      );
     } catch (err) {
       console.error(err);
       alert((err as Error).message);
@@ -202,9 +237,16 @@ const MyInvestments = () => {
                     <h4 className="text-base font-extrabold text-foreground group-hover:text-primary transition-colors truncate">
                       {pkg.name}
                     </h4>
-                    <span className="text-[9px] text-accent font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-glow-gold uppercase tracking-wider shrink-0">
-                      {pkg.category}
-                    </span>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className="text-[9px] text-accent font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-glow-gold uppercase tracking-wider">
+                        {pkg.category}
+                      </span>
+                      {pkg.status === "sell-requested" && (
+                        <span className="text-[9px] text-red-400 font-bold px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-glow-red uppercase tracking-wider animate-pulse">
+                          Pending Sell
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Core statistics grid */}
@@ -298,7 +340,7 @@ const MyInvestments = () => {
                   {/* Actions buttons */}
                   <div className="flex gap-2.5">
                     <button
-                      disabled={!pkg.profitAmount}
+                      disabled={!pkg.profitAmount || pkg.status === "sell-requested"}
                       onClick={() => handleWithdraw(pkg._id)}
                       className="flex-1 flex items-center justify-center gap-1 px-2 py-2.5 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 border border-emerald-500/30 text-emerald-400 hover:text-white hover:bg-emerald-500 rounded-xl text-[10px] font-bold transition-all duration-300 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-emerald-400 disabled:cursor-not-allowed"
                     >
@@ -306,23 +348,34 @@ const MyInvestments = () => {
                       Withdraw Yield
                     </button>
 
-                    <button
-                      disabled={!isEligibleToSell}
-                      className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-[10px] font-bold border transition-all duration-300 ${
-                        isEligibleToSell
-                          ? "bg-gradient-to-r from-primary to-primary-foreground text-white border-primary/20 hover:opacity-90 active:scale-[0.98] shadow-lg shadow-primary/20"
-                          : "bg-white/5 text-muted-foreground border-white/5 cursor-not-allowed"
-                      }`}
-                    >
-                      {isEligibleToSell ? (
-                        <span>Request Sell</span>
-                      ) : (
-                        <span className="flex items-center gap-1">
-                          <Lock className="h-3 w-3" />
-                          Locked ({formatTimeLeft(remainingTime)})
-                        </span>
-                      )}
-                    </button>
+                    {pkg.status === "sell-requested" ? (
+                      <button
+                        disabled
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-2.5 bg-white/5 text-muted-foreground border-white/5 cursor-not-allowed rounded-xl text-[10px] font-bold"
+                      >
+                        <Lock className="h-3.5 w-3.5" />
+                        Pending Sell
+                      </button>
+                    ) : (
+                      <button
+                        disabled={!isEligibleToSell}
+                        onClick={() => handleRequestSell(pkg._id)}
+                        className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-[10px] font-bold border transition-all duration-300 ${
+                          isEligibleToSell
+                            ? "bg-gradient-to-r from-primary to-primary-foreground text-white border-primary/20 hover:opacity-90 active:scale-[0.98] shadow-lg shadow-primary/25"
+                            : "bg-white/5 text-muted-foreground border-white/5 cursor-not-allowed"
+                        }`}
+                      >
+                        {isEligibleToSell ? (
+                          <span>Request Sell</span>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <Lock className="h-3 w-3" />
+                            Locked ({formatTimeLeft(remainingTime)})
+                          </span>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

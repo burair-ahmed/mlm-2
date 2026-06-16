@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import dbConnect from "../lib/dbConnect";
 import PurchasedPackage from "../models/PurchasedPackage";
 import LongTermRental from "../models/LongTermRental";
+import User from "../models/User";
+import Transaction from "../models/Transaction";
 import { differenceInMilliseconds } from "date-fns";
 
 const getHoldingPeriodInMs = (value: number, unit: string) => {
@@ -44,8 +46,26 @@ export default async function handler() {
     if (elapsedMs >= holdingPeriodMs) {
       const profitToAdd = (pkg.equityUnits * rentalPackage.returnPercentage) / 100;
 
+      // Update package profit amount and date
       pkg.profitAmount += profitToAdd;
       pkg.lastProfitDate = now;
+
+      // Credit the owner user's balance
+      const ownerUser = await User.findById(pkg.userId);
+      if (ownerUser) {
+        ownerUser.balance += profitToAdd;
+        await ownerUser.save();
+
+        // Create transaction
+        const profitTx = new Transaction({
+          userId: ownerUser._id,
+          amount: profitToAdd,
+          type: "profit",
+          description: `Automated rental payout of $${profitToAdd.toFixed(2)} for package: ${rentalPackage.name}`,
+        });
+        await profitTx.save();
+        console.log(`✅ Profit balance and transaction credited to user ${ownerUser.email}`);
+      }
 
       await pkg.save();
       console.log(`✅ Profit added to ${pkg._id}: ${profitToAdd}`);

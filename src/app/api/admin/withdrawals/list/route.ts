@@ -4,8 +4,19 @@ import dbConnect from '../../../../../../lib/dbConnect';
 import WithdrawalRequest from '../../../../../../models/WithdrawalRequest';
 import User from '../../../../../../models/User';
 
+import { authenticate } from '../../../../../../middleware/auth';
+import { hasPermission } from '../../../../../../lib/auth/permissionUtils';
+
 {/*  eslint-disable-next-line @typescript-eslint/no-unused-vars */}
 export async function GET(req: NextRequest) {
+  const auth = await authenticate(req);
+  if (auth instanceof NextResponse) return auth;
+
+  const allowed = await hasPermission(auth, 'view_withdrawals');
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     await dbConnect();
 

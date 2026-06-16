@@ -23,15 +23,53 @@ export async function GET(req: NextRequest) {
 
     const grouped: Record<string, Record<string, number>> = {}
 
+    // Pre-populate all dates in range with zero values for nice continuous charts
+    for (let i = 0; i <= days; i++) {
+      const dateStr = startOfDay(subDays(new Date(), i)).toISOString().split('T')[0]
+      grouped[dateStr] = {
+        deposit: 0,
+        purchase: 0,
+        commission: 0,
+        withdrawal: 0
+      }
+    }
+
     for (const tx of transactions) {
       const date = startOfDay(new Date(tx.createdAt)).toISOString().split('T')[0]
-      const type = tx.type
-      const amount = tx.amount || 0
+      let chartType = tx.type
 
-      if (!grouped[date]) grouped[date] = {}
-      if (!grouped[date][type]) grouped[date][type] = 0
+      // Map DB types to Chart types
+      if (tx.type === 'profit-withdrawal' || tx.type === 'withdrawal') {
+        chartType = 'withdrawal'
+      } else if (tx.type === 'equity_purchase' || tx.type === 'cash_to_equity' || tx.type === 'purchase') {
+        chartType = 'purchase'
+      } else if (tx.type === 'deposit') {
+        chartType = 'deposit'
+      } else if (tx.type === 'commission') {
+        chartType = 'commission'
+      } else {
+        continue // Skip unknown transaction types
+      }
 
-      grouped[date][type] += amount
+      // Calculate USD value:
+      // If amount is non-zero, use absolute value of amount. Otherwise fall back to equityUnits * 10
+      let usdValue = 0
+      if (tx.amount && tx.amount !== 0) {
+        usdValue = Math.abs(tx.amount)
+      } else if (tx.equityUnits && tx.equityUnits !== 0) {
+        usdValue = tx.equityUnits * 10
+      }
+
+      if (!grouped[date]) {
+        grouped[date] = {
+          deposit: 0,
+          purchase: 0,
+          commission: 0,
+          withdrawal: 0
+        }
+      }
+
+      grouped[date][chartType] += usdValue
     }
 
     const result = Object.entries(grouped)

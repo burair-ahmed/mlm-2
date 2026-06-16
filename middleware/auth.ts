@@ -37,6 +37,7 @@ export async function authenticate(req: NextRequest) {
       "create_package",
       "approve_kyc",
       "handle_withdrawals",
+      "handle_deposits",
       "manage_roles",
       "create_permission",
       "profit_update",
@@ -74,7 +75,7 @@ export async function authenticate(req: NextRequest) {
   } catch (error) {
     console.error('Authentication error, falling back to mock user:', error);
     // If it's a db connection error or token parsing issue in local development, fall back to mockUser
-    if (token) {
+    if (token && !process.env.MONGODB_URI) {
       return mockUser;
     }
     return NextResponse.json(

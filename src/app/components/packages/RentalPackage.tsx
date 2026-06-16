@@ -180,7 +180,7 @@ export default function RentalPackage() {
                 {/* Footer details */}
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span>Available: {pkg.availableUnits} / {pkg.totalUnits} Units</span>
-                  <span>Duration: {pkg.duration.value} {pkg.duration.unit}</span>
+                  <span>Duration: {pkg.duration?.value ?? 'N/A'} {pkg.duration?.unit ?? ''}</span>
                 </div>
 
                 {/* Invest Now trigger button */}
@@ -239,7 +239,7 @@ export default function RentalPackage() {
                 <div className="space-y-1 pt-2 border-t border-white/5 border-l pl-4">
                   <p className="text-[10px] font-medium text-muted-foreground uppercase">Lease Term</p>
                   <p className="text-sm font-bold text-foreground">
-                    {selectedPackage.duration.value} {selectedPackage.duration.unit}
+                    {selectedPackage.duration?.value ?? 'N/A'} {selectedPackage.duration?.unit ?? ''}
                   </p>
                 </div>
               </div>

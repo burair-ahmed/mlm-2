@@ -11,6 +11,7 @@ interface IPurchasedPackage extends Document {
   profitAmount: number;
   fixedReturnPercentage?: number; // Added for long-term rental packages with fixed returns
   lastProfitDate?: Date;
+  status?: "active" | "sell-requested" | "sold";
 }
 
 const PurchasedPackageSchema = new Schema<IPurchasedPackage>({
@@ -54,6 +55,11 @@ const PurchasedPackageSchema = new Schema<IPurchasedPackage>({
   purchaseDate: { type: Date, default: Date.now },
   fixedReturnPercentage: { type: Number, default: 0 }, // New field for fixed returns in rental packages
   lastProfitDate: { type: Date, default: null },
+  status: {
+    type: String,
+    enum: ["active", "sell-requested", "sold"],
+    default: "active",
+  },
 });
 
 // Set up the `profitAmount` field dynamically based on package type

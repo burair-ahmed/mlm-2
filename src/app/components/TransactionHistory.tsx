@@ -10,7 +10,7 @@ import {
   CustomTableHead, 
   CustomTableCell 
 } from "@/components/custom/CustomTable";
-import { ArrowLeftRight, ArrowDownLeft, ArrowUpRight, Calendar, Info } from "lucide-react";
+import { ArrowLeftRight, ArrowDownLeft, ArrowUpRight, Calendar, Info, TrendingUp } from "lucide-react";
 
 interface Transaction {
   _id: string;
@@ -69,7 +69,7 @@ export default function TransactionHistory() {
     fetchTransactions();
   }, [user, activeType, page]);
 
-  const staticTypeOrder = ["all", "deposit", "purchase", "commission", "profit-withdrawal", "cash_to_equity"];
+  const staticTypeOrder = ["all", "deposit", "purchase", "commission", "profit-withdrawal", "cash_to_equity", "profit"];
   const transactionTypes = staticTypeOrder.filter((type) => type === "all" || transactionCounts[type] > 0);
 
   const getAmountDisplay = (tx: Transaction) => {
@@ -79,6 +79,13 @@ export default function TransactionHistory() {
   };
 
   const getTxTypeStyle = (type: string) => {
+    if (type === "profit") {
+      return {
+        badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-glow-emerald",
+        text: "text-emerald-400 font-bold",
+        icon: <TrendingUp className="h-4.5 w-4.5 text-emerald-400" />,
+      };
+    }
     if (type === "commission" || type === "deposit") {
       return {
         badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-glow-emerald",

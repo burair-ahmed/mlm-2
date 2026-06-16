@@ -3,10 +3,17 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '../../../../../lib/dbConnect';
 import User from '../../../../../models/User';
 import Role from '../../../../../models/Role';
-// import Permission from '../../../../../models/Permission';
+import Permission from '../../../../../models/Permission';
 import { generateReferralCode } from '../../../../../utils/referral';
 
 export async function POST(request: NextRequest) {
+  if (!process.env.MONGODB_URI) {
+    return NextResponse.json(
+      { message: 'User created successfully (Mock Mode)', userId: 'mock-new-user-id' },
+      { status: 201 }
+    );
+  }
+
   await dbConnect();
 
   try {
@@ -22,9 +29,32 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Find default role: "User"
-    const defaultRole = await Role.findOne({ name: 'User' }).populate('permissions');
+    let defaultRole = await Role.findOne({ name: 'User' }).populate('permissions');
     if (!defaultRole) {
-      return NextResponse.json({ error: 'Default role not found' }, { status: 500 });
+      // Auto-seed default permissions and the "User" role if it doesn't exist
+      const defaultPermissionData = [
+        { slug: "view_investments", label: "View Investments" },
+        { slug: "view_account", label: "View Account" },
+        { slug: "request_withdrawal", label: "Request Withdrawal" },
+        { slug: "view_referrals", label: "View Referrals" }
+      ];
+
+      const permissionIds = [];
+      for (const p of defaultPermissionData) {
+        let perm = await Permission.findOne({ slug: p.slug });
+        if (!perm) {
+          perm = await Permission.create(p);
+        }
+        permissionIds.push(perm._id);
+      }
+
+      defaultRole = await Role.create({
+        name: 'User',
+        permissions: permissionIds
+      });
+
+      // Populate permissions to match the expected return
+      defaultRole = await defaultRole.populate('permissions');
     }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rolePermissionSlugs = defaultRole.permissions.map((p: any) => p.slug);

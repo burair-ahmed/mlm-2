@@ -6,14 +6,11 @@ import { authenticate } from '../../../../../../middleware/auth';
 import { hasPermission } from '../../../../../../lib/auth/permissionUtils';
 
 export async function POST(req: NextRequest) {
-  // 1) Authenticate and check admin flag
+  // 1) Authenticate & Authorize
   const auth = await authenticate(req);
-  if (!auth || !auth.isAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (auth instanceof NextResponse) return auth;
 
-  // 2) Check the manage_roles permission
-  const allowed = await hasPermission(auth.user, 'manage_roles');
+  const allowed = await hasPermission(auth, 'manage_roles');
   if (!allowed) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

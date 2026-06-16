@@ -4,15 +4,21 @@ import User from '../../../../../../../models/User';
 import Role from '../../../../../../../models/Role';
 import Permission from '../../../../../../../models/Permission';
 import { authenticate } from '../../../../../../../middleware/auth';
+import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
 
-export async function PUT(req: NextRequest, context: { params: { userId: string } }) {
+export async function PUT(req: NextRequest, context: { params: Promise<{ userId: string }> }) {
   // Authenticate admin user
   const auth = await authenticate(req);
-  if (!auth || !auth.isAdmin) {
+  if (!auth || auth instanceof NextResponse) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { userId } = context.params;
+  const allowed = await hasPermission(auth, 'assign_roles');
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const { userId } = await context.params;
 
   if (!userId) {
     return NextResponse.json({ error: 'User ID not provided' }, { status: 400 });

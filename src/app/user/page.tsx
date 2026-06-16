@@ -16,13 +16,6 @@ import Settings from "../components/user/settings";
 import { IUser } from "../../../models/User";
 import KYCForm from "../components/user/kyc/KYCForm";
 import WithdrawalForm from "../components/user/WithdrawalForm";
-import AssignRoleToUser from "../components/admin/roles/AssignRoleToUser";
-import AdminEquityPackages from "../components/AdminEquityPackages";
-import AdminKYCRequests from "../components/admin/AdminKYCRequests";
-import AdminWithdrawalsTable from "../components/admin/AdminWithdrawalsTable";
-import RoleManagement from "../components/admin/roles/RoleManagement";
-import PermissionManagement from "../components/admin/roles/PermissionManagement";
-import AdminProfitUpdate from "../components/admin/AdminProfitUpdate";
 import RequestDeposit from "../components/requestDeposit/component";
 import GetHelp from "../components/user/GetHelp";
 import Link from "next/link";
@@ -34,13 +27,7 @@ import {
   FileCheck,
   FolderOpen,
   ArrowDownUp,
-  UserPlus,
-  Package,
-  Layers,
-  Banknote,
   ShieldAlert,
-  Sliders,
-  DollarSign,
   TrendingUp,
 } from "lucide-react";
 
@@ -74,53 +61,43 @@ export default function UserWorkspacePage() {
 
   if (!user) return null;
 
-  const hasPermission = (permission: string) => {
+  const tabPermissions: Record<string, string> = {
+    "Dashboard": "view_dashboard",
+    "Active Packages": "view_investments",
+    "Commission History": "view_commissions",
+    "Referrals": "view_referrals",
+    "Equity Units Converter": "convert_units",
+    "KYC": "view_kyc",
+    "Request Withdrawal": "request_withdrawal",
+    "Deposit": "request_deposit",
+    "Account": "view_account",
+    "Settings": "manage_settings",
+    "Get Help": "get_help",
+  };
+
+  const hasPermission = (tabTitle: string) => {
     // Admins always have access to all tabs
-    if (user.isAdmin || user.role === "admin") return true;
+    if (user.isAdmin || user.role === "admin" || user.role === "Super Admin") return true;
 
-    const defaultUserTabs = [
-      "Dashboard",
-      "Commission History",
-      "Referrals",
-      "KYC",
-      "Active Packages",
-      "Equity Units Converter",
-      "Request Withdrawal",
-      "Deposit",
-      "Account",
-      "Settings",
-      "Get Help",
-    ];
+    // Dashboard and Get Help are open by default to all logged-in users
+    if (tabTitle === "Dashboard" || tabTitle === "Get Help") return true;
 
-    const tab = sidebarTabs.find(
-      (t) => t.permission === permission || t.title === permission
-    );
-    if (tab && defaultUserTabs.includes(tab.title)) {
-      return true;
-    }
+    const requiredPermission = tabPermissions[tabTitle];
+    if (!requiredPermission) return false;
 
-    return user.customPermissions?.includes(permission) || false;
+    return user.customPermissions?.includes(requiredPermission) || false;
   };
 
   const sidebarTabs = [
-    { title: "Dashboard", icon: LayoutDashboard, permission: "access_admin_dashboard" },
+    { title: "Dashboard", icon: LayoutDashboard, permission: "view_dashboard" },
     { title: "Active Packages", icon: FolderOpen, permission: "view_investments" },
     { title: "Commission History", icon: BarChart3, permission: "view_commissions" },
     { title: "Referrals", icon: Users, permission: "view_referrals" },
     { title: "Equity Units Converter", icon: ArrowDownUp, permission: "convert_units" },
     { title: "KYC", icon: FileCheck, permission: "view_kyc" },
-    
-    // Admin Panels
-    { title: "Assign Roles", icon: UserPlus, permission: "assign_roles" },
-    { title: "Equity Packages", icon: Package, permission: "create_package" },
-    { title: "KYC Requests", icon: Layers, permission: "approve_kyc" },
-    { title: "Withdrawal Requests", icon: Banknote, permission: "handle_withdrawals" },
-    { title: "Role Management", icon: ShieldAlert, permission: "manage_roles" },
-    { title: "Permission Management", icon: Sliders, permission: "create_permission" },
-    { title: "Admin Profit", icon: DollarSign, permission: "profit_update" },
   ];
 
-  const allowedTabs = sidebarTabs.filter((tab) => hasPermission(tab.permission));
+  const allowedTabs = sidebarTabs.filter((tab) => hasPermission(tab.title));
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
@@ -145,58 +122,58 @@ export default function UserWorkspacePage() {
 
         {/* Main Content Area */}
         <main className="flex-1 p-6 md:p-8 overflow-y-auto">
-          {activeTab === "Dashboard" && <Dashboard />}
-
-          {activeTab === "Commission History" && (
-            <div className="space-y-6">
-              <ReferralInfo referralLink={referralLink} referralCode={referralCode} />
-              <CommissionHistory />
-            </div>
-          )}
-
-          {activeTab === "Referrals" && (
-            <div className="space-y-6">
-              <ReferralInfo referralLink={referralLink} referralCode={referralCode} />
-              <HierarchyTree />
-            </div>
-          )}
-
-          {activeTab === "Active Packages" && <MyInvestments />}
-
-          {activeTab === "Equity Units Converter" && <BuyEquityUnitsForm />}
-
-          {activeTab === "Account" && <Account user={user as IUser} />}
-
-          {activeTab === "Settings" && <Settings />}
-
-          {activeTab === "Get Help" && <GetHelp />}
-
-          {activeTab === "KYC" && <KYCForm kyc={user.kyc} />}
-
-          {activeTab === "Request Withdrawal" && <WithdrawalForm />}
-
-          {activeTab === "Assign Roles" && <AssignRoleToUser />}
-
-          {activeTab === "Equity Packages" && <AdminEquityPackages />}
-
-          {activeTab === "KYC Requests" && <AdminKYCRequests />}
-
-          {activeTab === "Withdrawal Requests" && <AdminWithdrawalsTable />}
-
-          {activeTab === "Role Management" && <RoleManagement />}
-
-          {activeTab === "Permission Management" && <PermissionManagement />}
-
-          {activeTab === "Admin Profit" && <AdminProfitUpdate />}
-
-          {activeTab === "Deposit" && (
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-foreground">Fund Account</h2>
-                <p className="text-xs text-muted-foreground">Request equity deposit to start purchasing packages.</p>
+          {!hasPermission(activeTab) ? (
+            <div className="flex flex-col items-center justify-center p-8 bg-slate-900/20 border border-white/5 rounded-3xl text-center space-y-4 max-w-lg mx-auto mt-12">
+              <div className="h-12 w-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                <ShieldAlert className="h-6 w-6 text-red-400" />
               </div>
-              <RequestDeposit />
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-foreground">Access Denied</h3>
+                <p className="text-sm text-muted-foreground">You do not have the required permissions to view this panel. Please contact an administrator if you believe this is an error.</p>
+              </div>
             </div>
+          ) : (
+            <>
+              {activeTab === "Dashboard" && <Dashboard />}
+
+              {activeTab === "Commission History" && (
+                <div className="space-y-6">
+                  <ReferralInfo referralLink={referralLink} referralCode={referralCode} />
+                  <CommissionHistory />
+                </div>
+              )}
+
+              {activeTab === "Referrals" && (
+                <div className="space-y-6">
+                  <ReferralInfo referralLink={referralLink} referralCode={referralCode} />
+                  <HierarchyTree />
+                </div>
+              )}
+
+              {activeTab === "Active Packages" && <MyInvestments />}
+
+              {activeTab === "Equity Units Converter" && <BuyEquityUnitsForm />}
+
+              {activeTab === "Account" && <Account user={user as IUser} />}
+
+              {activeTab === "Settings" && <Settings />}
+
+              {activeTab === "Get Help" && <GetHelp />}
+
+              {activeTab === "KYC" && <KYCForm kyc={user.kyc} />}
+
+              {activeTab === "Request Withdrawal" && <WithdrawalForm />}
+
+              {activeTab === "Deposit" && (
+                <div className="space-y-6">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl font-bold text-foreground">Fund Account</h2>
+                    <p className="text-xs text-muted-foreground">Request equity deposit to start purchasing packages.</p>
+                  </div>
+                  <RequestDeposit />
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>

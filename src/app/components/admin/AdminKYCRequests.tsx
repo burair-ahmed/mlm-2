@@ -67,13 +67,33 @@ export default function AdminKYCRequests() {
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success(`KYC approved for ${data.user?.kyc?.fullName || data.user?.email || data.user?.userName}`);
+        toast.success(`KYC approved successfully`);
   setRequests((prev) => prev.filter((u) => u._id !== userId));
       } else {
         toast.error(data.error || 'Failed to approve KYC');
       }
     } catch {
       toast.error('Error approving KYC');
+    }
+  };
+
+  const reject = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/admin/kyc/reject/${userId}`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('KYC rejected successfully');
+        setRequests((prev) => prev.filter((u) => u._id !== userId));
+      } else {
+        toast.error(data.error || 'Failed to reject KYC');
+      }
+    } catch {
+      toast.error('Error rejecting KYC');
     }
   };
 
@@ -113,9 +133,14 @@ export default function AdminKYCRequests() {
                 ))}
               </div>
 
-              <Button onClick={() => approve(user._id)} className="mt-4">
-                Approve
-              </Button>
+              <div className="flex items-center gap-3 mt-4">
+                <Button onClick={() => approve(user._id)} className="bg-emerald-600 hover:bg-emerald-500 text-white">
+                  Approve
+                </Button>
+                <Button onClick={() => reject(user._id)} variant="destructive">
+                  Reject
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))

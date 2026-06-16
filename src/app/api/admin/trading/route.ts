@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "../../../../../lib/dbConnect";
 import TradingPackage from "../../../../../models/TradingPackage";
+import { authenticate } from "../../../../../middleware/auth";
+import { hasPermission } from "../../../../../lib/auth/permissionUtils";
 
 // Connect to DB before handling requests
 dbConnect();
 
 export async function POST(req: NextRequest) {
+  const auth = await authenticate(req);
+  if (auth instanceof NextResponse) return auth;
+
+  const allowed = await hasPermission(auth, 'create_package');
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
 

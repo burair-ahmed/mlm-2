@@ -14,7 +14,7 @@ type Withdrawal = {
     _id: string;
     fullName: string;
     email: string;
-  };
+  } | null;
   method: string;
   amount: number;
   status: string;
@@ -42,9 +42,17 @@ export default function AdminWithdrawalsTable() {
   const fetchWithdrawals = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/withdrawals/list'); // You need to create this API
+      const res = await fetch('/api/admin/withdrawals/list', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       const data = await res.json();
-      setWithdrawals(data.requests);
+      if (res.ok) {
+        setWithdrawals(data.requests || []);
+      } else {
+        toast.error(data.message || 'Failed to load withdrawals');
+      }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast.error('Failed to load withdrawals');
@@ -54,7 +62,7 @@ export default function AdminWithdrawalsTable() {
   };
 
   const updateStatus = async (id: string, status: string) => {
-    const res = await fetch(`/api/admin/withdrawals/update/[id]`, {
+    const res = await fetch(`/api/admin/withdrawals/update/${id}`, {
       method: 'PUT',
       headers: {
         "Content-Type": "application/json",
@@ -111,8 +119,8 @@ export default function AdminWithdrawalsTable() {
             {filtered.map((w) => (
               <tr key={w._id} className="border-t">
                 <td className="p-2">
-                  <div className="font-medium">{w.userId.fullName}</div>
-                  <div className="text-xs text-muted-foreground">{w.userId.email}</div>
+                  <div className="font-medium">{w.userId?.fullName || 'Deleted User'}</div>
+                  <div className="text-xs text-muted-foreground">{w.userId?.email || 'N/A'}</div>
                 </td>
                 <td className="p-2">{w.method}</td>
                 <td className="p-2">${w.amount.toLocaleString()}</td>

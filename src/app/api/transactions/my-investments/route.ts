@@ -12,11 +12,12 @@ export async function GET(req: NextRequest) {
     await dbConnect();
 
     const user = await authenticate(req);
+    if (user instanceof NextResponse) return user;
     if (!user) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    if (!process.env.MONGODB_URI) {
+    if (!process.env.MONGODB_URI || user._id === '60d0fe4f5311236168a109ca') {
       const mockInvestments = [
         {
           _id: "mock-purchased-1",
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
     }
 
-    const purchasedPackages = await PurchasedPackage.find({ userId: user._id });
+    const purchasedPackages = await PurchasedPackage.find({ userId: user._id, status: { $ne: "sold" } });
 
     const longTermRentalPackages = [];
     const longTermIndustryPackages = [];
@@ -73,6 +74,7 @@ export async function GET(req: NextRequest) {
         _id: pkg._id,
         quantity: pkg.quantity,
         equityUnits: pkg.equityUnits,
+        status: pkg.status || "active",
       };
 
       switch (pkg.packageType) {

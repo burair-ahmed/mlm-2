@@ -65,7 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             "profit_update",
             "view_account",
             "manage_settings",
-            "request_withdrawal"
+            "request_withdrawal",
+            "handle_deposits"
           ]
         };
         setUser(userData as any);
@@ -130,7 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             "profit_update",
             "view_account",
             "manage_settings",
-            "request_withdrawal"
+            "request_withdrawal",
+            "handle_deposits"
           ]
         };
         setUser(userData as any);
@@ -186,7 +188,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           "profit_update",
           "view_account",
           "manage_settings",
-          "request_withdrawal"
+          "request_withdrawal",
+          "handle_deposits"
         ]
       };
       localStorage.setItem('token', 'mock-jwt-token-value');

@@ -4,6 +4,7 @@ import User from '../../../../../models/User';
 import Transaction from '../../../../../models/Transaction';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
+import { createNotification } from '../../../../../lib/notifications';
 
 const PRICE_PER_UNIT = 10; // $10 per equity unit
 
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
           userId: referrer._id,
           type: 'commission',
           amount: commission,
-          sourceUser: user._id, // 👈 THIS is what's missing
+          sourceUser: user._id,
           description: `Cash commission from ${user.email}`
         }).save({ session });
         
@@ -77,6 +78,35 @@ export async function POST(req: NextRequest) {
       }
 
       await session.commitTransaction();
+
+      // Trigger notification for the buyer
+      await createNotification(user._id, {
+        title: 'Equity Units Purchased',
+        message: `Successfully converted cash to purchase ${numericUnits} equity units for $${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}.`,
+        type: 'system',
+        link: '/user?tab=Equity+Units+Converter'
+      });
+
+      // Trigger notifications for referrers
+      let level = 1;
+      let refUser = user;
+      for (const rate of CASH_COMMISSION_RATES) {
+        if (!refUser.referredBy) break;
+        const referrer = await User.findById(refUser.referredBy);
+        if (!referrer) break;
+
+        const commission = totalCost * rate;
+        await createNotification(referrer._id, {
+          title: 'Referral Commission Earned',
+          message: `You earned a referral commission of $${commission.toLocaleString(undefined, { minimumFractionDigits: 2 })} (Level ${level}) from ${user.email || user.userName}.`,
+          type: 'commission',
+          link: '/user?tab=Commission+History'
+        });
+
+        refUser = referrer;
+        level++;
+      }
+
       return NextResponse.json({
         success: true,
         newBalance: user.balance,

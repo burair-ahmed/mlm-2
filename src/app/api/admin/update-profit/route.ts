@@ -7,6 +7,7 @@ import User from "../../../../../models/User";
 import Transaction from "../../../../../models/Transaction";
 import { authenticate } from "../../../../../middleware/auth";
 import { hasPermission } from "../../../../../lib/auth/permissionUtils";
+import { createNotification } from "../../../../../lib/notifications";
 
 export async function POST(req: NextRequest) {
   const auth = await authenticate(req);
@@ -63,6 +64,14 @@ export async function POST(req: NextRequest) {
     await purchased.save();
     await ownerUser.save();
     await profitTx.save();
+
+    // Trigger user notification
+    await createNotification(ownerUser._id, {
+      title: 'Profit Payout Distributed',
+      message: `Profit payout of $${profitAmount.toFixed(2)} received for package "${packageName}".`,
+      type: 'profit',
+      link: '/user?tab=Dashboard'
+    });
 
     return NextResponse.json({ success: true, data: purchased });
   } catch (err) {

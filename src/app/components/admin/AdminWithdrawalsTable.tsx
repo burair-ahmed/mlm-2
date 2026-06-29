@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { toast } from 'sonner';
@@ -133,7 +133,7 @@ export default function AdminWithdrawalsTable() {
                       <Button variant="outline" size="sm">View</Button>
                     </DialogTrigger>
                     <DialogContent>
-                      <h3 className="font-bold text-lg">Details</h3>
+                      <DialogTitle className="font-bold text-lg">Details</DialogTitle>
                       <div className="space-y-1 text-sm">
                         <p><strong>Account Title:</strong> {w.details.accountTitle}</p>
                         <p><strong>Account No:</strong> {w.details.accountNumber}</p>

@@ -4,6 +4,11 @@ import User from '../../models/User';
 export async function hasPermission(user: any, requiredSlug: string): Promise<boolean> {
   if (!user) return false;
 
+  // Admins and Super Admins bypass permission constraints
+  if (user.isAdmin || user.role === 'admin' || user.role === 'Super Admin') {
+    return true;
+  }
+
   if (!process.env.MONGODB_URI) {
     if (user.customPermissions && Array.isArray(user.customPermissions)) {
       return user.customPermissions.includes(requiredSlug);

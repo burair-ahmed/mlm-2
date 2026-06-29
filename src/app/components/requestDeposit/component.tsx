@@ -11,7 +11,11 @@ import {
   FileCheck 
 } from 'lucide-react';
 
-export default function RequestDeposit() {
+interface RequestDepositProps {
+  onSuccess?: () => void;
+}
+
+export default function RequestDeposit({ onSuccess }: RequestDepositProps) {
   const { user } = useAuth();
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -33,8 +37,17 @@ export default function RequestDeposit() {
       return;
     }
 
+    const PKR_TO_USD_RATE = 280;
+    const pkr = parseFloat(amount);
+    if (isNaN(pkr) || pkr <= 0) {
+      toast.error('Please enter a valid amount.');
+      return;
+    }
+    const usd = pkr / PKR_TO_USD_RATE;
+
     const formData = new FormData();
-    formData.append('amount', amount);
+    formData.append('amount', usd.toFixed(2));
+    formData.append('pkrAmount', pkr.toFixed(2));
     formData.append('paymentMethod', paymentMethod);
     formData.append('notes', notes);
     formData.append('userId', String(user?._id ?? ''));
@@ -49,10 +62,23 @@ export default function RequestDeposit() {
 
     try {
       setSubmitting(true);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       const res = await fetch('/api/deposit/request', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token || ''}`,
+        },
         body: formData,
       });
+
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        toast.error('Session expired. Redirecting to login...');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1500);
+        return;
+      }
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to submit deposit request');
@@ -62,6 +88,7 @@ export default function RequestDeposit() {
       setPaymentMethod('');
       setNotes('');
       setProof(null);
+      if (onSuccess) onSuccess();
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -109,6 +136,17 @@ export default function RequestDeposit() {
             className="w-full bg-white/5 border border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 text-foreground rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-300 placeholder:text-muted-foreground/30"
             required
           />
+          {(() => {
+            const PKR_TO_USD_RATE = 280;
+            const pkrVal = parseFloat(amount);
+            const usdEquivalent = !isNaN(pkrVal) && pkrVal > 0 ? (pkrVal / PKR_TO_USD_RATE).toFixed(2) : null;
+            if (!usdEquivalent) return null;
+            return (
+              <p className="mt-1.5 text-xs text-primary font-semibold text-glow-emerald">
+                Equivalent in USD: ${parseFloat(usdEquivalent).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD
+              </p>
+            );
+          })()}
         </div>
 
         {/* Payment Method */}

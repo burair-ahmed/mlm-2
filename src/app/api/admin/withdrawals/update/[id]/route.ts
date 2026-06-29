@@ -7,6 +7,7 @@ import User from '../../../../../../../models/User';
 import Transaction from '../../../../../../../models/Transaction';
 import { authenticate } from '../../../../../../../middleware/auth';
 import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
+import { createNotification } from '../../../../../../../lib/notifications';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticate(req);
@@ -71,6 +72,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
       await session.commitTransaction();
       session.endSession();
+
+      // Trigger notification for status changes
+      let statusDesc = status.toLowerCase();
+      if (status === 'Completed') statusDesc = 'completed and processed';
+      else if (status === 'Cancelled') statusDesc = 'cancelled and refunded to your balance';
+      else if (status === 'In Process') statusDesc = 'marked as in process';
+
+      await createNotification(request.userId, {
+        title: `Withdrawal Request ${status}`,
+        message: `Your withdrawal request of $${request.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} has been ${statusDesc}.`,
+        type: 'withdrawal',
+        link: '/user?tab=Request+Withdrawal'
+      });
 
       return NextResponse.json({ success: true, request });
 

@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import { CustomSidebar } from '../../components/custom/CustomSidebar';
+import { NotificationBell } from '../../components/custom/NotificationBell';
 
 import AdminOverview from '../components/admin/AdminOverview';
 import AdminEquityPackages from '../components/AdminEquityPackages';
@@ -128,14 +129,17 @@ export default function AdminDashboard() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 md:px-8 bg-slate-950/45 backdrop-blur-md sticky top-0 z-35">
+        <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 md:px-8 bg-slate-950/45 backdrop-blur-md sticky top-0 z-40">
           <h1 className="text-sm font-semibold">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <TrendingUp className="h-4 w-4 text-primary" /> Admin Management Console
             </span>
           </h1>
-          <div className="text-xs font-bold text-accent uppercase tracking-wider text-glow-gold">
-            {activeTab}
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:block text-xs font-bold text-accent uppercase tracking-wider text-glow-gold">
+              {activeTab}
+            </div>
+            <NotificationBell />
           </div>
         </header>
 

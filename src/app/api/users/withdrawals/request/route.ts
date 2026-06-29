@@ -3,6 +3,7 @@ import dbConnect from '../../../../../../lib/dbConnect';
 import WithdrawalRequest from '../../../../../../models/WithdrawalRequest';
 import User from '../../../../../../models/User'; // Make sure this is imported
 import { authenticate } from '../../../../../../middleware/auth';
+import { createNotification } from '../../../../../../lib/notifications';
 
 export async function POST(req: NextRequest) {
   const auth = await authenticate(req);
@@ -35,6 +36,14 @@ export async function POST(req: NextRequest) {
     method,
     amount,
     details,
+  });
+
+  // Create a notification for the user
+  await createNotification(user._id, {
+    title: 'Withdrawal Requested',
+    message: `Your withdrawal request of $${Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} via ${method} has been submitted and is pending review.`,
+    type: 'withdrawal',
+    link: '/user?tab=Request+Withdrawal'
   });
 
   return NextResponse.json({ success: true, request: newRequest }, { status: 201 });

@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
       "profit_update",
       "view_account",
       "manage_settings",
-      "request_withdrawal"
+      "request_withdrawal",
+      "handle_deposits"
     ]
   };
 

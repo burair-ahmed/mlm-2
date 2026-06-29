@@ -35,6 +35,7 @@ async function dbConnect(): Promise<Mongoose> {
       await import('../models/Permission');
       await import('../models/Role');
       await import('../models/User');
+      await import('../models/Notification');
       return mongooseInstance;
     });
   }

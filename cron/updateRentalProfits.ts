@@ -5,6 +5,7 @@ import LongTermRental from "../models/LongTermRental";
 import User from "../models/User";
 import Transaction from "../models/Transaction";
 import { differenceInMilliseconds } from "date-fns";
+import { createNotification } from "../lib/notifications";
 
 const getHoldingPeriodInMs = (value: number, unit: string) => {
   const unitMap: Record<string, number> = {
@@ -64,6 +65,15 @@ export default async function handler() {
           description: `Automated rental payout of $${profitToAdd.toFixed(2)} for package: ${rentalPackage.name}`,
         });
         await profitTx.save();
+
+        // Trigger user notification
+        await createNotification(ownerUser._id, {
+          title: 'Automated Rental Payout',
+          message: `Automated rental payout of $${profitToAdd.toFixed(2)} received for package "${rentalPackage.name}".`,
+          type: 'profit',
+          link: '/user?tab=Dashboard'
+        });
+
         console.log(`✅ Profit balance and transaction credited to user ${ownerUser.email}`);
       }
 

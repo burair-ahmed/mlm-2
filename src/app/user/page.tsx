@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CustomSidebar } from "@/components/custom/CustomSidebar";
 import { useAuth } from "../../../context/AuthContext";
+import { NotificationBell } from "@/components/custom/NotificationBell";
 
 import Dashboard from "../components/user/user-dashboard";
 import CommissionHistory from "../components/CommissionHistory";
@@ -17,6 +18,7 @@ import { IUser } from "../../../models/User";
 import KYCForm from "../components/user/kyc/KYCForm";
 import WithdrawalForm from "../components/user/WithdrawalForm";
 import RequestDeposit from "../components/requestDeposit/component";
+import DepositHistory from "../components/requestDeposit/DepositHistory";
 import GetHelp from "../components/user/GetHelp";
 import Link from "next/link";
 
@@ -29,12 +31,20 @@ import {
   ArrowDownUp,
   ShieldAlert,
   TrendingUp,
+  History,
 } from "lucide-react";
 
-export default function UserWorkspacePage() {
+function UserWorkspaceContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("Dashboard");
+  const [depositRefreshTrigger, setDepositRefreshTrigger] = useState(0);
+
+  const handleDepositRefresh = () => {
+    setDepositRefreshTrigger((prev) => prev + 1);
+    setActiveTab("Deposit History");
+  };
 
   const referralCode = user?.referralCode || "";
   const referralLink =
@@ -47,6 +57,70 @@ export default function UserWorkspacePage() {
       router.push("/login");
     }
   }, [user, loading, router]);
+
+  const tabPermissions: Record<string, string> = {
+    "Dashboard": "view_dashboard",
+    "Active Packages": "view_investments",
+    "Commission History": "view_commissions",
+    "Referrals": "view_referrals",
+    "Equity Units Converter": "convert_units",
+    "KYC": "view_kyc",
+    "Request Withdrawal": "request_withdrawal",
+    "Deposit": "request_deposit",
+    "Deposit History": "view_dashboard",
+    "Account": "view_account",
+    "Settings": "manage_settings",
+    "Get Help": "get_help",
+  };
+
+  const hasPermission = (tabTitle: string) => {
+    // Admins always have access to all tabs
+    if (user?.isAdmin || user?.role === "admin" || user?.role === "Super Admin") return true;
+
+    // Dashboard, Deposit, Deposit History, and Get Help are open by default to all logged-in users
+    if (tabTitle === "Dashboard" || tabTitle === "Get Help" || tabTitle === "Deposit" || tabTitle === "Deposit History") return true;
+
+    const requiredPermission = tabPermissions[tabTitle];
+    if (!requiredPermission) return false;
+
+    return user?.customPermissions?.includes(requiredPermission) || false;
+  };
+
+  const sidebarTabs = [
+    { title: "Dashboard", icon: LayoutDashboard, permission: "view_dashboard" },
+    { title: "Active Packages", icon: FolderOpen, permission: "view_investments" },
+    { title: "Commission History", icon: BarChart3, permission: "view_commissions" },
+    { title: "Referrals", icon: Users, permission: "view_referrals" },
+    { title: "Equity Units Converter", icon: ArrowDownUp, permission: "convert_units" },
+    { title: "Deposit History", icon: History, permission: "view_dashboard" },
+    { title: "KYC", icon: FileCheck, permission: "view_kyc" },
+  ];
+
+  const allowedTabs = sidebarTabs.filter((tab) => hasPermission(tab.title));
+
+  // Sync tab from URL query params
+  useEffect(() => {
+    if (searchParams) {
+      const tab = searchParams.get("tab");
+      if (tab) {
+        const matchedTab = sidebarTabs.find(
+          (t) => t.title.toLowerCase() === tab.toLowerCase()
+        );
+        if (matchedTab && hasPermission(matchedTab.title)) {
+          setActiveTab(matchedTab.title);
+        } else {
+          // Check if it's one of the other pages not in standard sidebar
+          const otherTabs = ["Request Withdrawal", "Deposit", "Account", "Settings", "Get Help"];
+          const matchedOther = otherTabs.find(
+            (t) => t.toLowerCase() === tab.toLowerCase()
+          );
+          if (matchedOther && hasPermission(matchedOther)) {
+            setActiveTab(matchedOther);
+          }
+        }
+      }
+    }
+  }, [searchParams, user]);
 
   if (loading) {
     return (
@@ -61,44 +135,6 @@ export default function UserWorkspacePage() {
 
   if (!user) return null;
 
-  const tabPermissions: Record<string, string> = {
-    "Dashboard": "view_dashboard",
-    "Active Packages": "view_investments",
-    "Commission History": "view_commissions",
-    "Referrals": "view_referrals",
-    "Equity Units Converter": "convert_units",
-    "KYC": "view_kyc",
-    "Request Withdrawal": "request_withdrawal",
-    "Deposit": "request_deposit",
-    "Account": "view_account",
-    "Settings": "manage_settings",
-    "Get Help": "get_help",
-  };
-
-  const hasPermission = (tabTitle: string) => {
-    // Admins always have access to all tabs
-    if (user.isAdmin || user.role === "admin" || user.role === "Super Admin") return true;
-
-    // Dashboard and Get Help are open by default to all logged-in users
-    if (tabTitle === "Dashboard" || tabTitle === "Get Help") return true;
-
-    const requiredPermission = tabPermissions[tabTitle];
-    if (!requiredPermission) return false;
-
-    return user.customPermissions?.includes(requiredPermission) || false;
-  };
-
-  const sidebarTabs = [
-    { title: "Dashboard", icon: LayoutDashboard, permission: "view_dashboard" },
-    { title: "Active Packages", icon: FolderOpen, permission: "view_investments" },
-    { title: "Commission History", icon: BarChart3, permission: "view_commissions" },
-    { title: "Referrals", icon: Users, permission: "view_referrals" },
-    { title: "Equity Units Converter", icon: ArrowDownUp, permission: "convert_units" },
-    { title: "KYC", icon: FileCheck, permission: "view_kyc" },
-  ];
-
-  const allowedTabs = sidebarTabs.filter((tab) => hasPermission(tab.title));
-
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
       <CustomSidebar
@@ -109,14 +145,32 @@ export default function UserWorkspacePage() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Workspace Top Header */}
-        <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 md:px-8 bg-slate-950/45 backdrop-blur-md sticky top-0 z-35">
+        <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 md:px-8 bg-slate-950/45 backdrop-blur-md sticky top-0 z-40">
           <h1 className="text-sm font-semibold">
             <Link href="/" className="hover:text-primary transition-colors flex items-center gap-1.5">
               <TrendingUp className="h-4 w-4 text-primary" /> Back to Website
             </Link>
           </h1>
-          <div className="text-xs font-bold text-accent uppercase tracking-wider text-glow-gold">
-            {activeTab}
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:block text-xs font-bold text-accent uppercase tracking-wider text-glow-gold">
+              {activeTab}
+            </div>
+            <NotificationBell onTabChange={(tabTitle) => {
+              const matchedTab = sidebarTabs.find(
+                (t) => t.title.toLowerCase() === tabTitle.toLowerCase()
+              );
+              if (matchedTab && hasPermission(matchedTab.title)) {
+                setActiveTab(matchedTab.title);
+              } else {
+                const otherTabs = ["Request Withdrawal", "Deposit", "Account", "Settings", "Get Help"];
+                const matchedOther = otherTabs.find(
+                  (t) => t.toLowerCase() === tabTitle.toLowerCase()
+                );
+                if (matchedOther && hasPermission(matchedOther)) {
+                  setActiveTab(matchedOther);
+                }
+              }
+            }} />
           </div>
         </header>
 
@@ -170,7 +224,17 @@ export default function UserWorkspacePage() {
                     <h2 className="text-2xl font-bold text-foreground">Fund Account</h2>
                     <p className="text-xs text-muted-foreground">Request equity deposit to start purchasing packages.</p>
                   </div>
-                  <RequestDeposit />
+                  <RequestDeposit onSuccess={handleDepositRefresh} />
+                </div>
+              )}
+
+              {activeTab === "Deposit History" && (
+                <div className="space-y-6">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl font-bold text-foreground">Deposit Requests History</h2>
+                    <p className="text-xs text-muted-foreground">Track the statuses of your deposit receipts.</p>
+                  </div>
+                  <DepositHistory refreshTrigger={depositRefreshTrigger} />
                 </div>
               )}
             </>
@@ -178,5 +242,20 @@ export default function UserWorkspacePage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function UserWorkspacePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-screen bg-slate-950 text-slate-100 text-lg">
+        <div className="animate-pulse flex items-center gap-2">
+          <div className="h-4 w-4 bg-primary rounded-full animate-bounce" />
+          <span>Loading Workspace...</span>
+        </div>
+      </div>
+    }>
+      <UserWorkspaceContent />
+    </Suspense>
   );
 }

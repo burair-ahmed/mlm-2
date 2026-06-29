@@ -3,6 +3,7 @@ import dbConnect from '../../../../../../../lib/dbConnect';
 import User from '../../../../../../../models/User';
 import { authenticate } from '../../../../../../../middleware/auth';
 import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
+import { createNotification } from '../../../../../../../lib/notifications';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const auth = await authenticate(req);
@@ -29,6 +30,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     user.kyc.approvedAt = new Date();
 
     await user.save();
+
+    // Trigger notification
+    await createNotification(user._id, {
+      title: 'KYC Verification Approved',
+      message: 'Your KYC documents have been reviewed and approved successfully. You can now purchase packages.',
+      type: 'kyc',
+      link: '/user?tab=KYC'
+    });
 
     return NextResponse.json({ message: 'KYC approved successfully' }, { status: 200 });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

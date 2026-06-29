@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "../../../../../middleware/auth";
 import dbConnect from "../../../../../lib/dbConnect";
+import { createNotification } from "../../../../../lib/notifications";
 import PurchasedPackage from "../../../../../models/PurchasedPackage";
 import LongTermRental from "../../../../../models/LongTermRental";
 import LongTermIndustry from "../../../../../models/LongTermIndustry";
@@ -89,6 +90,14 @@ export async function POST(req: NextRequest) {
     // Set status to sell-requested
     purchasedPackage.status = "sell-requested";
     await purchasedPackage.save();
+
+    // Trigger notification to the user
+    await createNotification(user._id, {
+      title: 'Resale Request Submitted',
+      message: `Your request to resell ${purchasedPackage.quantity} unit(s) of your package has been submitted and is pending review.`,
+      type: 'resale',
+      link: '/user?tab=Active+Packages'
+    });
 
     return NextResponse.json({ success: true, message: "Resale request submitted successfully", data: purchasedPackage });
   } catch (error) {

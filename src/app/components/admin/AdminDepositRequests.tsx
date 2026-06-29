@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useAuth } from '../../../../context/AuthContext';
-import { FileCheck, XCircle, Calendar, Eye } from 'lucide-react';
+import { FileCheck, XCircle, Calendar, Eye, Loader2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 type DepositRequest = {
   _id: string;
@@ -18,10 +19,12 @@ type DepositRequest = {
     email: string;
   };
   amount: number;
+  pkrAmount?: number;
   paymentMethod: string;
   notes?: string;
   proofUrl: string;
   status: string;
+  rejectionReason?: string;
   createdAt: string;
 };
 
@@ -30,7 +33,20 @@ export default function AdminDepositRequests() {
   const [requests, setRequests] = useState<DepositRequest[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [loading, setLoading] = useState(false);
+  const [toggledRequests, setToggledRequests] = useState<Record<string, boolean>>({});
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const [rejectRequestId, setRejectRequestId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [isRejectOpen, setIsRejectOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const toggleCurrency = (id: string) => {
+    setToggledRequests((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   useEffect(() => {
     fetchDeposits();
@@ -57,7 +73,8 @@ export default function AdminDepositRequests() {
     }
   };
 
-  const handleUpdate = async (id: string, status: 'Approved' | 'Rejected') => {
+  const handleUpdate = async (id: string, status: 'Approved' | 'Rejected', reason?: string) => {
+    setIsSubmitting(true);
     try {
       const res = await fetch(`/api/admin/deposits/update/${id}`, {
         method: 'PUT',
@@ -65,7 +82,7 @@ export default function AdminDepositRequests() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, reason })
       });
 
       const data = await res.json();
@@ -77,7 +94,21 @@ export default function AdminDepositRequests() {
       }
     } catch {
       toast.error('Error processing deposit status');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const confirmReject = async () => {
+    if (!rejectRequestId) return;
+    if (!rejectReason.trim()) {
+      toast.error('Please enter or select a rejection reason');
+      return;
+    }
+    await handleUpdate(rejectRequestId, 'Rejected', rejectReason.trim());
+    setIsRejectOpen(false);
+    setRejectRequestId(null);
+    setRejectReason('');
   };
 
   const filtered = selectedStatus === 'All'
@@ -146,8 +177,32 @@ export default function AdminDepositRequests() {
                       <div className="text-xs text-muted-foreground">{r.userId?.email || 'N/A'}</div>
                     </td>
                     <td className="p-4 font-medium text-foreground">{r.paymentMethod}</td>
-                    <td className="p-4 font-bold text-primary text-glow-emerald">
-                      ${r.amount.toLocaleString()}
+                    <td className="p-4">
+                      <button 
+                        onClick={() => toggleCurrency(r._id)}
+                        className="text-left font-bold focus:outline-none select-none hover:opacity-80 transition-opacity block group"
+                        title="Click to toggle currency display (USD / PKR)"
+                      >
+                        {toggledRequests[r._id] ? (
+                          <div>
+                            <div className="text-accent text-glow-gold">
+                              {(r.pkrAmount || (r.amount * 280)).toLocaleString()} PKR
+                            </div>
+                            <span className="text-[9px] text-muted-foreground block font-medium mt-0.5 group-hover:text-foreground">
+                              Click to show USD
+                            </span>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="text-primary text-glow-emerald">
+                              ${r.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                            </div>
+                            <span className="text-[9px] text-muted-foreground block font-medium mt-0.5 group-hover:text-foreground">
+                              Click to show PKR: ~{(r.pkrAmount || (r.amount * 280)).toLocaleString()} PKR
+                            </span>
+                          </div>
+                        )}
+                      </button>
                     </td>
                     <td className="p-4 text-xs text-muted-foreground flex items-center gap-1.5 mt-2.5">
                       <Calendar className="h-3.5 w-3.5" />
@@ -175,18 +230,24 @@ export default function AdminDepositRequests() {
                               <Eye className="h-3.5 w-3.5" /> View Proof
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="bg-slate-950 text-slate-100 border-white/10 max-w-lg rounded-3xl p-6 glass-panel relative overflow-hidden">
+                          <DialogContent className="bg-slate-950 text-slate-100 border-white/10 max-w-lg rounded-3xl p-6 glass-panel overflow-hidden">
                             <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-glow-emerald pointer-events-none opacity-10" />
-                            <h3 className="font-extrabold text-lg border-b border-white/5 pb-3 mb-4">Deposit Details</h3>
+                            <DialogTitle className="font-extrabold text-lg border-b border-white/5 pb-3 mb-4">Deposit Details</DialogTitle>
                             <div className="space-y-4 text-sm">
-                              <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                              <div className="grid grid-cols-3 gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
                                 <div>
-                                  <span className="text-[10px] uppercase text-muted-foreground font-bold">Amount</span>
-                                  <p className="font-extrabold text-base text-primary">${r.amount.toLocaleString()}</p>
+                                  <span className="text-[10px] uppercase text-muted-foreground font-bold">Amount (USD)</span>
+                                  <p className="font-extrabold text-sm text-primary">${r.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] uppercase text-muted-foreground font-bold">Amount (PKR)</span>
+                                  <p className="font-bold text-sm text-foreground">
+                                    {(r.pkrAmount || (r.amount * 280)).toLocaleString()} PKR
+                                  </p>
                                 </div>
                                 <div>
                                   <span className="text-[10px] uppercase text-muted-foreground font-bold">Gateway</span>
-                                  <p className="font-bold text-foreground">{r.paymentMethod}</p>
+                                  <p className="font-bold text-sm text-foreground">{r.paymentMethod}</p>
                                 </div>
                               </div>
                               {r.notes && (
@@ -213,13 +274,19 @@ export default function AdminDepositRequests() {
                           <>
                             <Button 
                               onClick={() => handleUpdate(r._id, 'Approved')} 
+                              disabled={isSubmitting}
                               size="sm" 
                               className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl flex items-center gap-1 shadow-lg shadow-emerald-500/10"
                             >
                               <FileCheck className="h-3.5 w-3.5" /> Approve
                             </Button>
                             <Button 
-                              onClick={() => handleUpdate(r._id, 'Rejected')} 
+                              onClick={() => {
+                                setRejectRequestId(r._id);
+                                setRejectReason('');
+                                setIsRejectOpen(true);
+                              }} 
+                              disabled={isSubmitting}
                               size="sm" 
                               variant="destructive"
                               className="rounded-xl flex items-center gap-1 shadow-lg shadow-destructive/10"
@@ -237,6 +304,83 @@ export default function AdminDepositRequests() {
           </table>
         </div>
       </div>
+
+      <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen}>
+        <DialogContent className="bg-slate-950 text-slate-100 border border-white/10 max-w-md rounded-3xl p-6 glass-panel overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-glow-gold pointer-events-none opacity-5" />
+          <DialogTitle className="font-extrabold text-lg border-b border-white/5 pb-3 mb-4">
+            Reject Deposit Request
+          </DialogTitle>
+          <div className="space-y-4 text-sm mt-4">
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                Predefined Rejection Reasons (Click to select)
+              </Label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {[
+                  'Incorrect / invalid proof screenshot',
+                  'Incorrect deposit amount requested',
+                  'Transaction ID / details do not match',
+                  'Duplicate request submission',
+                ].map((reason) => (
+                  <button
+                    key={reason}
+                    type="button"
+                    onClick={() => setRejectReason(reason)}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                      rejectReason === reason
+                        ? 'bg-red-500/20 text-red-400 border-red-500/50'
+                        : 'bg-white/5 text-muted-foreground border-white/5 hover:bg-white/10 hover:text-foreground'
+                    }`}
+                  >
+                    {reason}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                Custom Rejection Reason
+              </Label>
+              <Textarea
+                placeholder="Enter custom rejection reason here..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="bg-slate-950/60 border-white/10 rounded-xl text-xs min-h-[80px]"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setIsRejectOpen(false);
+                  setRejectRequestId(null);
+                  setRejectReason('');
+                }}
+                className="rounded-xl bg-white/5 border-white/10 hover:bg-white/10"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={isSubmitting}
+                onClick={confirmReject}
+                className="rounded-xl flex items-center gap-1 shadow-lg shadow-destructive/10"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <XCircle className="h-3.5 w-3.5" />
+                )}
+                {isSubmitting ? 'Rejecting...' : 'Confirm Reject'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

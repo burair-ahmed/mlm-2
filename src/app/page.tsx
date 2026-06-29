@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 // import Link from "next/link";
 // import HierarchyTree from "./components/HierarchyTree";
@@ -21,7 +22,14 @@ import LandingPage from './home/page';
 
 export default function Home() {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const [, setReferralLink] = useState('');
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     if (user) {

@@ -176,7 +176,7 @@ export function CustomSidebar({ activeTab, setActiveTab, tabs, isAdminView = fal
         </div>
 
         {/* Quick Deposit button */}
-        {!isAdminView && hasPermission("request_deposit") && (
+        {!isAdminView && (
           <div className="p-4 border-b border-white/5">
             <button
               onClick={() => setActiveTab("Deposit")}

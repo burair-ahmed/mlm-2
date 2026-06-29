@@ -3,6 +3,7 @@ import dbConnect from '../../../../../../../lib/dbConnect';
 import User from '../../../../../../../models/User';
 import { authenticate } from '../../../../../../../middleware/auth';
 import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
+import { createNotification } from '../../../../../../../lib/notifications';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const auth = await authenticate(req);
@@ -28,6 +29,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     user.kyc.status = 'rejected';
     // Remove approvedAt since it is rejected, or keep track of metadata if needed.
     await user.save();
+
+    // Trigger notification
+    await createNotification(user._id, {
+      title: 'KYC Verification Rejected',
+      message: 'Your KYC documents were rejected. Please review your details and submit valid documents.',
+      type: 'kyc',
+      link: '/user?tab=KYC'
+    });
 
     return NextResponse.json({ message: 'KYC rejected successfully', user }, { status: 200 });
   } catch (err: unknown) {

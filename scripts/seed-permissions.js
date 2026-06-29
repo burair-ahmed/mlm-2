@@ -46,7 +46,8 @@ const standardPermissions = [
   { slug: 'view_account', label: 'View Account' },
   { slug: 'manage_settings', label: 'Settings' },
   { slug: 'get_help', label: 'Get Help' },
-  { slug: 'access_admin_dashboard', label: 'Access user dashboard' }
+  { slug: 'access_admin_dashboard', label: 'Access user dashboard' },
+  { slug: 'handle_deposits', label: 'Manage Deposits' }
 ];
 
 async function seed() {

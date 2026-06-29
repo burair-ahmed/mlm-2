@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "../../../../../../lib/dbConnect";
+import { createNotification } from "../../../../../../lib/notifications";
 import PurchasedPackage from "../../../../../../models/PurchasedPackage";
 import User from "../../../../../../models/User";
 import Transaction from "../../../../../../models/Transaction";
@@ -114,6 +115,14 @@ export async function POST(req: NextRequest) {
       // Commit
       await session.commitTransaction();
       session.endSession();
+
+      // Trigger notification
+      await createNotification(purchasedPackage.userId, {
+        title: 'Resale Request Approved',
+        message: `Your request to resell ${purchasedPackage.quantity} unit(s) of package has been approved. Refunded ${purchasedPackage.equityUnits} equity units.`,
+        type: 'resale',
+        link: '/user?tab=Active+Packages'
+      });
 
       return NextResponse.json({ success: true, message: "Resale approved and equity units refunded successfully" });
     } catch (innerError) {

@@ -9,7 +9,7 @@ import PurchasedPackage from "../../../../../models/PurchasedPackage";
 import dbConnect from "../../../../../lib/dbConnect";
 import { authenticate } from "../../../../../middleware/auth";
 import type { Model } from "mongoose";
-
+import { createNotification } from "../../../../../lib/notifications";
 
 export async function POST(req: NextRequest) {
   try {
@@ -137,6 +137,14 @@ export async function POST(req: NextRequest) {
       // 1️⃣5️⃣ Commit Transaction
       await session.commitTransaction();
       session.endSession();
+
+      // Trigger notification to the user after successful commit
+      await createNotification(auth._id, {
+        title: 'Package Purchased',
+        message: `Successfully purchased ${quantity} unit${quantity > 1 ? 's' : ''} of "${selectedPackage.name}".`,
+        type: 'system',
+        link: '/user?tab=Active+Packages'
+      });
 
       console.log("✅ Purchase Successful!");
       return NextResponse.json({

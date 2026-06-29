@@ -6,6 +6,7 @@ import User from '../../../../../../../models/User';
 import Transaction from '../../../../../../../models/Transaction';
 import { authenticate } from '../../../../../../../middleware/auth';
 import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
+import { createNotification } from '../../../../../../../lib/notifications';
 
 export async function PUT(
   req: NextRequest,
@@ -22,7 +23,7 @@ export async function PUT(
   await dbConnect();
 
   const { id } = await params;
-  const { status } = await req.json();
+  const { status, reason } = await req.json();
 
   if (!status || !['Approved', 'Rejected'].includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
@@ -46,9 +47,15 @@ export async function PUT(
     session.startTransaction();
 
     try {
+      console.log('[UPDATE DEPOSIT] Request payload:', { id, status, reason });
       depositRequest.status = status;
       depositRequest.updatedAt = new Date();
+      if (status === 'Rejected' && reason) {
+        depositRequest.rejectionReason = reason;
+        console.log('[UPDATE DEPOSIT] Set rejectionReason to:', reason);
+      }
       await depositRequest.save({ session });
+      console.log('[UPDATE DEPOSIT] Saved document:', depositRequest);
 
       if (status === 'Approved') {
         const user = await User.findById(depositRequest.userId).session(session);
@@ -72,6 +79,16 @@ export async function PUT(
 
       await session.commitTransaction();
       session.endSession();
+
+      // Trigger notification to the user after successful commit
+      await createNotification(depositRequest.userId, {
+        title: status === 'Approved' ? 'Deposit Approved' : 'Deposit Rejected',
+        message: status === 'Approved'
+          ? `Your deposit request of $${depositRequest.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} has been approved. Balance credited.`
+          : `Your deposit request of $${depositRequest.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} was rejected.${reason ? ` Reason: ${reason}` : ''}`,
+        type: 'deposit',
+        link: '/user?tab=Deposit+History'
+      });
 
       return NextResponse.json({ success: true, request: depositRequest });
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "../../../../../../lib/dbConnect";
+import { createNotification } from "../../../../../../lib/notifications";
 import PurchasedPackage from "../../../../../../models/PurchasedPackage";
 
 import { authenticate } from "../../../../../../middleware/auth";
@@ -43,6 +44,14 @@ export async function POST(req: NextRequest) {
     // Revert status to active
     purchasedPackage.status = "active";
     await purchasedPackage.save();
+
+    // Trigger notification
+    await createNotification(purchasedPackage.userId, {
+      title: 'Resale Request Rejected',
+      message: `Your request to resell ${purchasedPackage.quantity} unit(s) of package has been rejected. The package has been set back to active.`,
+      type: 'resale',
+      link: '/user?tab=Active+Packages'
+    });
 
     return NextResponse.json({ success: true, message: "Resale request rejected. Package is active again." });
   } catch (error) {

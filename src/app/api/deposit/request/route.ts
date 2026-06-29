@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs/promises';
 import dbConnect from '../../../../../lib/dbConnect';
 import DepositRequest from '../../../../../models/DepositRequest';
 import { authenticate } from '../../../../../middleware/auth';
+import { createNotification } from '../../../../../lib/notifications';
+import { uploadToCloudinary } from '../../../../../lib/cloudinary';
 
 export async function POST(req: NextRequest) {
   const auth = await authenticate(req);
@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const amount = formData.get('amount') as string;
+    const pkrAmount = formData.get('pkrAmount') as string;
     const paymentMethod = formData.get('paymentMethod') as string;
     const notes = (formData.get('notes') as string) || '';
     const proofFile = formData.get('proof') as File | null;
@@ -33,28 +34,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save proof image file
+    const numericPkrAmount = pkrAmount ? parseFloat(pkrAmount) : undefined;
+
+    // Convert proof file to Buffer
     const arrayBuffer = await proofFile.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'deposits');
-    await fs.mkdir(uploadDir, { recursive: true });
-
-    const fileExt = path.extname(proofFile.name) || '.jpg';
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${fileExt}`;
-    const filePath = path.join(uploadDir, filename);
-
-    await fs.writeFile(filePath, buffer);
-
-    const proofUrl = `/uploads/deposits/${filename}`;
+    // Stream upload image to Cloudinary
+    let proofUrl = '';
+    try {
+      const uploadResult = await uploadToCloudinary(buffer, 'deposits');
+      proofUrl = uploadResult.secure_url;
+    } catch (uploadError) {
+      console.error('[CLOUDINARY UPLOAD ERROR]', uploadError);
+      return NextResponse.json(
+        { error: 'Failed to upload proof of payment image to cloud storage' },
+        { status: 500 }
+      );
+    }
 
     const newRequest = await DepositRequest.create({
       userId: auth._id,
       amount: numericAmount,
+      pkrAmount: numericPkrAmount,
       paymentMethod,
       notes,
       proofUrl,
       status: 'Pending'
+    });
+
+    // Create a notification for the user
+    await createNotification(auth._id, {
+      title: 'Deposit Request Submitted',
+      message: `Your deposit request of $${numericAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} via ${paymentMethod} has been submitted and is pending review.`,
+      type: 'deposit',
+      link: '/user?tab=Deposit+History'
     });
 
     return NextResponse.json({

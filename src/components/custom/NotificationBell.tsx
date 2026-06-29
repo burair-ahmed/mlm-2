@@ -108,7 +108,7 @@ export function NotificationBell({ onTabChange }: NotificationBellProps) {
       try {
         const token = localStorage.getItem("token");
         if (token) {
-          await fetch(`/api/notifications/${notif._id}/read`, {
+          await fetch(`/api/notifications/${notif._id}`, {
             method: "PUT",
             headers: {
               Authorization: `Bearer ${token}`,

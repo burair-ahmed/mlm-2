@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { 
   TrendingUp, 
   Lock, 
   Unlock, 
   HelpCircle, 
-  FolderCheck,
-  ArrowDownToLine
+  FolderCheck, 
+  ArrowDownToLine,
+  Plus
 } from "lucide-react";
 
 type CommonFields = {
@@ -104,7 +106,7 @@ const MyInvestments = () => {
 
         const data = await response.json();
         if (Array.isArray(data.data)) {
-          const activePkgs = data.data.filter((pkg: any) => pkg.status !== "sold");
+          const activePkgs = data.data.filter((pkg: PurchasedPackage) => pkg.status !== "sold");
           setPurchasedPackages(activePkgs);
         } else {
           throw new Error("Invalid API response format");
@@ -190,9 +192,18 @@ const MyInvestments = () => {
           <FolderCheck className="h-5 w-5 text-primary text-glow-emerald" />
           <span>Active Portfolios</span>
         </h3>
-        <span className="text-xs text-muted-foreground bg-white/5 border border-white/5 px-3 py-1 rounded-full font-semibold">
-          {purchasedPackages.length} Holdings
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground bg-white/5 border border-white/5 px-3 py-1.5 rounded-full font-semibold">
+            {purchasedPackages.length} Holdings
+          </span>
+          <Link
+            href="/our-packages"
+            className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 hover:shadow-emerald-500/20 shadow-md font-bold text-xs rounded-full transition-all duration-300 hover:opacity-90 active:scale-[0.98]"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Buy More</span>
+          </Link>
+        </div>
       </div>
 
       {loading ? (
@@ -206,9 +217,19 @@ const MyInvestments = () => {
           {error}
         </div>
       ) : purchasedPackages.length === 0 ? (
-        <div className="text-center py-16 rounded-3xl border border-white/5 bg-slate-900/10 flex flex-col items-center justify-center gap-3">
+        <div className="text-center py-16 rounded-3xl border border-white/5 bg-slate-900/10 flex flex-col items-center justify-center gap-4">
           <HelpCircle className="h-10 w-10 text-muted-foreground/30" />
-          <p className="text-sm font-semibold text-muted-foreground">No active investments found.</p>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-muted-foreground">No active investments found.</p>
+            <p className="text-xs text-slate-500">Explore and purchase investment packages to activate your portfolio.</p>
+          </div>
+          <Link
+            href="/our-packages"
+            className="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 hover:shadow-emerald-500/20 shadow-md font-bold text-xs rounded-full transition-all duration-300 hover:opacity-90 active:scale-[0.98]"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Buy Investment Packages</span>
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

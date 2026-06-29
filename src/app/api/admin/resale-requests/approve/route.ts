@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       await user.save({ session });
 
       // 4. Update Original Package Stock (restore available units)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const packageModels: Record<string, Model<any>> = {
         "long-term-rental": LongTermRental,
         "long-term-industry": LongTermIndustry,

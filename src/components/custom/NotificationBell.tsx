@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
-  Check,
   CheckCheck,
   Clock,
   ArrowDownCircle,
@@ -13,8 +12,7 @@ import {
   Coins,
   TrendingUp,
   RefreshCw,
-  Info,
-  Trash2
+  Info
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,7 +34,6 @@ interface NotificationBellProps {
 export function NotificationBell({ onTabChange }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -235,7 +232,7 @@ export function NotificationBell({ onTabChange }: NotificationBellProps) {
                   <Bell className="h-5 w-5 text-muted-foreground/60" />
                 </div>
                 <p className="text-xs font-semibold text-foreground mb-0.5">No notifications yet</p>
-                <p className="text-[10px] text-muted-foreground">We'll alert you when critical events happen.</p>
+                <p className="text-[10px] text-muted-foreground">{"We'll alert you when critical events happen."}</p>
               </div>
             ) : (
               notifications.map((notif) => (

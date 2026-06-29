@@ -73,6 +73,7 @@ export default function AdminResaleRequests() {
       } else {
         toast.error(res.data.message || "Failed to approve resale");
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to approve resale");
@@ -94,6 +95,7 @@ export default function AdminResaleRequests() {
       } else {
         toast.error(res.data.message || "Failed to reject resale");
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to reject resale");

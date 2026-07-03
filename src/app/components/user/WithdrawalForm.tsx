@@ -27,6 +27,22 @@ import {
   CustomTableCell 
 } from '@/components/custom/CustomTable';
 
+type WithdrawalHistoryItem = {
+  _id: string;
+  method: string;
+  amount: number;
+  status: string;
+  rejectionReason?: string;
+  createdAt: string;
+  details: {
+    accountTitle?: string;
+    accountNumber?: string;
+    bankName?: string;
+    eWalletType?: string;
+    extraInfo?: string;
+  };
+};
+
 export default function WithdrawalForm() {
   const { user, refreshUser } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState<'request' | 'history'>('request');
@@ -42,7 +58,7 @@ export default function WithdrawalForm() {
   const [loading, setLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [agree, setAgree] = useState(false);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<WithdrawalHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 

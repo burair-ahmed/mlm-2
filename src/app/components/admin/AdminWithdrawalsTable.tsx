@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -71,7 +70,7 @@ function CopyButton({ text }: { text?: string }) {
       setCopied(true);
       toast.success('Copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       toast.error('Failed to copy');
     }
   };
@@ -138,7 +137,7 @@ export default function AdminWithdrawalsTable() {
       } else {
         toast.error(data.message || 'Failed to load withdrawals');
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to load withdrawals');
     } finally {
       setLoading(false);
@@ -164,7 +163,7 @@ export default function AdminWithdrawalsTable() {
         const data = await res.json();
         toast.error(data.message || 'Failed to update status');
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to update status');
     } finally {
       setUpdatingIds((prev) => ({ ...prev, [id]: false }));
@@ -832,7 +831,7 @@ export default function AdminWithdrawalsTable() {
                         </div>
                         <h3 className="text-sm font-semibold text-slate-200">No requests found</h3>
                         <p className="text-xs text-muted-foreground mt-1 max-w-xs leading-relaxed">
-                          We couldn't find any withdrawal requests matching your search query, status, or method filters.
+                          {"We couldn't find any withdrawal requests matching your search query, status, or method filters."}
                         </p>
                       </div>
                     </td>

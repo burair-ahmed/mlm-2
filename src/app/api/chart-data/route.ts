@@ -43,9 +43,9 @@ export async function GET(req: NextRequest) {
         chartType = 'withdrawal'
       } else if (tx.type === 'equity_purchase' || tx.type === 'cash_to_equity' || tx.type === 'purchase') {
         chartType = 'purchase'
-      } else if (tx.type === 'deposit') {
+      } else if (tx.type === 'deposit' || tx.type === 'equity_to_cash' || tx.type === 'resale') {
         chartType = 'deposit'
-      } else if (tx.type === 'commission') {
+      } else if (tx.type === 'commission' || tx.type === 'profit') {
         chartType = 'commission'
       } else {
         continue // Skip unknown transaction types

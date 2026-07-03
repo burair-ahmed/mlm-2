@@ -32,6 +32,7 @@ import {
   ShieldAlert,
   TrendingUp,
   History,
+  Wallet,
 } from "lucide-react";
 
 function UserWorkspaceContent() {
@@ -92,6 +93,7 @@ function UserWorkspaceContent() {
     { title: "Commission History", icon: BarChart3, permission: "view_commissions" },
     { title: "Referrals", icon: Users, permission: "view_referrals" },
     { title: "Equity Units Converter", icon: ArrowDownUp, permission: "convert_units" },
+    { title: "Request Withdrawal", icon: Wallet, permission: "request_withdrawal" },
     { title: "Deposit History", icon: History, permission: "view_dashboard" },
     { title: "KYC", icon: FileCheck, permission: "view_kyc" },
   ];

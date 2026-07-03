@@ -142,3 +142,33 @@
   transition: all 0.3s ease;
   filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
 }
+
+/* Custom Scrollbars matching the color theme */
+@layer base {
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) hsl(var(--background));
+  }
+
+  /* Chrome, Edge, and Safari */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary) / 0.25);
+    border-radius: 9999px;
+    border: 2px solid hsl(var(--background));
+    transition: background-color 0.2s ease;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary));
+  }
+}

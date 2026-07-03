@@ -63,7 +63,7 @@ export async function PUT(
           throw new Error('User not found');
         }
 
-        user.balance += depositRequest.amount;
+        user.depositedBalance += depositRequest.amount;
         await user.save({ session });
 
         const equityUnits = depositRequest.amount / 10;

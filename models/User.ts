@@ -26,6 +26,7 @@ export interface IUser extends Document {
   referrals: mongoose.Types.ObjectId[];
   createdAt: Date;
   balance: number;
+  depositedBalance: number;
   hierarchyLevel: number;
   commissionEarned: number;
   equityUnits: number;
@@ -72,6 +73,7 @@ const UserSchema: Schema = new Schema({
   referrals: [{ type: Schema.Types.ObjectId, ref: "User" }],
   createdAt: { type: Date, default: Date.now },
   balance: { type: Number, default: 0 },
+  depositedBalance: { type: Number, default: 0 },
   hierarchyLevel: { type: Number, default: 0 },
   commissionEarned: { type: Number, default: 0 },
   equityUnits: { type: Number, default: 0 },

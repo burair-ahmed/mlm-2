@@ -16,6 +16,7 @@ export async function authenticate(req: NextRequest) {
     role: 'admin',
     isAdmin: true,
     balance: 10000,
+    depositedBalance: 5000,
     hierarchyLevel: 1,
     commissionEarned: 500,
     equityUnits: 100,

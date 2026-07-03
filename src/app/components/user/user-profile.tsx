@@ -14,6 +14,7 @@ interface UserProfileProps {
     referralCode: string;
     referredBy?: ObjectId | string;
     balance: number;
+    depositedBalance: number;
     hierarchyLevel: number;
     commissionEarned: number;
     equityUnits: number;
@@ -33,6 +34,7 @@ export default function UserProfile({ user }: UserProfileProps) {
     referralCode: string;
     referredBy?: ObjectId | string;
     balance: number;
+    depositedBalance: number;
     hierarchyLevel: number;
     commissionEarned: number;
     equityUnits: number;
@@ -45,6 +47,7 @@ export default function UserProfile({ user }: UserProfileProps) {
     referralCode: user?.referralCode || "",
     referredBy: user?.referredBy || "",
     balance: user?.balance || 0,
+    depositedBalance: user?.depositedBalance || 0,
     hierarchyLevel: user?.hierarchyLevel || 0,
     commissionEarned: user?.commissionEarned || 0,
     equityUnits: user?.equityUnits || 0,
@@ -176,13 +179,17 @@ export default function UserProfile({ user }: UserProfileProps) {
         />
       </div>
 
-      {/* Asset valuation statistics */}
       <div className="space-y-4">
         <h4 className="text-xs font-bold text-accent uppercase tracking-wider text-glow-gold">Portfolio Overview</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center space-y-1 shadow-lg relative">
             <Wallet className="h-4 w-4 text-primary absolute top-3 right-3 opacity-60" />
-            <p className="text-[10px] text-muted-foreground uppercase">Balance</p>
+            <p className="text-[10px] text-muted-foreground uppercase">Deposited</p>
+            <p className="text-base font-bold text-foreground">${formData.depositedBalance?.toLocaleString()}</p>
+          </div>
+          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center space-y-1 shadow-lg relative">
+            <Wallet className="h-4 w-4 text-primary absolute top-3 right-3 opacity-60" />
+            <p className="text-[10px] text-muted-foreground uppercase">Withdrawable</p>
             <p className="text-base font-bold text-foreground">${formData.balance?.toLocaleString()}</p>
           </div>
           <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center space-y-1 shadow-lg relative">

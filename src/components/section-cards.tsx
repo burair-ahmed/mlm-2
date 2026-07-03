@@ -78,8 +78,8 @@ export function SectionCards() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-      {/* 1. Profit Available */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* 1. Withdrawable Yield */}
       <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/50 hover:border-primary/20 backdrop-blur-xl p-6 transition-all duration-300 group shadow-2xl flex flex-col justify-between">
         {/* Glow overlay */}
         <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-glow-emerald pointer-events-none opacity-20" />
@@ -187,7 +187,30 @@ export function SectionCards() {
         </div>
       </div>
 
-      {/* 5. Wallet Balance */}
+      {/* 5. Deposited Capital */}
+      <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/50 hover:border-primary/20 backdrop-blur-xl p-6 transition-all duration-300 group shadow-2xl flex flex-col justify-between">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Deposited Capital</span>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-primary shrink-0">
+              <Wallet className="h-4 w-4" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-foreground group-hover:text-primary transition-colors duration-300">
+              ${user?.depositedBalance?.toLocaleString() || 0}
+            </h3>
+            <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wide">
+              Capital for purchases/conversions
+            </p>
+          </div>
+        </div>
+        <div className="text-[11px] text-muted-foreground border-t border-white/5 pt-3 mt-4 flex items-center gap-1.5">
+          <span>Non-withdrawable cash</span>
+        </div>
+      </div>
+
+      {/* 6. Wallet Balance */}
       <div className="relative rounded-3xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/50 hover:border-primary/20 backdrop-blur-xl p-6 transition-all duration-300 group shadow-2xl flex flex-col justify-between">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -206,7 +229,7 @@ export function SectionCards() {
           </div>
         </div>
         <div className="text-[11px] text-muted-foreground border-t border-white/5 pt-3 mt-4 flex items-center gap-1.5">
-          <span>Ready for purchase/deposit</span>
+          <span>Ready for withdrawal</span>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ import {
   ArrowDownToLine,
   Plus
 } from "lucide-react";
+import { useAuth } from "../../../../context/AuthContext";
 
 type CommonFields = {
   _id: string;
@@ -79,6 +80,7 @@ const formatTimeLeft = (ms: number) => {
 };
 
 const MyInvestments = () => {
+  const { refreshUser } = useAuth();
   const [purchasedPackages, setPurchasedPackages] = useState<PurchasedPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -144,6 +146,16 @@ const MyInvestments = () => {
 
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Withdraw failed");
+
+      // Update package profit amount in local state to 0
+      setPurchasedPackages((prev) =>
+        prev.map((pkg) =>
+          pkg._id === packageId ? { ...pkg, profitAmount: 0 } : pkg
+        )
+      );
+
+      // Refresh global user state to update withdrawnProfits and equityUnits cards on the dashboard
+      await refreshUser();
 
       alert("Profit withdrawn successfully!");
     } catch (err) {

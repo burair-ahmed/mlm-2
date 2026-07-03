@@ -1,4 +1,8 @@
 import mongoose, { Mongoose } from 'mongoose';
+import '../models/Permission';
+import '../models/Role';
+import '../models/User';
+import '../models/Notification';
 
 interface MongooseGlobal {
   conn: Mongoose | null;
@@ -30,12 +34,7 @@ async function dbConnect(): Promise<Mongoose> {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then(async (mongooseInstance) => {
-      // ✅ Dynamic import to avoid `require()` error
-      await import('../models/Permission');
-      await import('../models/Role');
-      await import('../models/User');
-      await import('../models/Notification');
+    cached.promise = mongoose.connect(MONGODB_URI).then((mongooseInstance) => {
       return mongooseInstance;
     });
   }
@@ -45,3 +44,4 @@ async function dbConnect(): Promise<Mongoose> {
 }
 
 export default dbConnect;
+

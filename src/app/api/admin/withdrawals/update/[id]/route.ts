@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   await dbConnect();
-  const { status } = await req.json();
+  const { status, reason } = await req.json();
 
   if (!status || !['Pending', 'In Process', 'Completed', 'Cancelled'].includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
@@ -46,6 +46,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     try {
       const oldStatus = request.status;
       request.status = status;
+      if (status === 'Cancelled') {
+        request.rejectionReason = reason || 'No reason provided';
+      } else {
+        request.rejectionReason = undefined;
+      }
       request.updatedAt = new Date();
       await request.save({ session });
 
@@ -65,9 +70,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           type: 'deposit',
           amount: request.amount,
           equityUnits: 0,
-          description: `Refund for cancelled withdrawal request of $${request.amount.toFixed(2)}`
+          description: `Refund for cancelled withdrawal request of $${request.amount.toFixed(2)}${reason ? `: ${reason}` : ''}`
         });
         await refundTx.save({ session });
+      } else if (status === 'Completed' && (oldStatus === 'Pending' || oldStatus === 'In Process')) {
+        const user = await User.findById(request.userId).session(session);
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        // Convert USD amount to Units (1 Unit = $10) and add to withdrawnProfits
+        user.withdrawnProfits = (user.withdrawnProfits || 0) + (request.amount / 10);
+        await user.save({ session });
       }
 
       await session.commitTransaction();
@@ -75,9 +89,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
       // Trigger notification for status changes
       let statusDesc = status.toLowerCase();
-      if (status === 'Completed') statusDesc = 'completed and processed';
-      else if (status === 'Cancelled') statusDesc = 'cancelled and refunded to your balance';
-      else if (status === 'In Process') statusDesc = 'marked as in process';
+      if (status === 'Completed') {
+        statusDesc = 'completed and processed';
+      } else if (status === 'Cancelled') {
+        statusDesc = `cancelled and refunded to your balance.${reason ? ` Reason: ${reason}` : ''}`;
+      } else if (status === 'In Process') {
+        statusDesc = 'marked as in process';
+      }
 
       await createNotification(request.userId, {
         title: `Withdrawal Request ${status}`,

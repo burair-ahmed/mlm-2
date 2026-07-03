@@ -46,7 +46,7 @@ export function CustomDialog({ open, onOpenChange, children, className = "" }: C
 
       {/* Dialog container */}
       <div
-        className={`relative z-10 w-full max-w-lg glass-panel rounded-3xl border border-white/10 p-6 md:p-8 shadow-2xl transition-all duration-300 animate-in zoom-in-95 ${className}`}
+        className={`relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto glass-panel rounded-3xl border border-white/10 p-6 md:p-8 shadow-2xl transition-all duration-300 animate-in zoom-in-95 ${className}`}
       >
         {/* Close Button */}
         <button

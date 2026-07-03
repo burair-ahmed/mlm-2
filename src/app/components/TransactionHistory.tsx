@@ -69,7 +69,7 @@ export default function TransactionHistory() {
     fetchTransactions();
   }, [user, activeType, page]);
 
-  const staticTypeOrder = ["all", "deposit", "purchase", "commission", "profit-withdrawal", "cash_to_equity", "profit"];
+  const staticTypeOrder = ["all", "deposit", "purchase", "commission", "profit-withdrawal", "cash_to_equity", "equity_to_cash", "profit"];
   const transactionTypes = staticTypeOrder.filter((type) => type === "all" || transactionCounts[type] > 0);
 
   const getAmountDisplay = (tx: Transaction) => {
@@ -86,7 +86,7 @@ export default function TransactionHistory() {
         icon: <TrendingUp className="h-4.5 w-4.5 text-emerald-400" />,
       };
     }
-    if (type === "commission" || type === "deposit") {
+    if (type === "commission" || type === "deposit" || type === "equity_to_cash") {
       return {
         badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-glow-emerald",
         text: "text-emerald-400 font-bold",

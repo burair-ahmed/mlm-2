@@ -32,12 +32,12 @@ export async function POST(req: NextRequest) {
 
     try {
       const user = await User.findById(auth._id).session(session);
-      if (!user || user.balance < totalCost) {
-        throw new Error('Insufficient balance');
+      if (!user || user.depositedBalance < totalCost) {
+        throw new Error('Insufficient deposited capital');
       }
 
       // Deduct cash & add equity units
-      user.balance -= totalCost;
+      user.depositedBalance -= totalCost;
       user.equityUnits += numericUnits;
       await user.save({ session });
 
@@ -110,6 +110,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         newBalance: user.balance,
+        newDepositedBalance: user.depositedBalance,
         equityUnits: user.equityUnits
       });
 

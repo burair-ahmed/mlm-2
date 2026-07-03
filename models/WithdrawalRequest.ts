@@ -13,6 +13,7 @@ const WithdrawalRequestSchema = new mongoose.Schema({
     extraInfo: String, // Optional additional info
   },
   status: { type: String, enum: ['Pending', 'In Process', 'Completed', 'Cancelled'], default: 'Pending' },
+  rejectionReason: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date },
 });

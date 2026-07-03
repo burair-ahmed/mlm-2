@@ -230,10 +230,10 @@ export default function AdminDepositRequests() {
                               <Eye className="h-3.5 w-3.5" /> View Proof
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="bg-slate-950 text-slate-100 border-white/10 max-w-lg rounded-3xl p-6 glass-panel overflow-hidden">
+                          <DialogContent className="bg-slate-950 text-slate-100 border-white/10 max-w-lg rounded-3xl p-6 glass-panel overflow-hidden max-h-[85vh] flex flex-col">
                             <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-glow-emerald pointer-events-none opacity-10" />
-                            <DialogTitle className="font-extrabold text-lg border-b border-white/5 pb-3 mb-4">Deposit Details</DialogTitle>
-                            <div className="space-y-4 text-sm">
+                            <DialogTitle className="font-extrabold text-lg border-b border-white/5 pb-3 mb-4 shrink-0">Deposit Details</DialogTitle>
+                            <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-sm scrollbar-thin min-h-0">
                               <div className="grid grid-cols-3 gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
                                 <div>
                                   <span className="text-[10px] uppercase text-muted-foreground font-bold">Amount (USD)</span>
@@ -262,7 +262,7 @@ export default function AdminDepositRequests() {
                                   <img 
                                     src={r.proofUrl} 
                                     alt="Payment Receipt Screenshot" 
-                                    className="w-full h-auto max-h-[300px] object-contain rounded-xl"
+                                    className="w-full h-auto max-h-[350px] object-contain rounded-xl"
                                   />
                                 </div>
                               </div>

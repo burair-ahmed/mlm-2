@@ -6,6 +6,7 @@ import User from "../models/User";
 import Transaction from "../models/Transaction";
 import { differenceInMilliseconds } from "date-fns";
 import { createNotification } from "../lib/notifications";
+import { getEquityUnitPrice } from "../lib/settings";
 
 const getHoldingPeriodInMs = (value: number, unit: string) => {
   const unitMap: Record<string, number> = {
@@ -25,9 +26,11 @@ const getHoldingPeriodInMs = (value: number, unit: string) => {
 
 export default async function handler() {
   await dbConnect();
+  const price = await getEquityUnitPrice();
 
   const packages = await PurchasedPackage.find({
     packageType: "long-term-rental",
+    status: "active",
   });
 
   for (const pkg of packages) {
@@ -40,9 +43,9 @@ export default async function handler() {
     const { value, unit } = rentalPackage.duration;
     const holdingPeriodMs = getHoldingPeriodInMs(value, unit);
 
-    const lastProfitDate = pkg.lastProfitDate || pkg.purchaseDate;
+    const lastProfitDate = new Date(pkg.lastProfitDate || pkg.purchaseDate);
     const now = new Date();
-    const elapsedMs = differenceInMilliseconds(now, lastProfitDate);
+    const elapsedMs = now.getTime() - lastProfitDate.getTime();
 
     if (elapsedMs >= holdingPeriodMs) {
       const profitToAdd = (pkg.equityUnits * rentalPackage.returnPercentage) / 100;
@@ -51,25 +54,22 @@ export default async function handler() {
       pkg.profitAmount += profitToAdd;
       pkg.lastProfitDate = now;
 
-      // Credit the owner user's balance
+      // Credit the owner user
       const ownerUser = await User.findById(pkg.userId);
       if (ownerUser) {
-        ownerUser.balance += profitToAdd;
-        await ownerUser.save();
-
         // Create transaction
         const profitTx = new Transaction({
           userId: ownerUser._id,
           amount: profitToAdd,
           type: "profit",
-          description: `Automated rental payout of $${profitToAdd.toFixed(2)} for package: ${rentalPackage.name}`,
+          description: `Automated rental payout of $${(profitToAdd * price).toFixed(2)} for package: ${rentalPackage.name}`,
         });
         await profitTx.save();
 
         // Trigger user notification
         await createNotification(ownerUser._id, {
           title: 'Automated Rental Payout',
-          message: `Automated rental payout of $${profitToAdd.toFixed(2)} received for package "${rentalPackage.name}".`,
+          message: `Automated rental payout of $${(profitToAdd * price).toFixed(2)} received for package "${rentalPackage.name}".`,
           type: 'profit',
           link: '/user?tab=Dashboard'
         });

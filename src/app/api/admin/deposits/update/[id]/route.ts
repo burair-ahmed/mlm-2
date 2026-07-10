@@ -7,6 +7,8 @@ import Transaction from '../../../../../../../models/Transaction';
 import { authenticate } from '../../../../../../../middleware/auth';
 import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
 import { createNotification } from '../../../../../../../lib/notifications';
+import { logAdminAction } from '../../../../../../../lib/db/auditLog';
+import { getEquityUnitPrice } from '../../../../../../../lib/settings';
 
 export async function PUT(
   req: NextRequest,
@@ -47,15 +49,12 @@ export async function PUT(
     session.startTransaction();
 
     try {
-      console.log('[UPDATE DEPOSIT] Request payload:', { id, status, reason });
       depositRequest.status = status;
       depositRequest.updatedAt = new Date();
       if (status === 'Rejected' && reason) {
         depositRequest.rejectionReason = reason;
-        console.log('[UPDATE DEPOSIT] Set rejectionReason to:', reason);
       }
       await depositRequest.save({ session });
-      console.log('[UPDATE DEPOSIT] Saved document:', depositRequest);
 
       if (status === 'Approved') {
         const user = await User.findById(depositRequest.userId).session(session);
@@ -66,7 +65,8 @@ export async function PUT(
         user.depositedBalance += depositRequest.amount;
         await user.save({ session });
 
-        const equityUnits = depositRequest.amount / 10;
+        const price = await getEquityUnitPrice();
+        const equityUnits = depositRequest.amount / price;
         const depositTx = new Transaction({
           userId: depositRequest.userId,
           type: 'deposit',
@@ -76,6 +76,16 @@ export async function PUT(
         });
         await depositTx.save({ session });
       }
+
+      // Record administrative audit log
+      await logAdminAction({
+        adminId: auth._id,
+        action: status === 'Approved' ? 'approve_deposit' : 'reject_deposit',
+        targetId: depositRequest._id,
+        targetModel: 'DepositRequest',
+        details: `Deposit request of $${depositRequest.amount} was ${status.toLowerCase()}${reason ? `. Reason: ${reason}` : ''}`,
+        session
+      });
 
       await session.commitTransaction();
       session.endSession();

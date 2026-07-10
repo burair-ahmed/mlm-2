@@ -45,8 +45,8 @@ export async function GET(req: NextRequest) {
   try {
     await dbConnect();
 
-    // Fetch all purchased packages with populated user fields
-    const purchasedPackages = await PurchasedPackage.find().populate({
+    // Fetch purchased packages (exclude sold packages) with populated user fields
+    const purchasedPackages = await PurchasedPackage.find({ status: { $ne: "sold" } }).populate({
       path: "userId",
       select: "email name phone", 
     });
@@ -60,11 +60,13 @@ export async function GET(req: NextRequest) {
 
       const commonFields = {
         _id: pkg._id,
+        packageId: pkg.packageId,
         quantity: pkg.quantity,
         equityUnits: pkg.equityUnits,
         purchaseDate: pkg.purchaseDate,
         profitAmount: pkg.profitAmount || 0,
         lastProfitDate: pkg.lastProfitDate || null,
+        status: pkg.status || "active",
         user: {
           _id: pkg.userId?._id,
           name: pkg.userId?.name,

@@ -34,6 +34,7 @@ export interface IUser extends Document {
   withdrawnProfits: number;
   purchasedPackages: Array<{
     packageId: mongoose.Types.ObjectId;
+    packageType?: "long-term-rental" | "long-term-industry" | "trading";
     totalUnits: number;
   }>;
   kyc?: IKYC;
@@ -86,6 +87,11 @@ const UserSchema: Schema = new Schema({
         type: Schema.Types.ObjectId,
         refPath: "packageType",
         required: true,
+      },
+      packageType: {
+        type: String,
+        enum: ["long-term-rental", "long-term-industry", "trading"],
+        required: false,
       },
       totalUnits: { type: Number, required: true },
     },

@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
     await user.save();
 
     return NextResponse.json({ message: 'KYC submitted successfully' }, { status: 200 });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to submit KYC', details: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('KYC submit error:', err);
+    return NextResponse.json({ error: 'Failed to submit KYC' }, { status: 500 });
   }
 }

@@ -49,6 +49,13 @@ export async function GET(
 
   const { userId } = await context.params;
 
+  if (auth._id.toString() !== userId && !auth.isAdmin) {
+    return NextResponse.json(
+      { error: "Forbidden: You do not have permission to view this hierarchy tree" },
+      { status: 403 }
+    );
+  }
+
   if (!process.env.MONGODB_URI) {
     const mockHierarchy: TreeNode = {
       _id: userId,

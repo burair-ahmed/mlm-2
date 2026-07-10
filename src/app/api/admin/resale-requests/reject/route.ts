@@ -5,14 +5,14 @@ import PurchasedPackage from "../../../../../../models/PurchasedPackage";
 
 import { authenticate } from "../../../../../../middleware/auth";
 import { hasPermission } from "../../../../../../lib/auth/permissionUtils";
+import { logAdminAction } from "../../../../../../lib/db/auditLog";
 
 export async function POST(req: NextRequest) {
   try {
     const auth = await authenticate(req);
     if (auth instanceof NextResponse) return auth;
 
-    const allowed = (auth.isAdmin || auth.role === 'admin' || auth.role === 'Super Admin') ||
-      (await hasPermission(auth, "manage_purchased_packages")) ||
+    const allowed = (await hasPermission(auth, "manage_purchased_packages")) ||
       (await hasPermission(auth, "handle_resales"));
     if (!allowed) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -44,6 +44,15 @@ export async function POST(req: NextRequest) {
     // Revert status to active
     purchasedPackage.status = "active";
     await purchasedPackage.save();
+
+    // Record audit log
+    await logAdminAction({
+      adminId: auth._id,
+      action: 'reject_resale',
+      targetId: purchasedPackage._id,
+      targetModel: 'PurchasedPackage',
+      details: `Rejected resale request of package ${purchasedPackage._id} (User: ${purchasedPackage.userId})`
+    });
 
     // Trigger notification
     await createNotification(purchasedPackage.userId, {

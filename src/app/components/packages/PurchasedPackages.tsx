@@ -168,6 +168,12 @@ const MyInvestments = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
+    const targetPkg = purchasedPackages.find((pkg) => pkg._id === purchasedPackageId);
+    if (targetPkg && targetPkg.profitAmount > 0) {
+      alert("You have accrued yields/profits in this package. Please withdraw your yields/profits first before requesting resale.");
+      return;
+    }
+
     if (!confirm("Are you sure you want to request to sell this package? Once submitted, the package cannot be sold or have its yields withdrawn until approved/rejected by an admin.")) {
       return;
     }

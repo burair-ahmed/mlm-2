@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       name: body.name,
       category: body.category,
       totalUnits: body.totalUnits,
-      availableUnits: body.availableUnits,
+      availableUnits: body.availableUnits !== undefined ? body.availableUnits : body.totalUnits,
       equityUnits: body.equityUnits,
       returnPercentage: body.returnPercentage,
       estimatedReturn: body.estimatedReturn,

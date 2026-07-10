@@ -5,8 +5,7 @@ import Transaction from '../../../../../models/Transaction';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
 import { createNotification } from '../../../../../lib/notifications';
-
-const PRICE_PER_UNIT = 10; // $10 per equity unit
+import { getEquityUnitPrice } from '../../../../../lib/settings';
 
 export async function POST(req: NextRequest) {
   const auth = await authenticate(req);
@@ -17,6 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const { units } = await req.json();
     const numericUnits = Number(units);
+    const PRICE_PER_UNIT = await getEquityUnitPrice();
     const totalRefund = numericUnits * PRICE_PER_UNIT;
 
     // Validation

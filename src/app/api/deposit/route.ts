@@ -4,10 +4,18 @@ import User from '../../../../models/User';
 import Transaction from '../../../../models/Transaction';
 import dbConnect from '../../../../lib/dbConnect';
 import { authenticate } from '../../../../middleware/auth';
+import { getEquityUnitPrice } from '../../../../lib/settings';
 
 export async function POST(req: NextRequest) {
   const auth = await authenticate(req);
   if (auth instanceof NextResponse) return auth;
+
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: "Direct deposits are not allowed in production. Please use the deposit request flow." },
+      { status: 403 }
+    );
+  }
 
   await dbConnect();
 
@@ -16,9 +24,9 @@ export async function POST(req: NextRequest) {
     const numericAmount = parseFloat(amount);
 
     // Validate amount
-    if (isNaN(numericAmount)) {
+    if (isNaN(numericAmount) || numericAmount <= 0 || numericAmount > 10000) {
       return NextResponse.json(
-        { error: "Invalid amount format" },
+        { error: "Invalid amount. Direct deposits in development must be between $0.01 and $10,000." },
         { status: 400 }
       );
     }
@@ -38,7 +46,8 @@ export async function POST(req: NextRequest) {
         throw new Error('User not found');
       }
       
-      const equityUnits = numericAmount / 10;
+      const price = await getEquityUnitPrice();
+      const equityUnits = numericAmount / price;
       // Create deposit transaction
       const depositTx = new Transaction({
         userId: auth._id,

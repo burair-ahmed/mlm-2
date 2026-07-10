@@ -4,6 +4,7 @@ import User from '../../../../../../../models/User';
 import { authenticate } from '../../../../../../../middleware/auth';
 import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
 import { createNotification } from '../../../../../../../lib/notifications';
+import { logAdminAction } from '../../../../../../../lib/db/auditLog';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const auth = await authenticate(req);
@@ -31,6 +32,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
 
     await user.save();
 
+    // Record audit log
+    await logAdminAction({
+      adminId: auth._id,
+      action: 'approve_kyc',
+      targetId: user._id,
+      targetModel: 'User',
+      details: `Approved KYC verification for user ${user.userName || user.email || user._id}`
+    });
+
     // Trigger notification
     await createNotification(user._id, {
       title: 'KYC Verification Approved',
@@ -40,8 +50,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     });
 
     return NextResponse.json({ message: 'KYC approved successfully' }, { status: 200 });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to approve KYC', details: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('KYC approval error:', err);
+    return NextResponse.json({ error: 'Failed to approve KYC' }, { status: 500 });
   }
 }

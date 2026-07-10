@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
   // 1️⃣ Authenticate user
   const auth = await authenticate(req);
   if (auth instanceof NextResponse) return auth;
-  console.log("✅ Authenticated User:", auth._id);
 
   try {
     // 2️⃣ Connect to DB
@@ -31,6 +30,10 @@ export async function POST(req: NextRequest) {
       const purchased = await PurchasedPackage.findOne({ _id: packageId, userId: auth._id }).session(session);
       if (!purchased || purchased.profitAmount <= 0) {
         return NextResponse.json({ error: "No withdrawable profit" }, { status: 400 });
+      }
+
+      if (purchased.status !== "active") {
+        return NextResponse.json({ error: "Cannot withdraw profit from a package that is not active" }, { status: 400 });
       }
 
   // 6️⃣ Credit Profit to User's Equity Units & Track Withdrawn Profits

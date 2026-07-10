@@ -16,10 +16,28 @@ export function SectionCards() {
   const [showProfitInUSD, setShowProfitInUSD] = useState(false);
   const [showWithdrawnInUSD, setShowWithdrawnInUSD] = useState(false);
   const [showBalanceInUSD, setShowBalanceInUSD] = useState(false);
+  const [pricePerUnit, setPricePerUnit] = useState(10);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && typeof data.equityUnitPrice === 'number') {
+            setPricePerUnit(data.equityUnitPrice);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const formatValue = (value: number, inUSD: boolean) => {
     return inUSD
-      ? `$${(value * 10).toLocaleString()}`
+      ? `$${(value * pricePerUnit).toLocaleString()}`
       : `${value.toLocaleString()} Units`;
   };
 

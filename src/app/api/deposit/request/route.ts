@@ -4,8 +4,18 @@ import DepositRequest from '../../../../../models/DepositRequest';
 import { authenticate } from '../../../../../middleware/auth';
 import { createNotification } from '../../../../../lib/notifications';
 import { uploadToCloudinary } from '../../../../../lib/cloudinary';
+import { getClientIp, isRateLimited } from '../../../../../lib/auth/rateLimiter';
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rateLimitResult = isRateLimited(`deposit_request_${ip}`, 20, 60 * 1000); // 20 req/min
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again in a minute.' },
+      { status: 429 }
+    );
+  }
+
   const auth = await authenticate(req);
   if (auth instanceof NextResponse) return auth;
 
@@ -22,6 +32,24 @@ export async function POST(req: NextRequest) {
     if (!amount || !paymentMethod || !proofFile) {
       return NextResponse.json(
         { error: 'Amount, payment method, and proof file are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate proof file type and size
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (!ALLOWED_TYPES.includes(proofFile.type)) {
+      return NextResponse.json(
+        { error: 'Invalid file type. Only JPEG, PNG, and WEBP images are allowed.' },
+        { status: 400 }
+      );
+    }
+
+    if (proofFile.size > MAX_SIZE) {
+      return NextResponse.json(
+        { error: 'File too large. Max proof image size is 5MB.' },
         { status: 400 }
       );
     }

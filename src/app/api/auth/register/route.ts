@@ -5,8 +5,18 @@ import User from '../../../../../models/User';
 import Role from '../../../../../models/Role';
 import Permission from '../../../../../models/Permission';
 import { generateReferralCode } from '../../../../../utils/referral';
+import { getClientIp, isRateLimited } from '../../../../../lib/auth/rateLimiter';
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rateLimitResult = isRateLimited(`register_${ip}`, 10, 60 * 1000); // 10 req/min
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again in a minute.' },
+      { status: 429 }
+    );
+  }
+
   if (!process.env.MONGODB_URI) {
     return NextResponse.json(
       { message: 'User created successfully (Mock Mode)', userId: 'mock-new-user-id' },
@@ -19,14 +29,31 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password, userName, fullName, referralCode } = await request.json();
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email, userName });
+    // Password validation
+    if (!password || password.length < 12 || 
+        !/[A-Z]/.test(password) || 
+        !/[a-z]/.test(password) || 
+        !/[0-9]/.test(password) || 
+        !/[^A-Za-z0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: 'Password must be at least 12 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character.' },
+        { status: 400 }
+      );
+    }
+
+    // Check if user already exists (prevent duplicate email or username)
+    const existingUser = await User.findOne({
+      $or: [{ email }, { userName }]
+    });
     if (existingUser) {
-      return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Registration failed. Username or email already in use.' },
+        { status: 400 }
+      );
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Find default role: "User"
     let defaultRole = await Role.findOne({ name: 'User' }).populate('permissions');

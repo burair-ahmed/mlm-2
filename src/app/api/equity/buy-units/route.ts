@@ -5,8 +5,7 @@ import Transaction from '../../../../../models/Transaction';
 import dbConnect from '../../../../../lib/dbConnect';
 import { authenticate } from '../../../../../middleware/auth';
 import { createNotification } from '../../../../../lib/notifications';
-
-const PRICE_PER_UNIT = 10; // $10 per equity unit
+import { getEquityUnitPrice } from '../../../../../lib/settings';
 
 export async function POST(req: NextRequest) {
   const auth = await authenticate(req);
@@ -17,6 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const { units } = await req.json();
     const numericUnits = Number(units);
+    const PRICE_PER_UNIT = await getEquityUnitPrice();
     const totalCost = numericUnits * PRICE_PER_UNIT;
 
     // Validation
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
           type: 'commission',
           amount: commission,
           sourceUser: user._id,
-          description: `Cash commission from ${user.email}`
+          description: `Cash commission from user ${user.userName || user._id}`
         }).save({ session });
         
 
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
         const commission = totalCost * rate;
         await createNotification(referrer._id, {
           title: 'Referral Commission Earned',
-          message: `You earned a referral commission of $${commission.toLocaleString(undefined, { minimumFractionDigits: 2 })} (Level ${level}) from ${user.email || user.userName}.`,
+          message: `You earned a referral commission of $${commission.toLocaleString(undefined, { minimumFractionDigits: 2 })} (Level ${level}) from ${user.userName || 'referred user'}.`,
           type: 'commission',
           link: '/user?tab=Commission+History'
         });

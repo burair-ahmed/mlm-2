@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "../../../../../lib/dbConnect";
 import User from "../../../../../models/User";
+import { authenticate } from "../../../../../middleware/auth";
 
 // Use PUT for updating existing resources
 export async function PUT(req: NextRequest) {
     try {
+      const auth = await authenticate(req);
+      if (auth instanceof NextResponse) return auth;
+
       const body = await req.json();
-      const { email, userName, fullName, profilePicture } = body;
-  
-      if (!email) {
-        return NextResponse.json({ error: "Email is required" }, { status: 400 });
-      }
+      const { userName, fullName, profilePicture } = body;
   
       await dbConnect();
   
-      const updatedUser = await User.findOneAndUpdate(
-        { email },
+      const updatedUser = await User.findByIdAndUpdate(
+        auth._id,
         {
           ...(userName && { userName }),
           ...(fullName && { fullName }),

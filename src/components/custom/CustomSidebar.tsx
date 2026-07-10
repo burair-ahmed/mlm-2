@@ -11,7 +11,8 @@ import {
   ChevronLeft, 
   ChevronRight,
   TrendingUp,
-  LayoutDashboard
+  LayoutDashboard,
+  ShieldAlert
 } from "lucide-react";
 
 interface SidebarTab {
@@ -261,13 +262,24 @@ export function CustomSidebar({ activeTab, setActiveTab, tabs, isAdminView = fal
                   </Link>
                 ) : (
                   (user.isAdmin || user.role === "admin" || user.role === "Super Admin" || user.customPermissions?.includes("access_admin_dashboard")) && (
-                    <Link
-                      href="/admin"
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-accent hover:bg-white/5 hover:text-foreground transition-all duration-300"
-                    >
-                      <LayoutDashboard className="h-4 w-4 text-accent text-glow-gold" />
-                      Admin Panel
-                    </Link>
+                    <>
+                      <Link
+                        href="/admin"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-accent hover:bg-white/5 hover:text-foreground transition-all duration-300"
+                      >
+                        <LayoutDashboard className="h-4 w-4 text-accent text-glow-gold" />
+                        Admin Panel
+                      </Link>
+                      {user.role === "Super Admin" && (
+                        <Link
+                          href="/super-admin"
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-yellow-400 hover:bg-white/5 hover:text-foreground transition-all duration-300"
+                        >
+                          <ShieldAlert className="h-4 w-4 text-yellow-400" />
+                          Audit Panel
+                        </Link>
+                      )}
+                    </>
                   )
                 )}
                 <div className="h-px bg-white/5 my-1" />

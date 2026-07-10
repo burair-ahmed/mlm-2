@@ -8,6 +8,7 @@ import Transaction from '../../../../../../../models/Transaction';
 import { authenticate } from '../../../../../../../middleware/auth';
 import { hasPermission } from '../../../../../../../lib/auth/permissionUtils';
 import { createNotification } from '../../../../../../../lib/notifications';
+import { getEquityUnitPrice } from '../../../../../../../lib/settings';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticate(req);
@@ -79,8 +80,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           throw new Error('User not found');
         }
 
-        // Convert USD amount to Units (1 Unit = $10) and add to withdrawnProfits
-        user.withdrawnProfits = (user.withdrawnProfits || 0) + (request.amount / 10);
+        // Convert USD amount to Units (using dynamic price) and add to withdrawnProfits
+        const price = await getEquityUnitPrice();
+        user.withdrawnProfits = (user.withdrawnProfits || 0) + (request.amount / price);
         await user.save({ session });
       }
 

@@ -1,30 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Search,
   TrendingUp,
   DollarSign,
   Layers,
   Calendar,
-  Percent,
   Award,
-  Wallet,
   Coins,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  Send,
+  Loader2
 } from "lucide-react";
 
 interface Package {
   _id: string;
+  packageId?: string;
   name: string;
   category: string;
   type: string;
@@ -38,6 +35,7 @@ interface Package {
   profitEstimation?: string;
   minHoldingPeriod?: number;
   minHoldingPeriodUnit?: string;
+  status?: string;
   user?: {
     _id: string;
     name: string;
@@ -46,37 +44,64 @@ interface Package {
   };
 }
 
+interface GroupedPackage {
+  packageId: string;
+  name: string;
+  type: string;
+  category: string;
+  totalUnits: number;
+  totalActiveBuyers: number;
+  totalProfitDistributed: number;
+  portfolios: Package[];
+}
+
 export default function AdminProfitUpdate() {
   const [purchasedPackages, setPurchasedPackages] = useState<Package[]>([]);
-  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [profitAmount, setProfitAmount] = useState<number | "">("");
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
+  const [pricePerUnit, setPricePerUnit] = useState(10);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && typeof data.equityUnitPrice === 'number') {
+            setPricePerUnit(data.equityUnitPrice);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
+  
+  // Expanded packages state (keys are packageId or name)
+  const [expandedPackages, setExpandedPackages] = useState<Record<string, boolean>>({});
+
+  // Inputs for Bulk payouts (keyed by package group key)
+  const [bulkValues, setBulkValues] = useState<Record<string, string>>({});
+  const [bulkModes, setBulkModes] = useState<Record<string, "fixed" | "percentage">>({});
+  const [submittingBulk, setSubmittingBulk] = useState<Record<string, boolean>>({});
+
+  // Inputs for Individual payouts (keyed by portfolioId)
+  const [indivValues, setIndivValues] = useState<Record<string, string>>({});
+  const [indivModes, setIndivModes] = useState<Record<string, "fixed" | "percentage">>({});
+  const [submittingIndiv, setSubmittingIndiv] = useState<Record<string, boolean>>({});
 
   // Fetch packages
   const fetchPurchasedPackages = async () => {
     setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await fetch("/api/admin/get-all-purchased-packages", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await fetch("/api/admin/get-all-purchased-packages");
       if (!response.ok) {
         throw new Error("Failed to fetch packages");
       }
-
       const data = await response.json();
       setPurchasedPackages(data.data || []);
       setError(null);
@@ -89,22 +114,32 @@ export default function AdminProfitUpdate() {
 
   useEffect(() => {
     fetchPurchasedPackages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle profit update
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Handle profit updates (Bulk or Individual)
+  const handleDistribution = async (params: {
+    payoutType: "bulk" | "individual";
+    mode: "fixed" | "percentage";
+    value: number;
+    purchasedPackageId?: string;
+    originalPackageId?: string;
+    groupKey?: string;
+  }) => {
+    setError(null);
+    setSuccessMessage(null);
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
+    const { payoutType, mode, value, purchasedPackageId, originalPackageId, groupKey } = params;
+
+    if (!value || value <= 0) {
+      setError("Please specify a valid yield value.");
       return;
     }
 
-    if (!selectedPackage || profitAmount === "" || profitAmount <= 0) {
-      setError("Please select a package and enter a valid positive profit amount.");
-      return;
+    // Set loading indicator
+    if (payoutType === "bulk" && groupKey) {
+      setSubmittingBulk(prev => ({ ...prev, [groupKey]: true }));
+    } else if (payoutType === "individual" && purchasedPackageId) {
+      setSubmittingIndiv(prev => ({ ...prev, [purchasedPackageId]: true }));
     }
 
     try {
@@ -112,62 +147,144 @@ export default function AdminProfitUpdate() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          packageId: selectedPackage._id,
-          profitAmount,
+          payoutType,
+          mode,
+          value,
+          purchasedPackageId,
+          originalPackageId
         }),
       });
 
       const data = await response.json();
       if (!data.success) {
-        setError(data.message || "Failed to update profit");
+        setError(data.message || "Failed to distribute profits");
       } else {
-        setSuccessMessage(`Successfully distributed $${Number(profitAmount).toFixed(2)} to ${selectedPackage.user?.email || "owner"}'s wallet balance!`);
-        setError(null);
-        setProfitAmount("");
-        setSelectedPackage(null);
-        // Refresh package list to reflect updated profitAmounts
+        setSuccessMessage(data.message || "Profits successfully distributed!");
+        
+        // Reset inputs
+        if (payoutType === "bulk" && groupKey) {
+          setBulkValues(prev => ({ ...prev, [groupKey]: "" }));
+        } else if (payoutType === "individual" && purchasedPackageId) {
+          setIndivValues(prev => ({ ...prev, [purchasedPackageId]: "" }));
+        }
+
+        // Refresh list
         await fetchPurchasedPackages();
       }
     } catch {
       setError("Something went wrong while updating profit.");
+    } finally {
+      // Clear loading indicator
+      if (payoutType === "bulk" && groupKey) {
+        setSubmittingBulk(prev => ({ ...prev, [groupKey]: false }));
+      } else if (payoutType === "individual" && purchasedPackageId) {
+        setSubmittingIndiv(prev => ({ ...prev, [purchasedPackageId]: false }));
+      }
     }
   };
 
-  // Filter list of packages
-  const filteredPackages = purchasedPackages.filter((pkg) => {
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch =
-      pkg.name?.toLowerCase().includes(searchLower) ||
-      pkg.category?.toLowerCase().includes(searchLower) ||
-      pkg.user?.email?.toLowerCase().includes(searchLower) ||
-      pkg.user?.name?.toLowerCase().includes(searchLower);
+  // Toggle package expansion
+  const toggleExpand = (groupKey: string) => {
+    setExpandedPackages(prev => ({
+      ...prev,
+      [groupKey]: !prev[groupKey]
+    }));
+  };
 
-    const matchesCategory =
-      activeCategory === "all" || pkg.type === activeCategory;
+  // Filter purchased portfolios
+  const filteredPackages = useMemo(() => {
+    return purchasedPackages.filter((pkg) => {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        pkg.name?.toLowerCase().includes(searchLower) ||
+        pkg.category?.toLowerCase().includes(searchLower) ||
+        pkg.user?.email?.toLowerCase().includes(searchLower) ||
+        pkg.user?.name?.toLowerCase().includes(searchLower);
 
-    return matchesSearch && matchesCategory;
-  });
+      const matchesCategory =
+        activeCategory === "all" || pkg.type === activeCategory;
 
-  // Calculate statistics banner metrics
-  const totalPackages = purchasedPackages.length;
+      return matchesSearch && matchesCategory;
+    });
+  }, [purchasedPackages, searchQuery, activeCategory]);
+
+  // Group filtered portfolios under parent packages
+  const groupedPackages = useMemo(() => {
+    const groups: Record<string, GroupedPackage> = {};
+
+    filteredPackages.forEach((pkg) => {
+      // Fallback to pkg.name to support mock data without packageId
+      const groupKey = pkg.packageId || pkg.name;
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = {
+          packageId: pkg.packageId || "",
+          name: pkg.name || "Unknown Package",
+          type: pkg.type || "trading",
+          category: pkg.category || "general",
+          totalUnits: 0,
+          totalActiveBuyers: 0,
+          totalProfitDistributed: 0,
+          portfolios: []
+        };
+      }
+
+      if (pkg.status === "active") {
+        groups[groupKey].totalUnits += pkg.quantity || 0;
+      }
+      groups[groupKey].totalProfitDistributed += pkg.profitAmount || 0;
+      groups[groupKey].portfolios.push(pkg);
+    });
+
+    Object.keys(groups).forEach(key => {
+      groups[key].totalActiveBuyers = groups[key].portfolios.filter(p => p.status === "active").length;
+    });
+
+    return Object.values(groups);
+  }, [filteredPackages]);
+
+  // Calculate statistics metrics
+  const totalPortfolios = purchasedPackages.length;
   const totalProfitsDistributed = purchasedPackages.reduce(
     (acc, pkg) => acc + (pkg.profitAmount || 0),
     0
-  );
-  const averagePayout = totalPackages > 0 ? totalProfitsDistributed / totalPackages : 0;
+  ) * pricePerUnit;
+  const averagePayout = totalPortfolios > 0 ? totalProfitsDistributed / totalPortfolios : 0;
+
+  // Colors for styling based on package type
+  const getPackageTypeStyles = (type: string) => {
+    if (type === "long-term-rental") {
+      return {
+        badge: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 border-glow-emerald",
+        border: "border-white/5 hover:border-emerald-500/30",
+        btn: "bg-emerald-600 hover:bg-emerald-500 text-white"
+      };
+    }
+    if (type === "long-term-industry") {
+      return {
+        badge: "text-amber-400 bg-amber-500/10 border-amber-500/20 border-glow-gold",
+        border: "border-white/5 hover:border-amber-500/30",
+        btn: "bg-amber-600 hover:bg-amber-500 text-white"
+      };
+    }
+    return {
+      badge: "text-blue-400 bg-blue-500/10 border-blue-500/20 border-glow-blue",
+      border: "border-white/5 hover:border-blue-500/30",
+      btn: "bg-blue-600 hover:bg-blue-500 text-white"
+    };
+  };
 
   return (
     <div className="space-y-6">
       {/* Title block */}
       <div className="space-y-1">
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <Coins className="h-5 w-5 text-primary" /> Package Profit Distributions
+          <Coins className="h-5 w-5 text-primary animate-pulse" /> Package Profit Distributions
         </h2>
         <p className="text-xs text-muted-foreground">
-          Distribute investment yields manually and monitor automated payouts across all active portfolios.
+          Group active portfolios by parent package. Distribute yields in bulk or pay users individually.
         </p>
       </div>
 
@@ -191,20 +308,18 @@ export default function AdminProfitUpdate() {
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Active Packages */}
         <div className="bg-slate-900/30 border border-white/5 p-4 rounded-2xl backdrop-blur-xl flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
               Active Portfolios
             </span>
-            <p className="text-xl font-bold text-foreground">{totalPackages}</p>
+            <p className="text-xl font-bold text-foreground">{totalPortfolios}</p>
           </div>
           <div className="h-10 w-10 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center text-blue-400">
             <Layers className="h-5 w-5" />
           </div>
         </div>
 
-        {/* Total Profits */}
         <div className="bg-slate-900/30 border border-white/5 p-4 rounded-2xl backdrop-blur-xl flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
@@ -219,11 +334,10 @@ export default function AdminProfitUpdate() {
           </div>
         </div>
 
-        {/* Avg return */}
         <div className="bg-slate-900/30 border border-white/5 p-4 rounded-2xl backdrop-blur-xl flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-              Average Return / Package
+              Average Return / Portfolio
             </span>
             <p className="text-xl font-bold text-accent text-glow-gold">
               ${averagePayout.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -237,7 +351,6 @@ export default function AdminProfitUpdate() {
 
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/30 border border-white/5 p-4 rounded-2xl backdrop-blur-xl">
-        {/* Category Tabs */}
         <div className="flex flex-wrap gap-2">
           {["all", "trading", "long-term-rental", "long-term-industry"].map((category) => (
             <button
@@ -257,7 +370,6 @@ export default function AdminProfitUpdate() {
           ))}
         </div>
 
-        {/* Search */}
         <div className="relative w-full md:w-64">
           <input
             type="text"
@@ -270,136 +382,234 @@ export default function AdminProfitUpdate() {
         </div>
       </div>
 
-      {/* Cards Grid */}
+      {/* Grouped Packages Accordion List */}
       {loading ? (
         <div className="flex justify-center items-center py-20 text-sm text-muted-foreground animate-pulse">
-          Loading purchased portfolios...
+          <Loader2 className="h-5 w-5 animate-spin mr-2 text-primary" />
+          Loading package groups...
         </div>
-      ) : filteredPackages.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPackages.map((pkg) => {
-            const isRental = pkg.type === "long-term-rental";
-            const isIndustry = pkg.type === "long-term-industry";
-            const isTrading = pkg.type === "trading";
-
-            // Card highlight and styling
-            let cardStyle = "border-white/5 hover:border-blue-500/30 hover:shadow-blue-500/5";
-            let typeLabel = "Trading";
-            let typeColor = "text-blue-400 bg-blue-500/10 border-blue-500/20";
-            let yieldInfo = "";
-
-            if (isRental) {
-              cardStyle = "border-white/5 hover:border-emerald-500/30 hover:shadow-emerald-500/5";
-              typeLabel = "Rental";
-              typeColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 border-glow-emerald";
-              yieldInfo = pkg.returnPercentage ? `${pkg.returnPercentage}% Fixed Return` : "";
-            } else if (isIndustry) {
-              cardStyle = "border-white/5 hover:border-amber-500/30 hover:shadow-amber-500/5";
-              typeLabel = "Industry";
-              typeColor = "text-accent bg-amber-500/10 border-amber-500/20 border-glow-gold";
-              yieldInfo = pkg.estimatedReturn ? `Est: ${pkg.estimatedReturn}` : "";
-            } else if (isTrading) {
-              yieldInfo = pkg.returnPercentage ? `${pkg.returnPercentage}% Yield` : (pkg.profitEstimation || "");
-            }
-
-            const firstLetter = pkg.user?.email ? pkg.user.email.charAt(0).toUpperCase() : "U";
+      ) : groupedPackages.length > 0 ? (
+        <div className="space-y-4">
+          {groupedPackages.map((group) => {
+            const groupKey = group.packageId || group.name;
+            const isExpanded = !!expandedPackages[groupKey];
+            const theme = getPackageTypeStyles(group.type);
+            
+            const groupVal = bulkValues[groupKey] || "";
+            const groupMode = bulkModes[groupKey] || "fixed";
+            const loadingBulk = !!submittingBulk[groupKey];
 
             return (
-              <div
-                key={pkg._id}
-                className={`bg-slate-900/40 border rounded-2xl backdrop-blur-xl p-5 hover:scale-[1.02] transition-all duration-300 flex flex-col justify-between space-y-4 shadow-xl group ${cardStyle}`}
+              <div 
+                key={groupKey}
+                className={`bg-slate-900/40 border border-white/5 rounded-2xl overflow-hidden shadow-xl transition-all duration-300`}
               >
-                {/* Header User details */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center font-bold text-sm text-primary shrink-0">
-                      {firstLetter}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground truncate max-w-[125px]" title={pkg.user?.email}>
-                        {pkg.user?.email || "N/A"}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground truncate">
-                        {pkg.user?.name || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-lg border text-[9px] font-bold tracking-wide uppercase shrink-0 ${typeColor}`}>
-                    {typeLabel}
-                  </span>
-                </div>
-
-                {/* Package details */}
-                <div className="bg-white/3 p-3 rounded-xl border border-white/5 space-y-2">
-                  <div className="flex justify-between items-center text-xs gap-2">
-                    <span className="font-extrabold text-foreground truncate">{pkg.name}</span>
-                    <span className="text-[9px] text-muted-foreground capitalize bg-white/5 px-2 py-0.5 rounded-md shrink-0">
-                      {pkg.category}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-[10px] text-muted-foreground">
-                    <div>
-                      <span className="block text-[8px] uppercase tracking-wider">Holding Period</span>
-                      <span className="font-semibold text-foreground">
-                        {pkg.minHoldingPeriod ? `${pkg.minHoldingPeriod} ${pkg.minHoldingPeriodUnit}` : "N/A"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="block text-[8px] uppercase tracking-wider">Return Model</span>
-                      <span className="font-semibold text-foreground truncate block">
-                        {yieldInfo || "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Units & profit stats grid */}
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="bg-white/3 p-2.5 rounded-xl border border-white/5 space-y-1">
-                    <span className="text-[9px] text-muted-foreground uppercase flex items-center gap-1">
-                      <Layers className="h-3 w-3" /> Units
-                    </span>
-                    <p className="font-bold text-foreground">
-                      {pkg.equityUnits || pkg.quantity || 0} Units
-                    </p>
-                  </div>
-                  <div className="bg-white/3 p-2.5 rounded-xl border border-white/5 space-y-1">
-                    <span className="text-[9px] text-muted-foreground uppercase flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" /> Profit Paid
-                    </span>
-                    <p className="font-bold text-emerald-400 text-glow-emerald">
-                      ${(pkg.profitAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Timestamps */}
-                <div className="text-[10px] text-muted-foreground space-y-1 bg-white/3 p-2.5 rounded-xl border border-white/5">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span>Purchased: {new Date(pkg.purchaseDate).toLocaleDateString()}</span>
-                  </div>
-                  {pkg.lastProfitDate && (
-                    <div className="flex items-center gap-1.5">
-                      <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
-                      <span>Last Payout: {new Date(pkg.lastProfitDate).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Trigger Yield payout */}
-                <button
-                  onClick={() => {
-                    setSelectedPackage(pkg);
-                    setError(null);
-                    setSuccessMessage(null);
-                  }}
-                  className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-90 active:scale-[0.98] text-white text-xs font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5"
+                {/* Header panel */}
+                <div 
+                  onClick={() => toggleExpand(groupKey)}
+                  className="p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.01] transition-colors"
                 >
-                  <Coins className="h-3.5 w-3.5" />
-                  <span>Payout Yield</span>
-                </button>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-10 w-10 bg-white/5 border border-white/5 rounded-xl flex items-center justify-center text-primary shrink-0">
+                      <Award className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-foreground text-sm truncate">{group.name}</span>
+                        <span className={`px-2 py-0.5 rounded-lg border text-[8px] font-bold tracking-wide uppercase shrink-0 ${theme.badge}`}>
+                          {group.type.replace("long-term-", "")}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Category: {group.category}</p>
+                    </div>
+                  </div>
+
+                  {/* Group Stats */}
+                  <div className="flex items-center gap-6 text-xs text-muted-foreground border-t border-white/5 lg:border-t-0 pt-3 lg:pt-0 w-full lg:w-auto">
+                    <div className="space-y-0.5">
+                      <span className="text-[8px] uppercase tracking-wider block">Active Buyers</span>
+                      <span className="font-semibold text-foreground flex items-center gap-1">
+                        <Users className="h-3.5 w-3.5 text-blue-400" /> {group.totalActiveBuyers}
+                      </span>
+                    </div>
+
+                    <div className="space-y-0.5">
+                      <span className="text-[8px] uppercase tracking-wider block">Total Held Units</span>
+                      <span className="font-semibold text-foreground flex items-center gap-1">
+                        <Layers className="h-3.5 w-3.5 text-purple-400" /> {group.totalUnits}
+                      </span>
+                    </div>
+
+                    <div className="space-y-0.5">
+                      <span className="text-[8px] uppercase tracking-wider block">Total Yield Distributed</span>
+                      <span className="font-bold text-emerald-400 text-glow-emerald flex items-center gap-0.5">
+                        <DollarSign className="h-3.5 w-3.5 text-emerald-400" /> {(group.totalProfitDistributed * pricePerUnit).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bulk Distribution Form inside Header */}
+                  <div 
+                    onClick={(e) => e.stopPropagation()} 
+                    className="flex flex-wrap items-center gap-2 bg-white/5 border border-white/5 p-2 rounded-xl w-full lg:w-auto"
+                  >
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="Bulk amount"
+                        value={groupVal}
+                        onChange={(ev) => setBulkValues(prev => ({ ...prev, [groupKey]: ev.target.value }))}
+                        className="h-8 w-24 bg-slate-950/50 border-white/10 text-xs rounded-lg text-slate-100"
+                        min="0.01"
+                      />
+                      <select
+                        value={groupMode}
+                        onChange={(ev) => setBulkModes(prev => ({ ...prev, [groupKey]: ev.target.value as "fixed" | "percentage" }))}
+                        className="h-8 px-1 py-0 bg-slate-950/50 border border-white/10 rounded-lg text-[10px] text-slate-100 focus:outline-none cursor-pointer"
+                      >
+                        <option value="fixed">Fixed ($)</option>
+                        <option value="percentage">Percentage (%)</option>
+                      </select>
+                    </div>
+
+                    <Button
+                      disabled={loadingBulk || !groupVal || Number(groupVal) <= 0}
+                      onClick={() => handleDistribution({
+                        payoutType: "bulk",
+                        mode: groupMode,
+                        value: Number(groupVal),
+                        originalPackageId: group.packageId || undefined,
+                        groupKey
+                      })}
+                      className={`h-8 px-3 text-[10px] font-bold rounded-lg transition-all duration-300 flex items-center gap-1 cursor-pointer ${theme.btn}`}
+                    >
+                      {loadingBulk ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Send className="h-3 w-3" />
+                      )}
+                      <span>Pay All</span>
+                    </Button>
+                    
+                    {/* Accordion arrow indicator */}
+                    <div 
+                      onClick={() => toggleExpand(groupKey)}
+                      className="p-1 rounded hover:bg-white/5 ml-2 cursor-pointer hidden lg:block"
+                    >
+                      {isExpanded ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expanded Buyers List */}
+                {isExpanded && (
+                  <div className="border-t border-white/5 bg-slate-950/20 p-5 space-y-4">
+                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Users className="h-4 w-4" /> Active Buyers List
+                    </h3>
+
+                    <div className="overflow-x-auto rounded-xl border border-white/5">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-white/5 bg-white/5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                            <th className="py-3 px-4">Buyer details</th>
+                            <th className="py-3 px-4">Purchase Date</th>
+                            <th className="py-3 px-4">Portfolios Held</th>
+                            <th className="py-3 px-4">Accumulated Yield</th>
+                            <th className="py-3 px-4">Last Payout Date</th>
+                            <th className="py-3 px-4 text-right">Individual Distribution</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5 text-xs text-slate-200">
+                          {group.portfolios.map((portfolio) => {
+                            const portVal = indivValues[portfolio._id] || "";
+                            const portMode = indivModes[portfolio._id] || "fixed";
+                            const loadingIndiv = !!submittingIndiv[portfolio._id];
+
+                            return (
+                              <tr key={portfolio._id} className="hover:bg-white/[0.01] transition-colors">
+                                <td className="py-3.5 px-4">
+                                  <div className="flex items-center gap-2">
+                                    <div className="font-semibold text-slate-200">{portfolio.user?.name || "N/A"}</div>
+                                    {portfolio.status === "sell-requested" && (
+                                      <span className="px-1.5 py-0.5 text-[9px] font-medium rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                        Pending Resale
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground font-mono">{portfolio.user?.email || "N/A"}</div>
+                                </td>
+                                <td className="py-3.5 px-4 text-slate-400 font-mono text-[10px]">
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3 text-slate-500" />
+                                    {new Date(portfolio.purchaseDate).toLocaleDateString()}
+                                  </div>
+                                </td>
+                                <td className="py-3.5 px-4 font-semibold text-slate-300 font-mono">
+                                  {portfolio.quantity || 0} Units
+                                </td>
+                                <td className="py-3.5 px-4 font-bold text-emerald-400 text-glow-emerald">
+                                  ${(portfolio.profitAmount * pricePerUnit).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                </td>
+                                <td className="py-3.5 px-4 text-slate-400 font-mono text-[10px]">
+                                  {portfolio.lastProfitDate ? (
+                                    <div className="flex items-center gap-1 text-emerald-400/80">
+                                      <TrendingUp className="h-3 w-3 text-emerald-400" />
+                                      {new Date(portfolio.lastProfitDate).toLocaleDateString()}
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-500">None</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 text-right">
+                                  <div className="inline-flex items-center gap-1.5 bg-slate-900/50 p-1 rounded-lg border border-white/5">
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      placeholder="Yield amount"
+                                      value={portVal}
+                                      onChange={(ev) => setIndivValues(prev => ({ ...prev, [portfolio._id]: ev.target.value }))}
+                                      className="h-7 w-24 bg-slate-950 border-white/10 text-[10px] rounded-md text-slate-100"
+                                      min="0.01"
+                                      disabled={portfolio.status !== "active"}
+                                    />
+                                    <select
+                                      value={portMode}
+                                      onChange={(ev) => setIndivModes(prev => ({ ...prev, [portfolio._id]: ev.target.value as "fixed" | "percentage" }))}
+                                      className="h-7 px-1 py-0 bg-slate-950 border border-white/10 rounded-md text-[9px] text-slate-100 focus:outline-none cursor-pointer"
+                                      disabled={portfolio.status !== "active"}
+                                    >
+                                      <option value="fixed">Fixed ($)</option>
+                                      <option value="percentage">Percentage (%)</option>
+                                    </select>
+                                    <Button
+                                      disabled={loadingIndiv || !portVal || Number(portVal) <= 0 || portfolio.status !== "active"}
+                                      onClick={() => handleDistribution({
+                                        payoutType: "individual",
+                                        mode: portMode,
+                                        value: Number(portVal),
+                                        purchasedPackageId: portfolio._id
+                                      })}
+                                      className="h-7 px-2.5 text-[9px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-md flex items-center gap-1 cursor-pointer"
+                                    >
+                                      {loadingIndiv ? (
+                                        <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                                      ) : (
+                                        <Send className="h-2.5 w-2.5" />
+                                      )}
+                                      <span>Pay</span>
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -408,105 +618,6 @@ export default function AdminProfitUpdate() {
         <div className="text-center py-12 text-sm text-muted-foreground bg-slate-900/10 border border-white/5 rounded-2xl">
           No portfolios found matching active filters.
         </div>
-      )}
-
-      {/* Payout Dialog */}
-      {selectedPackage && (
-        <Dialog
-          open={!!selectedPackage}
-          onOpenChange={(open) => {
-            if (!open) setSelectedPackage(null);
-          }}
-        >
-          <DialogContent className="bg-slate-900 border border-white/10 text-slate-100 max-w-md rounded-2xl backdrop-blur-xl">
-            <DialogHeader>
-              <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground pb-2 border-b border-white/5">
-                Distribute Investment Yield
-              </DialogTitle>
-            </DialogHeader>
-
-            {/* Spec grid */}
-            <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 text-xs mt-2">
-              <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
-                  <Award className="h-3 w-3" /> Package Name
-                </span>
-                <p className="font-bold text-foreground truncate">{selectedPackage.name}</p>
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
-                  <Percent className="h-3 w-3" /> Type
-                </span>
-                <div>
-                  <span className={`px-2 py-0.5 rounded-lg border text-[9px] font-bold tracking-wide uppercase inline-block ${
-                    selectedPackage.type === "trading" ? "text-blue-400 bg-blue-500/10 border-blue-500/20"
-                    : selectedPackage.type === "long-term-rental" ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                    : "text-accent bg-amber-500/10 border-amber-500/20"
-                  }`}>
-                    {selectedPackage.type === "trading" ? "Trading" : selectedPackage.type === "long-term-rental" ? "Rental" : "Industry"}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
-                  <Wallet className="h-3 w-3" /> Owner Email
-                </span>
-                <p className="font-bold text-foreground truncate" title={selectedPackage.user?.email}>
-                  {selectedPackage.user?.email || "N/A"}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" /> Profit Paid So Far
-                </span>
-                <p className="font-bold text-emerald-400 text-glow-emerald">
-                  ${(selectedPackage.profitAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="profitAmount" className="text-xs font-bold text-muted-foreground">
-                  Distribution Amount ($)
-                </Label>
-                <Input
-                  id="profitAmount"
-                  type="number"
-                  step="0.01"
-                  value={profitAmount}
-                  onChange={(e) =>
-                    setProfitAmount(e.target.value === "" ? "" : Number(e.target.value))
-                  }
-                  className="w-full bg-white/5 border-white/10 rounded-xl text-xs text-foreground focus:border-primary/50 mt-1"
-                  placeholder="Enter payout amount, e.g. 150.00"
-                  min="0.01"
-                  required
-                />
-              </div>
-
-              <div className="text-[10px] text-muted-foreground leading-relaxed bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
-                {"⚠️ System Note: Submitting this distribution will instantly increment this package's profit statistics, credit the user's wallet liquid balance, and log a permanent ledger transaction."}
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <Button
-                  type="button"
-                  onClick={() => setSelectedPackage(null)}
-                  className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-foreground text-xs rounded-xl"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-90 text-white font-bold text-xs rounded-xl"
-                >
-                  Submit Payout
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
       )}
     </div>
   );

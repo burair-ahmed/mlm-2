@@ -51,6 +51,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: `Cannot sell a package that is currently ${purchasedPackage.status}` }, { status: 400 });
     }
 
+    if (purchasedPackage.profitAmount > 0) {
+      return NextResponse.json({ success: false, message: "Please withdraw your accrued yields/profits before requesting resale." }, { status: 400 });
+    }
+
     // Determine holding period eligibility
     let minHoldingPeriod = 0;
     let minHoldingPeriodUnit = "days";

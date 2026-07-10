@@ -5,19 +5,17 @@ import { authenticate } from '../../../../../middleware/auth';
 
 export async function POST(req: NextRequest) {
   try {
-    // Read request body
-    const body = await req.json();
-    console.log("Received package data:", body);
-
-    // Authenticate user
+    // Authenticate user first
     const auth = await authenticate(req);
+    if (auth instanceof NextResponse) return auth;
     if (!auth || !auth.isAdmin) {
-      console.log("Unauthorized access attempt");
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Read request body
+    const body = await req.json();
+
     await dbConnect();
-    console.log("Connected to database");
 
     // Extract required fields
     const {
@@ -78,7 +76,6 @@ export async function POST(req: NextRequest) {
       depreciationModel: category === 'trading' ? depreciationModel : undefined,
     });
 
-    console.log("Equity package created:", equityPackage);
     return NextResponse.json(equityPackage);
   } catch (error) {
     console.error("Error creating equity package:", error);
@@ -94,6 +91,6 @@ export async function GET() {
     return NextResponse.json(packages, { status: 200 });
   } catch (error) {
     console.error("Error fetching equity packages:", error);
-    return NextResponse.json({ error: 'Failed to fetch packages', details: error }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch packages' }, { status: 500 });
   }
 }

@@ -11,6 +11,7 @@ import TradingPackage from "../../../../../../models/TradingPackage";
 
 import { authenticate } from "../../../../../../middleware/auth";
 import { hasPermission } from "../../../../../../lib/auth/permissionUtils";
+import { logAdminAction } from "../../../../../../lib/db/auditLog";
 import type { Model } from "mongoose";
 
 export async function POST(req: NextRequest) {
@@ -18,8 +19,7 @@ export async function POST(req: NextRequest) {
     const auth = await authenticate(req);
     if (auth instanceof NextResponse) return auth;
 
-    const allowed = (auth.isAdmin || auth.role === 'admin' || auth.role === 'Super Admin') ||
-      (await hasPermission(auth, "manage_purchased_packages")) ||
+    const allowed = (await hasPermission(auth, "manage_purchased_packages")) ||
       (await hasPermission(auth, "handle_resales"));
     if (!allowed) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -88,13 +88,17 @@ export async function POST(req: NextRequest) {
       if (PackageModel) {
         const originalPackage = await PackageModel.findById(purchasedPackage.packageId).session(session);
         if (originalPackage) {
-          originalPackage.availableUnits = (originalPackage.availableUnits || 0) + purchasedPackage.quantity;
+          originalPackage.availableUnits = Math.min(
+            originalPackage.totalUnits,
+            (originalPackage.availableUnits || 0) + purchasedPackage.quantity
+          );
           await originalPackage.save({ session });
         }
       }
 
       // 5. Update Purchased Package status to sold
       purchasedPackage.status = "sold";
+      purchasedPackage.profitAmount = 0;
       await purchasedPackage.save({ session });
 
       // 6. Create Resale Transaction Record
@@ -114,6 +118,16 @@ export async function POST(req: NextRequest) {
       await resaleTx.save({ session });
 
       // Commit
+      // Record audit log inside transaction
+      await logAdminAction({
+        adminId: auth._id,
+        action: 'approve_resale',
+        targetId: purchasedPackage._id,
+        targetModel: 'PurchasedPackage',
+        details: `Approved resale request of package ${purchasedPackage._id} (User: ${purchasedPackage.userId})`,
+        session
+      });
+
       await session.commitTransaction();
       session.endSession();
 

@@ -2,8 +2,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import updateRentalProfits from "../../../../../cron/updateRentalProfits";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
+  const cronSecret = req.headers.get('x-cron-secret') || req.nextUrl.searchParams.get('secret');
+  if (!process.env.CRON_SECRET || cronSecret !== process.env.CRON_SECRET) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     await updateRentalProfits();
     return NextResponse.json({ message: "Profits updated" });

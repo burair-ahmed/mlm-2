@@ -10,10 +10,7 @@ export async function hasPermission(user: any, requiredSlug: string): Promise<bo
   }
 
   if (!process.env.MONGODB_URI) {
-    if (user.customPermissions && Array.isArray(user.customPermissions)) {
-      return user.customPermissions.includes(requiredSlug);
-    }
-    return true;
+    return user.customPermissions?.includes(requiredSlug) ?? false;
   }
 
   // Load the full user with populated role.permissions if needed

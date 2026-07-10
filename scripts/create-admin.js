@@ -36,7 +36,7 @@ async function run() {
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
-    const hashedPassword = await bcrypt.hash('password123', 10);
+    const hashedPassword = await bcrypt.hash('password123', 12);
 
     // Update Burair@example.com password
     const admin = await User.findOne({ email: 'Burair@example.com' });

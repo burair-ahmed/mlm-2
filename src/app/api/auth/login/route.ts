@@ -3,55 +3,25 @@ import User from '../../../../../models/User';
 import dbConnect from '../../../../../lib/dbConnect';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../../../../../utils/auth';
+import { getClientIp, isRateLimited } from '../../../../../lib/auth/rateLimiter';
+
 export async function POST(request: NextRequest) {
-  const mockUser = {
-    _id: '60d0fe4f5311236168a109ca',
-    email: 'admin@example.com',
-    userName: 'admin',
-    fullName: 'Admin User',
-    role: 'admin',
-    isAdmin: true,
-    balance: 10000,
-    depositedBalance: 5000,
-    hierarchyLevel: 1,
-    commissionEarned: 500,
-    equityUnits: 100,
-    referralCode: 'ADMIN123',
-    referrals: [],
-    withdrawnProfits: 0,
-    kyc: {
-      status: 'approved',
-      fullName: 'Admin User'
-    },
-    customPermissions: [
-      "access_admin_dashboard",
-      "view_commissions",
-      "view_referrals",
-      "view_kyc",
-      "view_investments",
-      "convert_units",
-      "assign_roles",
-      "create_package",
-      "approve_kyc",
-      "handle_withdrawals",
-      "manage_roles",
-      "create_permission",
-      "profit_update",
-      "view_account",
-      "manage_settings",
-      "request_withdrawal",
-      "handle_deposits"
-    ]
-  };
+  const ip = getClientIp(request);
+  const rateLimitResult = isRateLimited(`login_${ip}`, 10, 60 * 1000); // 10 req/min
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again in a minute.' },
+      { status: 429 }
+    );
+  }
 
   try {
     const { email, password } = await request.json();
 
-    // Check if MongoDB is configured
     if (!process.env.MONGODB_URI) {
       return NextResponse.json(
-        { ...mockUser, email: email || 'admin@example.com', token: 'mock-jwt-token-value' },
-        { status: 200 }
+        { error: 'Database configuration missing' },
+        { status: 500 }
       );
     }
 
@@ -76,15 +46,25 @@ export async function POST(request: NextRequest) {
     const userData = user.toObject();
     delete userData.password;
 
-    return NextResponse.json(
-      { ...userData, token },
+    const response = NextResponse.json(
+      { ...userData },
       { status: 200 }
     );
+
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
-    console.error('Login error, using mock fallback:', error);
+    console.error('Login error:', error);
     return NextResponse.json(
-      { ...mockUser, token: 'mock-jwt-token-value' },
-      { status: 200 }
+      { error: 'Authentication failed' },
+      { status: 500 }
     );
   }
 }

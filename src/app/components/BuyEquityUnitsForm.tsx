@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
@@ -9,7 +9,24 @@ export default function BuyEquityUnitsForm() {
   const [units, setUnits] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const PRICE_PER_UNIT = 10; // $10 per equity unit
+  const [pricePerUnit, setPricePerUnit] = useState(10);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && typeof data.equityUnitPrice === 'number') {
+            setPricePerUnit(data.equityUnitPrice);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +66,7 @@ export default function BuyEquityUnitsForm() {
       <h3 className="text-xl font-extrabold text-foreground mb-6 flex items-center justify-between border-b border-white/5 pb-4">
         <span>{activeTab === 'buy' ? 'Convert Units to Equity' : 'Convert Equity back to Wallet'}</span>
         <span className="text-xs text-accent px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 font-semibold tracking-wide text-glow-gold">
-          ${PRICE_PER_UNIT}/Unit
+          ${pricePerUnit}/Unit
         </span>
       </h3>
 
@@ -111,7 +128,7 @@ export default function BuyEquityUnitsForm() {
                 {activeTab === 'buy' ? 'Total Cost' : 'Total Cash Return'}
               </span>
               <span className="text-lg font-extrabold text-accent text-glow-gold">
-                ${(Number(units) * PRICE_PER_UNIT).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                ${(Number(units) * pricePerUnit).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div>

@@ -22,8 +22,8 @@ export async function GET(req: NextRequest) {
     );
 
     return NextResponse.json({ kycRequests }, { status: 200 });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to fetch KYC requests', details: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('Failed to fetch pending KYC:', err);
+    return NextResponse.json({ error: 'Failed to fetch KYC requests' }, { status: 500 });
   }
 }

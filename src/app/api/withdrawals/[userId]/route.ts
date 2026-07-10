@@ -11,6 +11,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
 
   try {
     const { userId } = await params;
+
+    // Check if user is accessing their own data or is an admin
+    if (auth._id.toString() !== userId && !auth.isAdmin) {
+      return NextResponse.json(
+        { error: 'Forbidden: You do not have permission to view these withdrawals' },
+        { status: 403 }
+      );
+    }
+
     const withdrawals = await Withdrawal.find({ userId })
       .sort({ createdAt: -1 });
       

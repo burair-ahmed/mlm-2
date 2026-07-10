@@ -16,14 +16,12 @@ export async function POST(req: NextRequest) {
     // 1️⃣ Authenticate User
     const auth = await authenticate(req);
     if (auth instanceof NextResponse) return auth;
-    console.log("✅ Authenticated User:", auth._id);
 
     // 2️⃣ Connect to Database
     await dbConnect();
 
     // 3️⃣ Parse Request Data
     const { packageId, packageType, quantity } = await req.json();
-    console.log("📩 Request Data:", { packageId, packageType, quantity });
 
     // Validate Input
     if (!packageId || !packageType || !quantity || quantity <= 0) {
@@ -90,7 +88,7 @@ export async function POST(req: NextRequest) {
 
       // 1️⃣2️⃣ Update Purchased Package in User Schema
       const existingPackage = user.purchasedPackages.find(
-        (pkg: { packageId: mongoose.Types.ObjectId; totalUnits: number }) => pkg.packageId.toString() === packageId
+        (pkg: { packageId: mongoose.Types.ObjectId; packageType: string; totalUnits: number }) => pkg.packageId.toString() === packageId
       );
       
       if (existingPackage) {
@@ -98,6 +96,7 @@ export async function POST(req: NextRequest) {
       } else {
         user.purchasedPackages.push({
           packageId: selectedPackage._id,
+          packageType,
           totalUnits: quantity,
         });
       }
@@ -146,7 +145,6 @@ export async function POST(req: NextRequest) {
         link: '/user?tab=Active+Packages'
       });
 
-      console.log("✅ Purchase Successful!");
       return NextResponse.json({
         success: true,
         message: "Purchase successful",

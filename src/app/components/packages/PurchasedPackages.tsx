@@ -9,9 +9,20 @@ import {
   HelpCircle, 
   FolderCheck, 
   ArrowDownToLine,
-  Plus
+  Plus,
+  AlertTriangle
 } from "lucide-react";
 import { useAuth } from "../../../../context/AuthContext";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 type CommonFields = {
   _id: string;
@@ -83,6 +94,8 @@ const MyInvestments = () => {
   const { refreshUser } = useAuth();
   const [purchasedPackages, setPurchasedPackages] = useState<PurchasedPackage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sellConfirmPkg, setSellConfirmPkg] = useState<PurchasedPackage | null>(null);
+  const [submittingSell, setSubmittingSell] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
@@ -157,27 +170,17 @@ const MyInvestments = () => {
       // Refresh global user state to update withdrawnProfits and equityUnits cards on the dashboard
       await refreshUser();
 
-      alert("Profit withdrawn successfully!");
+      toast.success("Profit withdrawn successfully!");
     } catch (err) {
       console.error(err);
-      alert((err as Error).message);
+      toast.error((err as Error).message);
     }
   };
 
   const handleRequestSell = async (purchasedPackageId: string) => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
-    const targetPkg = purchasedPackages.find((pkg) => pkg._id === purchasedPackageId);
-    if (targetPkg && targetPkg.profitAmount > 0) {
-      alert("You have accrued yields/profits in this package. Please withdraw your yields/profits first before requesting resale.");
-      return;
-    }
-
-    if (!confirm("Are you sure you want to request to sell this package? Once submitted, the package cannot be sold or have its yields withdrawn until approved/rejected by an admin.")) {
-      return;
-    }
-
+    setSubmittingSell(true);
     try {
       const response = await fetch("/api/transactions/request-sell", {
         method: "POST",
@@ -191,7 +194,7 @@ const MyInvestments = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Failed to submit resale request");
 
-      alert("Resale request submitted successfully!");
+      toast.success("Resale request submitted successfully!");
       setPurchasedPackages((prev) =>
         prev.map((pkg) =>
           pkg._id === purchasedPackageId ? { ...pkg, status: "sell-requested" } : pkg
@@ -199,8 +202,19 @@ const MyInvestments = () => {
       );
     } catch (err) {
       console.error(err);
-      alert((err as Error).message);
+      toast.error((err as Error).message);
+    } finally {
+      setSubmittingSell(false);
+      setSellConfirmPkg(null);
     }
+  };
+
+  const openSellConfirm = (pkg: PurchasedPackage) => {
+    if (pkg.profitAmount > 0) {
+      toast.warning("Please withdraw your accrued yield/profits first before requesting resale.");
+      return;
+    }
+    setSellConfirmPkg(pkg);
   };
 
   return (
@@ -398,7 +412,7 @@ const MyInvestments = () => {
                     ) : (
                       <button
                         disabled={!isEligibleToSell}
-                        onClick={() => handleRequestSell(pkg._id)}
+                        onClick={() => openSellConfirm(pkg)}
                         className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-[10px] font-bold border transition-all duration-300 ${
                           isEligibleToSell
                             ? "bg-gradient-to-r from-primary to-primary-foreground text-white border-primary/20 hover:opacity-90 active:scale-[0.98] shadow-lg shadow-primary/25"
@@ -422,6 +436,42 @@ const MyInvestments = () => {
           })}
         </div>
       )}
+
+      {/* ── Sell Confirmation Dialog ── */}
+      <Dialog open={sellConfirmPkg !== null} onOpenChange={() => setSellConfirmPkg(null)}>
+        <DialogContent className="bg-slate-950 border border-white/10 rounded-2xl text-slate-100 max-w-md">
+          <DialogHeader className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-5 w-5 text-amber-400" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-white">Request Package Resale?</DialogTitle>
+                <p className="text-[11px] text-slate-400 mt-0.5">{sellConfirmPkg?.name}</p>
+              </div>
+            </div>
+            <DialogDescription className="text-slate-400 text-xs leading-relaxed bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-3">
+              ⚠️ Once submitted, this package will be <strong className="text-white">locked</strong> — you will not be able to sell it or withdraw yields until the request is <strong className="text-emerald-400">approved</strong> or <strong className="text-rose-400">rejected</strong> by an admin.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setSellConfirmPkg(null)}
+              className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-xl text-xs font-bold"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={submittingSell}
+              onClick={() => sellConfirmPkg && handleRequestSell(sellConfirmPkg._id)}
+              className="flex-1 bg-gradient-to-r from-primary to-primary-foreground hover:opacity-90 text-white font-bold rounded-xl text-xs shadow-lg shadow-primary/20 active:scale-[0.98]"
+            >
+              {submittingSell ? "Submitting..." : "Yes, Request Sell"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

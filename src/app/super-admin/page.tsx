@@ -56,6 +56,22 @@ export default function SuperAdminAuditDashboard() {
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [settingsError, setSettingsError] = useState('');
 
+  // Lock/Unlock state for equity price editor
+  const [settingsLocked, setSettingsLocked] = useState(true);
+  const [lockPasswordInput, setLockPasswordInput] = useState('');
+  const [lockError, setLockError] = useState('');
+  const SETTINGS_LOCK_PASSWORD = process.env.NEXT_PUBLIC_SETTINGS_LOCK_PASSWORD || 'superadmin123';
+
+  const handleUnlockSettings = () => {
+    if (lockPasswordInput === SETTINGS_LOCK_PASSWORD) {
+      setSettingsLocked(false);
+      setLockError('');
+      setLockPasswordInput('');
+    } else {
+      setLockError('Incorrect password. Please try again.');
+    }
+  };
+
   // Fetch current settings on mount
   useEffect(() => {
     const fetchSettings = async () => {
@@ -289,43 +305,139 @@ export default function SuperAdminAuditDashboard() {
           </div>
         </div>
 
-        {/* System Settings Card */}
-        <div className="p-6 rounded-2xl border border-white/5 bg-slate-900/30 backdrop-blur-md shadow-lg">
-          <div className="flex items-center gap-2 mb-4 text-yellow-400">
-            <Database className="h-5 w-5 text-yellow-400" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-white">System Configuration</h3>
-          </div>
-          <form onSubmit={handleUpdateSettings} className="flex flex-col sm:flex-row items-end gap-4 max-w-xl">
-            <div className="flex-1 w-full space-y-1.5">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Equity Unit Price (USD)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={equityUnitPriceInput}
-                onChange={(e) => setEquityUnitPriceInput(e.target.value)}
-                placeholder="e.g. 10.00"
-                className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-slate-950/50 text-sm text-slate-200 focus:outline-none focus:border-yellow-500/50 transition-all duration-300"
-                required
-              />
+        {/* Equity Unit Price Card */}
+        <div className="rounded-2xl border border-white/5 bg-slate-900/30 backdrop-blur-md shadow-lg overflow-hidden">
+
+          {/* Card header — no generic title, just context + lock status */}
+          <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                  <circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2M9.17 9.17A4 4 0 0115 12a4 4 0 01-5.83 3.54M6.34 6.34l11.32 11.32"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white leading-tight">Equity Unit Price</p>
+                <p className="text-[11px] text-slate-400 mt-0.5 leading-snug max-w-xs">
+                  Sets the USD value of 1 equity unit. Affects profit distribution, buy/sell conversions, and all USD valuations across the platform.
+                </p>
+              </div>
             </div>
-            <button
-              type="submit"
-              disabled={updatingSettings}
-              className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-yellow-500/20 to-yellow-600/10 border border-yellow-500/30 text-yellow-400 hover:text-white hover:bg-yellow-500 rounded-xl text-xs font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {updatingSettings ? 'Saving...' : 'Save Settings'}
-            </button>
-          </form>
-          {settingsSuccess && (
-            <p className="mt-3 text-xs font-semibold text-emerald-400">{settingsSuccess}</p>
-          )}
-          {settingsError && (
-            <p className="mt-3 text-xs font-semibold text-red-400">{settingsError}</p>
-          )}
+            {/* Current value pill + lock badge */}
+            <div className="flex flex-col items-end gap-1.5 shrink-0 ml-4">
+              <div className="px-3 py-1 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-sm font-bold tabular-nums">
+                ${equityUnitPriceInput || '—'} <span className="text-yellow-500/60 font-normal text-xs">/ unit</span>
+              </div>
+              {!settingsLocked ? (
+                <button
+                  onClick={() => { setSettingsLocked(true); setSettingsSuccess(''); setSettingsError(''); setLockError(''); }}
+                  className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-red-400 transition-colors duration-200"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  Re-lock
+                </button>
+              ) : (
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400/60">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  Read-only
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Card body — relative wrapper so overlay stays inside */}
+          <div className="relative">
+
+            {/* ── Real edit form — always rendered, blurred when locked ── */}
+            <div className={`px-6 py-5 transition-all duration-500 ${settingsLocked ? 'opacity-20 blur-sm pointer-events-none select-none' : 'opacity-100'}`}>
+              <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                Editing unlocked — changes apply platform-wide immediately
+              </div>
+              <form onSubmit={handleUpdateSettings} className="flex flex-col sm:flex-row items-end gap-4 max-w-xl">
+                <div className="flex-1 w-full space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    New Price per Equity Unit (USD)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={equityUnitPriceInput}
+                    onChange={(e) => setEquityUnitPriceInput(e.target.value)}
+                    placeholder="e.g. 10.00"
+                    className="w-full px-4 py-2.5 rounded-xl border border-emerald-500/30 bg-slate-950/50 text-sm text-slate-200 focus:outline-none focus:border-yellow-500/50 transition-all duration-300 ring-1 ring-emerald-500/10"
+                    required
+                    autoFocus={!settingsLocked}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={updatingSettings}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-yellow-500/20 to-yellow-600/10 border border-yellow-500/30 text-yellow-400 hover:text-white hover:bg-yellow-500 rounded-xl text-xs font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updatingSettings ? 'Saving...' : 'Save Changes'}
+                </button>
+              </form>
+              {settingsSuccess && <p className="mt-3 text-xs font-semibold text-emerald-400">{settingsSuccess}</p>}
+              {settingsError && <p className="mt-3 text-xs font-semibold text-red-400">{settingsError}</p>}
+            </div>
+
+            {/* ── Frosted lock overlay — horizontal row, stays inside card ── */}
+            {settingsLocked && (
+              <div className="absolute inset-0 flex items-center px-6"
+                style={{ background: 'linear-gradient(135deg, rgba(15,23,42,0.88) 0%, rgba(15,23,42,0.78) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+              >
+                <div className="w-full flex flex-col sm:flex-row items-center gap-3">
+
+                  {/* Context label */}
+                  <div className="hidden sm:flex items-center gap-2 shrink-0">
+                    <div className="h-8 w-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">Equity Unit Price</p>
+                      <p className="text-[10px] text-slate-400">Enter password to modify</p>
+                    </div>
+                  </div>
+
+                  <div className="hidden sm:block h-7 w-px bg-white/8 shrink-0" />
+
+                  {/* Password field */}
+                  <div className="flex-1 w-full">
+                    <div className="relative">
+                      <input
+                        type="password"
+                        value={lockPasswordInput}
+                        onChange={(e) => { setLockPasswordInput(e.target.value); setLockError(''); }}
+                        onKeyDown={(e) => e.key === 'Enter' && handleUnlockSettings()}
+                        placeholder="Admin password to unlock editing..."
+                        className="w-full px-4 py-2.5 pr-10 rounded-xl border border-amber-500/20 bg-slate-950/70 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/15 transition-all duration-300"
+                        autoFocus
+                      />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="absolute right-3 top-2.5 h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    {lockError && <p className="mt-1 text-[11px] font-semibold text-red-400">{lockError}</p>}
+                  </div>
+
+                  {/* Unlock CTA */}
+                  <button
+                    type="button"
+                    onClick={handleUnlockSettings}
+                    className="shrink-0 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-900 text-xs font-bold tracking-wide transition-all duration-200 shadow-md shadow-amber-500/20 hover:shadow-amber-500/35 active:scale-95 whitespace-nowrap"
+                  >
+                    Unlock to Edit
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+
 
         {/* Filters and Controls */}
         <div className="p-6 rounded-2xl border border-white/5 bg-slate-900/30 backdrop-blur-md shadow-lg space-y-4">

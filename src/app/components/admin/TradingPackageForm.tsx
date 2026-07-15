@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 interface TradingPackageFormData {
     name: string;
@@ -66,12 +67,12 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
       if (!response.ok) throw new Error("Failed to save package");
 
-      alert("Package created successfully!");
+      toast.success("Package created successfully!");
       reset();
       setImage(""); 
     } catch (error) {
       console.error("Submission error:", error);
-      alert("Error creating package");
+      toast.error("Error creating package");
     } finally {
       setLoading(false);
     }

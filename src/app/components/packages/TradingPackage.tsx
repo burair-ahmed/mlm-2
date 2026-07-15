@@ -189,6 +189,8 @@ export default function TradingPackage() {
                   <div className="space-y-0.5 pl-4 border-l border-white/5">
                     <p className="text-[10px] font-medium text-muted-foreground uppercase">Return Rate</p>
                     <p className="text-base font-bold text-primary text-glow-emerald">+{pkg.returnPercentage}%</p>
+                                        <p className="text-[7px] font-medium text-muted-foreground uppercase">Approx</p>
+
                   </div>
                 </div>
 

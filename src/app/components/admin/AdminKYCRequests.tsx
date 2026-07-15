@@ -37,7 +37,7 @@ export default function AdminKYCRequests() {
   const fetchKYCs = async () => {
     setLoading(true);
     try {
-        if (!user?.isAdmin) return;
+        if (!user?.isAdmin && user?.role !== 'admin' && user?.role !== 'Super Admin') return;
 
       const res = await fetch('/api/admin/kyc/pending' ,{
         headers: {

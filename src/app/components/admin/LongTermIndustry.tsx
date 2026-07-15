@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 // import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 
@@ -67,12 +68,12 @@ interface LongTermIndustryFormData {
   
         if (!response.ok) throw new Error("Failed to save industry package");
   
-        alert("Industry Package created successfully!");
+        toast.success("Industry Package created successfully!");
         reset();
         setImage(""); 
       } catch (error) {
         console.error(error);
-        alert("Error creating industry package");
+        toast.error("Error creating industry package");
       } finally {
         setLoading(false);
       }

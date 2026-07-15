@@ -13,7 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RefreshCw, Check, X, ClipboardList } from "lucide-react";
+import { RefreshCw, Check, X, ClipboardList, AlertTriangle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface ResaleRequest {
   _id: string;
@@ -34,6 +42,13 @@ interface ResaleRequest {
 export default function AdminResaleRequests() {
   const [requests, setRequests] = useState<ResaleRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmAction, setConfirmAction] = useState<{
+    id: string;
+    type: "approve" | "reject";
+    userName: string;
+    packageName: string;
+    refundAmount: number;
+  } | null>(null);
   const [actioningId, setActioningId] = useState<string | null>(null);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -61,9 +76,6 @@ export default function AdminResaleRequests() {
   }, []);
 
   const handleApprove = async (id: string) => {
-    if (!confirm("Are you sure you want to APPROVE this resale request? This will refund equity units back to the user and reclaim the package units.")) {
-      return;
-    }
     setActioningId(id);
     try {
       const res = await axios.post("/api/admin/resale-requests/approve", { purchasedPackageId: id }, { headers });
@@ -73,19 +85,20 @@ export default function AdminResaleRequests() {
       } else {
         toast.error(res.data.message || "Failed to approve resale");
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to approve resale");
+      if (axios.isAxiosError(err)) {
+        toast.error(err.response?.data?.message || "Failed to approve resale");
+      } else {
+        toast.error("Failed to approve resale");
+      }
     } finally {
       setActioningId(null);
+      setConfirmAction(null);
     }
   };
 
   const handleReject = async (id: string) => {
-    if (!confirm("Are you sure you want to REJECT this resale request? The package will remain active for the user.")) {
-      return;
-    }
     setActioningId(id);
     try {
       const res = await axios.post("/api/admin/resale-requests/reject", { purchasedPackageId: id }, { headers });
@@ -95,12 +108,16 @@ export default function AdminResaleRequests() {
       } else {
         toast.error(res.data.message || "Failed to reject resale");
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to reject resale");
+      if (axios.isAxiosError(err)) {
+        toast.error(err.response?.data?.message || "Failed to reject resale");
+      } else {
+        toast.error("Failed to reject resale");
+      }
     } finally {
       setActioningId(null);
+      setConfirmAction(null);
     }
   };
 
@@ -173,7 +190,13 @@ export default function AdminResaleRequests() {
                       <Button
                         size="sm"
                         disabled={actioningId !== null}
-                        onClick={() => handleApprove(req._id)}
+                        onClick={() => setConfirmAction({
+                          id: req._id,
+                          type: "approve",
+                          userName: req.user?.name || "N/A",
+                          packageName: req.name,
+                          refundAmount: req.equityUnits
+                        })}
                         className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-xs flex items-center gap-1"
                       >
                         <Check className="h-3.5 w-3.5" />
@@ -183,7 +206,13 @@ export default function AdminResaleRequests() {
                         size="sm"
                         variant="destructive"
                         disabled={actioningId !== null}
-                        onClick={() => handleReject(req._id)}
+                        onClick={() => setConfirmAction({
+                          id: req._id,
+                          type: "reject",
+                          userName: req.user?.name || "N/A",
+                          packageName: req.name,
+                          refundAmount: req.equityUnits
+                        })}
                         className="font-semibold rounded-xl text-xs flex items-center gap-1"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -197,6 +226,63 @@ export default function AdminResaleRequests() {
           </Table>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmAction !== null} onOpenChange={() => setConfirmAction(null)}>
+        <DialogContent className="bg-slate-950 border border-white/10 rounded-2xl text-slate-100 max-w-md">
+          <DialogHeader className="space-y-3">
+            <div className="flex items-center gap-2 text-amber-500">
+              <AlertTriangle className="h-5 w-5 text-amber-400" />
+              <DialogTitle className="text-lg font-bold text-white uppercase tracking-wider">
+                {confirmAction?.type === "approve" ? "Confirm Resale Approval" : "Confirm Resale Rejection"}
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-slate-400 text-xs leading-relaxed">
+              {confirmAction?.type === "approve" ? (
+                <>
+                  Are you sure you want to <strong className="text-emerald-400">APPROVE</strong> this resale request?
+                  This will refund <strong className="text-white">{confirmAction.refundAmount} Equity Units</strong> to{" "}
+                  <strong className="text-white">{confirmAction.userName}</strong> and reclaim the package units for{" "}
+                  <span className="text-amber-400">&ldquo;{confirmAction.packageName}&rdquo;</span>.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to <strong className="text-rose-400">REJECT</strong> this resale request?
+                  The package will remain active for <strong className="text-white">{confirmAction?.userName}</strong>.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-6 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmAction(null)}
+              className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-xl text-xs font-bold"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (confirmAction) {
+                  if (confirmAction.type === "approve") {
+                    handleApprove(confirmAction.id);
+                  } else {
+                    handleReject(confirmAction.id);
+                  }
+                }
+              }}
+              disabled={actioningId !== null}
+              className={`flex-1 font-bold rounded-xl text-xs ${
+                confirmAction?.type === "approve"
+                  ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                  : "bg-rose-600 hover:bg-rose-500 text-white"
+              }`}
+            >
+              {actioningId ? "Processing..." : confirmAction?.type === "approve" ? "Approve Resale" : "Reject Resale"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

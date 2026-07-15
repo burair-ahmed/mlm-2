@@ -115,7 +115,8 @@ export default function AdminDepositRequests() {
     ? requests
     : requests.filter((r) => r.status === selectedStatus);
 
-  if (!user?.isAdmin) {
+  const isAuthorized = user?.isAdmin || user?.role === 'admin' || user?.role === 'Super Admin';
+  if (!isAuthorized) {
     return <div className="text-center py-8 text-red-400">Unauthorized Access</div>;
   }
 

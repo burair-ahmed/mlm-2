@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 interface ShortTermPackageFormData {
   name: string;
@@ -54,11 +55,11 @@ const ShortTermPackageForm = () => {
         throw new Error("Failed to save package");
       }
   
-      alert("Package created successfully!");
+      toast.success("Package created successfully!");
       reset();
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Error creating package");
+      toast.error("Error creating package");
     } finally {
       setLoading(false);
     }
